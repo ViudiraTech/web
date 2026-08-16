@@ -340,4 +340,19 @@ if (vite.includes('rollupOptions') || vite.includes('projects.html')) {
   process.exit(1);
 }
 
+
+// Production builds must remain location-independent. A hard-coded `/web/`
+// base works on the default GitHub Pages project URL but breaks a custom
+// domain mounted at `/`, leaving only the unstyled skip link when JS/CSS 404.
+const viteConfig = fs.readFileSync(path.join(root, 'vite.config.js'), 'utf8');
+const pagesWorkflow = fs.readFileSync(path.join(root, '.github/workflows/deploy-pages.yml'), 'utf8');
+if (!viteConfig.includes("mode === 'production' ? './' : '/'")) {
+  console.error('Deployment base regression: production Vite base must default to ./');
+  process.exit(1);
+}
+if (/VITE_BASE_PATH:\s*\/web\//.test(pagesWorkflow)) {
+  console.error('Deployment base regression: Pages workflow hard-codes VITE_BASE_PATH=/web/');
+  process.exit(1);
+}
+
 console.log(`Project structure check passed (${jsFiles.length} JS modules, single-entry SPA + ${legacyPages.length} redirect shells).`);

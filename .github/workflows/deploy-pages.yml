@@ -40,8 +40,6 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build
-        env:
-          VITE_BASE_PATH: /web/
         run: npm run build
 
       - name: Upload Pages artifact

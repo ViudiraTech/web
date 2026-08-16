@@ -91,6 +91,8 @@ npm run preview
 
 ## GitHub Pages
 
+生产构建默认使用相对 `base: ./`。同一份 `dist` 可以同时部署到 GitHub Pages 项目子路径（如 `/web/`）和绑定到根路径的自定义域名。不要在 Pages workflow 中强制 `VITE_BASE_PATH=/web/`，否则自定义域名根路径会请求错误的 `/web/assets/*`。
+
 Vite 已改为 single-entry SPA build。Hash routing 不需要 GitHub Pages 提供 history fallback。
 
 

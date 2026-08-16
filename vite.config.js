@@ -1,9 +1,12 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => ({
-  // GitHub Pages project site: https://viudiratech.github.io/web/
-  // VITE_BASE_PATH can still override this for previews or a future rename.
-  base: process.env.VITE_BASE_PATH || (mode === 'production' ? '/web/' : '/'),
+  // Use relative production assets so one build works at both:
+  //   https://viudiratech.github.io/web/
+  //   https://viudiratech.rainyland.top/
+  // A hard-coded `/web/` breaks the custom-domain root because the browser
+  // then requests `/web/assets/index-*.js` and `/web/assets/index-*.css`.
+  base: process.env.VITE_BASE_PATH || (mode === 'production' ? './' : '/'),
   build: {
     target: 'es2020',
     cssCodeSplit: true,
