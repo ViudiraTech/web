@@ -216,10 +216,10 @@ function presetFor(element, profile) {
     // evenly, adds a darker edge and brighter specular highlight, and lets direct
     // touch produce a more pronounced fluid response than pointer interaction.
     'ios-island': { lensHeight: 8, lensAmount: 13, blur: 5, vibrancy: 1.18, brightness: 1.03, depthEffect: 0.07, surfaceRgb: '8 10 12', surfaceAlpha: 0.88, highlightAlpha: 0.32, innerShadowAlpha: 0.10, outerShadowAlpha: 0.12, mapResolution: 1 },
-    'ios-control': { lensHeight: 11, lensAmount: 18, blur: 7, vibrancy: 1.22, brightness: 1.06, depthEffect: 0.11, surfaceRgb: '246 249 251', surfaceAlpha: 0.26, highlightAlpha: 1, innerShadowAlpha: 0.055, outerShadowAlpha: 0.09, mapResolution: 1 },
-    'ios-clear-control': { lensHeight: 13, lensAmount: 22, blur: 4, vibrancy: 1.20, brightness: 1.05, depthEffect: 0.13, surfaceRgb: '249 251 252', surfaceAlpha: 0.12, highlightAlpha: 1, innerShadowAlpha: 0.06, outerShadowAlpha: 0.10, mapResolution: 1 },
-    'ios-dock': { lensHeight: 20, lensAmount: 29, blur: 14, vibrancy: 1.28, brightness: 1.08, depthEffect: 0.14, surfaceRgb: '246 249 251', surfaceAlpha: 0.30, highlightAlpha: 1, innerShadowAlpha: 0.05, outerShadowAlpha: 0.13, mapResolution: 1 },
-    'ios-popover': { lensHeight: 20, lensAmount: 32, blur: 18, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.15, surfaceRgb: '244 248 251', surfaceAlpha: 0.48, highlightAlpha: 1, innerShadowAlpha: 0.055, outerShadowAlpha: 0.15, mapResolution: 1 },
+    'ios-control': { lensHeight: 14, lensAmount: 27, blur: 4, vibrancy: 1.30, brightness: 1.08, depthEffect: 0.17, surfaceRgb: '246 249 251', surfaceAlpha: 0.16, highlightAlpha: 1, innerShadowAlpha: 0.07, outerShadowAlpha: 0.10, mapResolution: 1 },
+    'ios-clear-control': { lensHeight: 16, lensAmount: 31, blur: 2, vibrancy: 1.28, brightness: 1.07, depthEffect: 0.19, surfaceRgb: '249 251 252', surfaceAlpha: 0.08, highlightAlpha: 1, innerShadowAlpha: 0.07, outerShadowAlpha: 0.11, mapResolution: 1 },
+    'ios-dock': { lensHeight: 22, lensAmount: 36, blur: 8, vibrancy: 1.34, brightness: 1.09, depthEffect: 0.19, surfaceRgb: '246 249 251', surfaceAlpha: 0.20, highlightAlpha: 1, innerShadowAlpha: 0.065, outerShadowAlpha: 0.14, mapResolution: 1 },
+    'ios-popover': { lensHeight: 22, lensAmount: 38, blur: 10, vibrancy: 1.38, brightness: 1.10, depthEffect: 0.20, surfaceRgb: '244 248 251', surfaceAlpha: 0.28, highlightAlpha: 1, innerShadowAlpha: 0.07, outerShadowAlpha: 0.16, mapResolution: 1 },
 
     'catalog-button': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0, highlightAlpha: 1, outerShadowAlpha: 0.08, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-button-surface': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0.3, highlightAlpha: 1, mapResolution: Math.max(profile.mapResolution, 0.82) },
@@ -961,6 +961,13 @@ export async function hydrateLiquidGlass(root = document) {
       // surface in the SPA. Build only elements near the viewport and let the
       // observer hydrate the rest just before they are needed.
       const rect = element.getBoundingClientRect();
+      // display:none / collapsed controls (notably inactive iOS apps) report a
+      // zero-sized rect. Defer them until IntersectionObserver sees real layout
+      // instead of allocating SVG filters that can never contribute a pixel.
+      if (rect.width <= 0.5 || rect.height <= 0.5) {
+        lazyTargets.push(element);
+        continue;
+      }
       const nearViewport = rect.bottom > -160
         && rect.top < innerHeight + 220
         && rect.right > -120

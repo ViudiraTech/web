@@ -36,3 +36,154 @@ body[data-page="macos27"] .ios27-sim{font-family:-apple-system,BlinkMacSystemFon
 .ios27-toast{position:absolute!important;z-index:250;left:50%!important;bottom:max(56px,calc(env(safe-area-inset-bottom) + 48px))!important;transform:translate(-50%,18px) scale(.96)!important;opacity:0!important;pointer-events:none!important;min-height:38px;max-width:82vw;padding:8px 14px!important;border-radius:19px!important;background:rgba(30,36,43,.64)!important;color:#fff!important;font-size:12px;display:flex!important;align-items:center!important;white-space:nowrap;transition:opacity .18s ease,transform .24s cubic-bezier(.2,.8,.2,1)!important}.ios27-toast.is-visible{opacity:1!important;transform:translate(-50%,0) scale(1)!important}.ios27-exit{position:absolute;z-index:240;left:8px;top:max(7px,env(safe-area-inset-top));height:29px;border:0;border-radius:15px;background:rgba(20,25,31,.26);backdrop-filter:blur(12px);color:#fff;padding:0 9px;font-size:9px;opacity:.12;transition:opacity .2s}.ios27-exit:focus-visible,.ios27-exit:active{opacity:.88}
 @media (min-width:760px) and (pointer:fine){.ios27-sim{display:none!important}}
 @media (max-height:680px){.ios27-widget-stack{display:none}.ios27-app-grid{gap:12px 10px}.ios27-icon{width:52px;height:52px}.ios27-dock{height:68px!important}.ios27-dock .ios27-icon{width:51px;height:51px}.ios27-lock-top>strong{font-size:66px}.ios27-lock-widgets{margin-top:12px}.ios27-lock-notification{margin-top:8px}}
+
+/* iOS 27 refinement pass ------------------------------------------------------
+   Keep Liquid Glass on the functional layer, and use one cheap native material
+   for secondary cards instead of stacking many live SVG displacement filters. */
+.ios27-sim{
+  --ios-material-alpha:.22;
+  --ios-material-blur:11px;
+  --ios-material-border:rgba(255,255,255,.46);
+  --ios-material-shadow:rgba(17,31,46,.16);
+  --ios-blue:#0a84ff;
+}
+.ios27-sim .ios27-material:not(.ios27-glass-primary){
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.07) 38%,rgba(255,255,255,.16) 72%,rgba(255,255,255,.06)),
+    rgba(239,245,249,var(--ios-material-alpha))!important;
+  -webkit-backdrop-filter:blur(var(--ios-material-blur)) saturate(1.38) brightness(1.06)!important;
+  backdrop-filter:blur(var(--ios-material-blur)) saturate(1.38) brightness(1.06)!important;
+  border:1px solid var(--ios-material-border)!important;
+  box-shadow:
+    0 12px 30px var(--ios-material-shadow),
+    inset 0 1px 0 rgba(255,255,255,.68),
+    inset 0 -1px 0 rgba(30,52,73,.08)!important;
+}
+.ios27-sim.reduce-transparency .ios27-material{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  background:rgba(244,247,250,.94)!important;
+}
+.ios27-sim .ios27-glass-primary{
+  border:1px solid rgba(255,255,255,.58)!important;
+  box-shadow:0 14px 34px rgba(18,34,51,.18),inset 0 1px 0 rgba(255,255,255,.72)!important;
+}
+
+/* Rich wallpaper without multiple giant blur filters. */
+.ios27-wallpaper{
+  background:
+    radial-gradient(ellipse at 68% 18%,rgba(255,242,212,.98) 0 8%,rgba(255,205,164,.74) 19%,transparent 36%),
+    radial-gradient(ellipse at 20% 58%,rgba(93,175,211,.92) 0 12%,rgba(64,125,168,.58) 33%,transparent 56%),
+    radial-gradient(ellipse at 86% 72%,rgba(191,91,117,.68) 0 13%,rgba(105,76,127,.54) 35%,transparent 58%),
+    radial-gradient(ellipse at 44% 102%,rgba(33,67,105,.98) 0 25%,transparent 57%),
+    linear-gradient(155deg,#a9dce8 0%,#e8e8dc 24%,#f0ba93 45%,#d86e6f 66%,#627298 84%,#233a5a 100%);
+}
+.ios27-wallpaper::before{
+  inset:0;
+  filter:none;
+  background:
+    linear-gradient(116deg,transparent 33%,rgba(255,255,255,.22) 42%,transparent 51%),
+    radial-gradient(ellipse at 50% 55%,transparent 0 48%,rgba(19,42,68,.16) 100%);
+}
+.ios27-wallpaper::after{filter:none;opacity:.52}
+.ios27-wallpaper>i{display:none!important}
+
+/* Keep direct-manipulation transitions on compositor-friendly properties. */
+.ios27-home,.ios27-lockscreen,.ios27-app-stage,.ios27-overlay,.ios27-spotlight{will-change:transform,opacity}
+.ios27-app-stage{will-change:transform,opacity;border-radius:28px;contain:layout paint style}
+.ios27-app-stage.is-open{border-radius:0}
+.ios27-home{transform-origin:center;contain:layout paint style}
+.ios27-overlay,.ios27-spotlight{contain:layout paint style}
+
+/* Stronger, clearer functional glass. */
+.ios27-home-search{
+  background:rgba(28,38,51,.16)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.38)!important;
+  text-shadow:0 1px 8px rgba(0,0,0,.22);
+}
+.ios27-dock{
+  background:rgba(242,248,252,.14)!important;
+  border-color:rgba(255,255,255,.56)!important;
+  box-shadow:0 18px 42px rgba(12,30,48,.22),inset 0 1px 0 rgba(255,255,255,.78),inset 0 -1px 0 rgba(25,45,64,.08)!important;
+}
+.ios27-dock::after,.ios27-home-search::after,.ios27-spotlight-search::after{
+  content:"";position:absolute;inset:1px;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(120deg,rgba(255,255,255,.28),transparent 30% 70%,rgba(255,255,255,.10));
+  mix-blend-mode:screen;opacity:.85;
+}
+
+/* Content layer stays standard; floating navigation is glass. */
+.ios27-app-nav{
+  background:linear-gradient(180deg,rgba(249,249,252,.94),rgba(249,249,252,.76));
+  border-bottom:1px solid rgba(0,0,0,.055);
+}
+.ios27-safari-bottom,.ios27-app-tabbar{
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.46),rgba(255,255,255,.13)),
+    rgba(244,248,251,.30)!important;
+}
+.ios27-library-groups article,.ios27-lock-widget{
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  background:linear-gradient(145deg,rgba(31,46,61,.28),rgba(255,255,255,.12))!important;
+  border:1px solid rgba(255,255,255,.22);
+}
+
+/* Control Center: one translucent scene + inexpensive card materials. */
+.ios27-control-center{
+  background:linear-gradient(180deg,rgba(24,38,54,.48),rgba(18,30,44,.58))!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+.ios27-control-center::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
+  background:linear-gradient(150deg,rgba(255,255,255,.10),transparent 42%),rgba(32,48,64,.14);
+}
+.ios27-cc-grid>section,.ios27-cc-small{border-radius:25px!important}
+.ios27-cc-connectivity button{
+  background:rgba(255,255,255,.16);box-shadow:inset 0 1px rgba(255,255,255,.24),0 4px 12px rgba(0,0,0,.09);
+  transition:transform .14s ease,background .14s ease;
+}
+.ios27-cc-connectivity button:active,.ios27-cc-small:active{transform:scale(.94)}
+.ios27-cc-connectivity button.is-active{background:var(--ios-blue)}
+.ios27-cc-small.is-active{background:rgba(10,132,255,.74)!important}
+
+/* Notification Center and Spotlight use standard material behind one floating lens. */
+.ios27-notification-center{
+  background:linear-gradient(180deg,rgba(27,43,59,.54),rgba(23,36,50,.40))!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+.ios27-notification-stack article{background:rgba(244,247,250,.58)!important}
+.ios27-spotlight{
+  background:rgba(24,38,52,.42)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+.ios27-spotlight-search{background:rgba(244,248,251,.24)!important}
+.ios27-spotlight-results{
+  background:rgba(245,248,251,.80)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(1.18)!important;
+  backdrop-filter:blur(10px) saturate(1.18)!important;
+  border:1px solid rgba(255,255,255,.46);
+  box-shadow:0 16px 36px rgba(15,30,46,.18);
+}
+
+/* Icons: sharper layered surface and tighter typography. */
+.ios27-icon{
+  box-shadow:0 6px 15px rgba(15,35,55,.22),inset 0 1px 1px rgba(255,255,255,.72),inset 0 -1px 0 rgba(0,0,0,.10);
+}
+.ios27-icon::before{
+  background:linear-gradient(150deg,rgba(255,255,255,.50),rgba(255,255,255,.10) 38%,transparent 58%,rgba(0,0,0,.04));
+}
+.ios27-app-icon-button:active .ios27-icon{transform:scale(.91);transition:transform .08s linear}
+.ios27-app-icon-button small{font-weight:590;letter-spacing:-.01em}
+
+/* More finished stock-app surfaces. */
+.ios27-calendar-head{display:flex;align-items:end;justify-content:space-between;margin:4px 0 12px}.ios27-calendar-head small{color:#ff3b30;font-weight:700}.ios27-calendar-head h1{margin:0!important}.ios27-calendar-head button{border:0;background:#e6e8ec;border-radius:15px;padding:6px 12px;color:#0a84ff;font-weight:650}.ios27-calendar-week,.ios27-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}.ios27-calendar-week b{text-align:center;font-size:10px;color:#8a8f96;padding:5px 0}.ios27-calendar-grid button{position:relative;aspect-ratio:1;border:0;background:none;border-radius:50%;font-size:13px}.ios27-calendar-grid button.is-outside{color:#b7bbc1}.ios27-calendar-grid button.is-today{background:#ff3b30;color:#fff;font-weight:700}.ios27-calendar-grid button i{position:absolute;width:4px;height:4px;border-radius:50%;background:#0a84ff;bottom:3px;left:50%;transform:translateX(-50%)}.ios27-calendar-agenda{margin-top:18px}.ios27-calendar-agenda>article{display:grid;grid-template-columns:4px 1fr;gap:10px;padding:10px 0;border-top:1px solid #e5e5e8}.ios27-calendar-agenda article>i{border-radius:3px;background:#ff9f0a}.ios27-calendar-agenda article>div{display:grid}.ios27-calendar-agenda small{color:#777;font-size:11px}
+.ios27-map-app{position:absolute;inset:max(50px,env(safe-area-inset-top)) 0 0;overflow:hidden}.ios27-map-canvas{position:absolute;inset:0;background:linear-gradient(25deg,#e8e2cb 0 18%,#cbdcab 18% 42%,#dce9c8 42% 63%,#c6d8ae 63%);overflow:hidden}.ios27-map-canvas i{position:absolute;display:block}.ios27-map-canvas .river{left:45%;top:-20%;width:24%;height:140%;background:#92cce3;transform:rotate(13deg);border-radius:50%}.ios27-map-canvas .r1,.ios27-map-canvas .r2{height:9px;width:150%;left:-20%;background:#fff;border:2px solid #d8d4c9;transform:rotate(-17deg);top:38%}.ios27-map-canvas .r2{transform:rotate(27deg);top:62%}.ios27-map-canvas .pin{position:absolute;width:34px;height:34px;border-radius:18px;background:#0a84ff;color:#fff;display:grid;place-items:center;box-shadow:0 5px 14px rgba(0,0,0,.18);z-index:2}.ios27-map-canvas .p1{left:57%;top:39%}.ios27-map-canvas .p2{left:28%;top:54%;background:#ff453a}.ios27-map-canvas>b{position:absolute;left:15%;top:32%;font-size:19px}.ios27-map-canvas>small{position:absolute;left:67%;top:64%}.ios27-map-sheet{position:absolute!important;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));border-radius:28px!important;padding:12px!important;color:#12161a}.ios27-map-sheet label{height:40px;border-radius:18px;background:rgba(255,255,255,.60);display:grid;grid-template-columns:24px 1fr;align-items:center;padding:0 10px}.ios27-map-sheet input{border:0;background:none;outline:0}.ios27-map-shortcuts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.ios27-map-shortcuts button{border:0;background:rgba(255,255,255,.40);border-radius:16px;padding:9px;display:grid;justify-items:center}.ios27-map-shortcuts button span{font-size:18px;color:#0a84ff}.ios27-map-sheet p{margin:10px 3px 1px;display:flex;justify-content:space-between;font-size:11px}.ios27-map-sheet p span{color:#777}
+.ios27-clock-card,.ios27-alarm-card{min-height:64px;background:#fff;border-radius:14px;margin-bottom:10px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between}.ios27-clock-card div,.ios27-alarm-card span{display:grid}.ios27-clock-card strong{font-size:31px;font-weight:300}.ios27-clock-card small,.ios27-alarm-card small{font-size:10px;color:#777}.ios27-clock-app h2{margin:24px 0 10px}.ios27-alarm-card b{font-size:27px;font-weight:400}
+.ios27-store-app>small{color:#777;font-size:11px;text-transform:uppercase}.ios27-store-feature{height:260px;border-radius:22px;padding:18px;color:#fff;background:radial-gradient(circle at 78% 25%,rgba(255,255,255,.35),transparent 18%),linear-gradient(145deg,#7459cf,#3a7ddd 52%,#43a3ce);display:flex;justify-content:space-between;overflow:hidden}.ios27-store-feature div{display:flex;flex-direction:column;align-items:flex-start}.ios27-store-feature div>b{font-size:25px;max-width:180px}.ios27-store-feature div p{font-size:12px;max-width:190px}.ios27-store-feature>span{font-size:82px;font-weight:800;align-self:center;opacity:.52}.ios27-store-list{background:#fff;border-radius:16px;overflow:hidden}.ios27-store-list button{width:100%;border:0;background:#fff;display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;text-align:left;padding:9px 12px;position:relative}.ios27-store-list button+button::before{content:"";position:absolute;top:0;left:68px;right:0;height:1px;background:#ececef}.ios27-store-list button>span{width:44px;height:44px;border-radius:12px;background:linear-gradient(145deg,#635bdf,#32a4e8);color:#fff;display:grid;place-items:center;font-weight:800}.ios27-store-list div{display:grid}.ios27-store-list small{font-size:10px;color:#777}.ios27-store-list em{font-style:normal;background:#e7e8ec;color:#0a84ff;border-radius:14px;padding:5px 14px;font-weight:700;font-size:11px}
+.ios27-phone-filter{width:190px;margin:0 auto 14px;border-radius:9px;background:#e3e4e8;padding:2px;display:grid;grid-template-columns:1fr 1fr}.ios27-phone-filter button{border:0;background:none;border-radius:7px;padding:5px;font-size:11px}.ios27-phone-filter button.is-active{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.10)}.ios27-phone-list{background:#fff;border-radius:15px;overflow:hidden}.ios27-phone-list>button{width:100%;border:0;background:#fff;display:grid;grid-template-columns:20px 1fr auto 28px;align-items:center;gap:7px;text-align:left;padding:9px 11px;position:relative}.ios27-phone-list>button+button::before{content:"";position:absolute;top:0;left:38px;right:0;height:1px;background:#ececef}.ios27-phone-list button>span{color:#777}.ios27-phone-list button>div{display:grid}.ios27-phone-list small,.ios27-phone-list time{font-size:10px;color:#777}.ios27-phone-list i{color:#0a84ff;font-style:normal;font-size:16px}
+.ios27-camera-top{position:absolute;top:max(58px,calc(env(safe-area-inset-top) + 48px));left:18px;right:18px;display:flex;justify-content:space-between;color:#fff;z-index:2}.ios27-camera-modes{position:absolute;left:0;right:0;bottom:106px;color:#fff;display:flex;justify-content:center;gap:16px;font-size:10px}.ios27-camera-modes .is-active{color:#ffd60a}.ios27-camera-preview{width:42px;height:42px;border-radius:9px;background:linear-gradient(145deg,#7f9a9e,#304c54);border:2px solid #fff}
+
+@media (max-width:380px){
+  .ios27-home-page{padding-left:14px;padding-right:14px}.ios27-app-grid{gap:15px 9px}.ios27-icon{width:55px;height:55px}.ios27-widget{height:132px}.ios27-widget strong{font-size:38px}.ios27-dock{height:74px!important}.ios27-dock .ios27-icon{width:55px;height:55px}.ios27-lock-top>strong{font-size:72px}
+}

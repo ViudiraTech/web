@@ -12,7 +12,7 @@ export function drawerShell() {
   return `<div class="drawer-backdrop" data-drawer-backdrop></div>
     <aside class="project-drawer" aria-hidden="true" aria-label="项目详情" data-drawer>
       <div class="project-drawer__surface">
-        ${liquidButton({ label: icons.close(19), preset: 'catalog-button-surface', className: 'catalog-icon-button drawer-close-floating', live: true, attributes: 'aria-label="关闭项目详情" data-drawer-close data-glass-settings-scope="site"' })}
+        ${liquidButton({ label: icons.close(19), preset: 'catalog-button-surface', className: 'catalog-icon-button drawer-close-floating', live: true, portal: true, attributes: 'aria-label="关闭项目详情" data-drawer-close data-glass-settings-scope="site"' })}
         <div class="project-drawer__content" data-drawer-content>
           <div class="loading-state">选择一个项目查看详细信息。</div>
         </div>

@@ -22,8 +22,8 @@ function dialogMarkup({ title, message, detail = '', confirmLabel = '确定', ca
         ${detail ? `<p class="liquid-dialog__detail">${escapeHtml(detail)}</p>` : ''}
       </div>
       <div class="liquid-dialog__actions">
-        ${liquidButton({ label: escapeHtml(cancelLabel), preset: 'catalog-button-surface', className: 'liquid-dialog__action', backdrop: 'ambient', attributes: 'data-liquid-dialog-cancel data-glass-settings-scope="site"' })}
-        ${liquidButton({ label: escapeHtml(confirmLabel), preset: accent ? 'catalog-button-blue' : 'catalog-button-surface', className: `liquid-dialog__action ${accent ? 'catalog-button--tinted liquid-dialog__action--confirm' : ''}`, backdrop: 'ambient', attributes: 'data-liquid-dialog-confirm data-glass-settings-scope="site"' })}
+        ${liquidButton({ label: escapeHtml(cancelLabel), preset: 'catalog-button-surface', className: 'liquid-dialog__action', backdrop: 'ambient', portal: true, attributes: 'data-liquid-dialog-cancel data-glass-settings-scope="site"' })}
+        ${liquidButton({ label: escapeHtml(confirmLabel), preset: accent ? 'catalog-button-blue' : 'catalog-button-surface', className: `liquid-dialog__action ${accent ? 'catalog-button--tinted liquid-dialog__action--confirm' : ''}`, backdrop: 'ambient', portal: true, attributes: 'data-liquid-dialog-confirm data-glass-settings-scope="site"' })}
       </div>
     </section>
   </div>`;

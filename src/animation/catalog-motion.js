@@ -55,6 +55,20 @@ export class SpringValue {
     this.onUpdate?.(this.value, this.velocity);
   }
 
+  interrupt({ preserveVelocity = true } = {}) {
+    activeSprings.delete(this);
+    this.target = this.value;
+    if (!preserveVelocity) this.velocity = 0;
+  }
+
+  direct(value, velocity = 0) {
+    activeSprings.delete(this);
+    this.value = value;
+    this.target = value;
+    this.velocity = Number.isFinite(velocity) ? velocity : 0;
+    this.onUpdate?.(this.value, this.velocity);
+  }
+
   to(target, { stiffness = 300, dampingRatio = 1, threshold = 0.001 } = {}) {
     this.target = target;
     this.stiffness = stiffness;

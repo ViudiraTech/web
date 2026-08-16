@@ -174,6 +174,7 @@ export function liquidButton({
   sampleMode = '',
   live = null,
   inlineLive = false,
+  portal = false,
   attributes = '',
   type = 'button',
   href = '',
@@ -185,13 +186,13 @@ export function liquidButton({
   // the semantic button remains in normal document flow. Catalog Lab controls
   // keep their deterministic local-sample renderer as the reference implementation.
   const resolvedLive = live == null ? backdrop === 'ambient' : Boolean(live);
-  // Most site buttons use the top-level optical proxy so their live backdrop is
-  // not clipped by card/Dialog ancestors. Fixed controls that already live in a
-  // stable top-level shell (notably the mobile hamburger in .site-nav) can opt
-  // into an in-place live lens instead. This avoids maintaining a second visual
-  // copy across mobile visual-viewport changes.
-  const useInlineLive = resolvedLive && Boolean(inlineLive);
-  const useLiveProxy = resolvedLive && !useInlineLive;
+  // Body-level optical portals cannot reproduce arbitrary CSS stacking contexts:
+  // on mobile they can float above unrelated sections even when the real button
+  // is underneath them. Keep ordinary controls in their own stacking context.
+  // Dialog/Drawer controls explicitly opt into a portal when they need to cross
+  // a local backdrop boundary.
+  const useLiveProxy = resolvedLive && Boolean(portal) && !inlineLive;
+  const useInlineLive = resolvedLive && !useLiveProxy;
   const classes = ['catalog-button', useLiveProxy ? '' : 'liquid-glass', className].filter(Boolean).join(' ');
   const backdropAttr = backdrop && !resolvedLive ? ` data-glass-backdrop="${backdrop}"` : '';
   const resolvedSampleMode = resolvedLive ? '' : (sampleMode || (backdrop === 'ambient' ? 'scroll-timeline' : ''));
