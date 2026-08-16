@@ -173,6 +173,7 @@ export function liquidButton({
   backdrop = '',
   sampleMode = '',
   live = null,
+  inlineLive = false,
   attributes = '',
   type = 'button',
   href = '',
@@ -184,13 +185,22 @@ export function liquidButton({
   // the semantic button remains in normal document flow. Catalog Lab controls
   // keep their deterministic local-sample renderer as the reference implementation.
   const resolvedLive = live == null ? backdrop === 'ambient' : Boolean(live);
-  const classes = ['catalog-button', resolvedLive ? '' : 'liquid-glass', className].filter(Boolean).join(' ');
+  // Most site buttons use the top-level optical proxy so their live backdrop is
+  // not clipped by card/Dialog ancestors. Fixed controls that already live in a
+  // stable top-level shell (notably the mobile hamburger in .site-nav) can opt
+  // into an in-place live lens instead. This avoids maintaining a second visual
+  // copy across mobile visual-viewport changes.
+  const useInlineLive = resolvedLive && Boolean(inlineLive);
+  const useLiveProxy = resolvedLive && !useInlineLive;
+  const classes = ['catalog-button', useLiveProxy ? '' : 'liquid-glass', className].filter(Boolean).join(' ');
   const backdropAttr = backdrop && !resolvedLive ? ` data-glass-backdrop="${backdrop}"` : '';
   const resolvedSampleMode = resolvedLive ? '' : (sampleMode || (backdrop === 'ambient' ? 'scroll-timeline' : ''));
   const sampleModeAttr = resolvedSampleMode ? ` data-glass-sample-mode="${resolvedSampleMode}"` : '';
-  const proxyAttr = resolvedLive
+  const proxyAttr = useLiveProxy
     ? ` data-liquid-live-proxy="true" data-liquid-glass-preset="${preset}"`
-    : ` data-glass-preset="${preset}"`;
+    : useInlineLive
+      ? ` data-glass-preset="${preset}" data-glass-live="true" data-glass-keep-active="true"`
+      : ` data-glass-preset="${preset}"`;
   const common = `class="${classes}" data-liquid-button${proxyAttr}${backdropAttr}${sampleModeAttr}`;
   if (href) {
     const targetAttr = target ? ` target="${target}"` : '';

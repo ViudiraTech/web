@@ -46,7 +46,7 @@ export function navbar(current = 'home') {
           indicatorPressedAlpha: 0.03,
           indicatorSurfaceFloorRatio: 0.60,
         })}
-        ${liquidButton({ label: icons.menu(20), preset: 'catalog-button-surface', className: 'catalog-icon-button nav-menu-btn', backdrop: 'ambient', attributes: 'aria-label="打开导航菜单" aria-expanded="false" data-menu-toggle data-glass-settings-scope="site"' })}
+        ${liquidButton({ label: icons.menu(20), preset: 'catalog-button-surface', className: 'catalog-icon-button nav-menu-btn', backdrop: 'ambient', inlineLive: true, attributes: 'aria-label="打开导航菜单" aria-expanded="false" data-menu-toggle data-glass-settings-scope="site"' })}
       </div>
     </nav>
     <div class="mobile-menu liquid-glass glass-shell" data-mobile-menu data-glass-preset="mobile-menu" data-glass-settings-scope="site" data-glass-defer="true">

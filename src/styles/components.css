@@ -1179,3 +1179,15 @@ html[data-glass="svg"] .liquid-button-proxy.liquid-dialog__action--confirm:hover
    proxy is active; do not let the legacy :active scale move the hit target and
    double-apply the Catalog motion. */
 .liquid-dialog__action.liquid-button-anchor:active{transform:none!important}
+
+/* Mobile navigation action is intentionally rendered in-place instead of through
+   the top-level LiquidButton proxy. It already sits in a fixed top-level header;
+   a second fixed visual copy can desynchronize when the mobile visual viewport
+   changes (address bar collapse/orientation), which looked like random overlap. */
+.nav-menu-btn[data-glass-live="true"]{
+  position:relative!important;
+  inset:auto!important;
+  transform-origin:center!important;
+  z-index:6;
+  flex:0 0 48px;
+}
