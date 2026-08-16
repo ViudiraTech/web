@@ -1,6 +1,4 @@
-import { liquidButton, bindLiquidButtons } from './liquid-button.js';
-import { liquidToggle, bindLiquidToggles } from './liquid-toggle.js';
-import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
+import { systemButton, systemToggle, systemSlider, bindSystemControls } from './liquid-system-controls.js';
 import { activateLiquidGlassElement, deactivateLiquidGlassElement, suspendLiquidGlassElement, setLiquidGlassState } from '../glass/liquid-glass.js';
 
 function svg(body, size = 18, viewBox = '0 0 24 24') {
@@ -59,15 +57,11 @@ function appGlyph(kind) {
 }
 
 function macButton({ label, className = '', preset = 'macos-control', attributes = '', ariaLabel = '' }) {
-  return liquidButton({
-    label,
-    preset,
-    className: `macos27-liquid-button ${className}`.trim(),
-    live: true,
-    inlineLive: true,
-    attributes: `${attributes}${ariaLabel ? ` aria-label=\"${ariaLabel}\"` : ''}`,
-  });
+  const role = preset === 'macos-clear-control' ? 'clear' : preset === 'macos-popover' ? 'popover' : 'control';
+  return systemButton({ platform: 'macos', role, label, className, attributes, ariaLabel });
 }
+const macToggle = (options = {}) => systemToggle({ platform: 'macos', ...options });
+const macSlider = (options = {}) => systemSlider({ platform: 'macos', ...options });
 
 function dockButton(kind, label) {
   return macButton({
@@ -113,7 +107,7 @@ function finderCards(section = 'recents') {
     else if (type === 'code') visual = '<span class="macos27-file-icon macos27-file-icon--code">&lt;/&gt;</span>';
     else visual = `<span class="macos27-file-icon macos27-file-icon--doc">${name.split('.').pop().slice(0,3).toUpperCase()}</span>`;
     const appAttr = type.startsWith('app:') ? ` data-macos-app="${type.slice(4)}"` : '';
-    return `<button class="macos27-file"${appAttr}><span class="macos27-file-visual">${visual}</span><b>${name}</b><small>${date}</small><em>${meta}</em></button>`;
+    return `<button class="macos27-file"${appAttr} data-quicklook-name="${name}" data-quicklook-meta="${meta}" data-quicklook-type="${type}"><span class="macos27-file-visual">${visual}</span><b>${name}</b><small>${date}</small><em>${meta}</em></button>`;
   }).join('');
 }
 
@@ -208,7 +202,7 @@ function terminalWindow() {
 function messagesWindow() {
   return `<section class="macos27-window macos27-window--messages is-hidden" data-macos-window="messages" aria-label="信息窗口">
     <div class="macos27-window-toolbar" data-macos-drag-handle>${trafficLights()}<div class="macos27-toolbar-leading">${toolbarButton('新信息', icon.plus(16))}</div><div class="macos27-window-title">信息</div><div class="macos27-toolbar-trailing">${toolbarButton('搜索', icon.search(16))}</div></div>
-    <div class="macos27-window-content macos27-messages-body"><aside><h3>信息</h3><button class="is-active"><span>V</span><div><b>ViudiraTech</b><small>15:12</small><p>macOS 27 模拟器继续扩充中</p></div></button><button><span>U</span><div><b>Uinxed</b><small>昨天</small><p>构建通过</p></div></button></aside><main><header><span>V</span><b>ViudiraTech</b></header><div class="macos27-chat"><p class="is-them">新的桌面模拟器看起来怎么样？</p><p class="is-me">这次不再是空壳了。</p><p class="is-me">Finder、Safari、Terminal、Settings、Spotlight 都能用了。</p></div><div class="macos27-message-composer liquid-glass" data-glass-preset="macos-toolbar" data-glass-live="true"><input placeholder="iMessage" aria-label="信息"><button aria-label="发送">↑</button></div></main></div>
+    <div class="macos27-window-content macos27-messages-body"><aside><h3>信息</h3><button class="is-active"><span>V</span><div><b>ViudiraTech</b><small>15:12</small><p>macOS 27 模拟器继续扩充中</p></div></button><button><span>U</span><div><b>Uinxed</b><small>昨天</small><p>构建通过</p></div></button></aside><main><header><span>V</span><b>ViudiraTech</b></header><div class="macos27-chat"><p class="is-them">新的桌面模拟器看起来怎么样？</p><p class="is-me">这次不再是空壳了。</p><p class="is-me">Finder、Safari、Terminal、Settings、Spotlight 都能用了。</p></div><div class="macos27-message-composer liquid-glass" data-glass-preset="macos-toolbar" data-glass-live="true"><input placeholder="iMessage" aria-label="信息">${macButton({label:'↑',className:'macos27-toolbar-button macos27-message-send',preset:'macos-clear-control',ariaLabel:'发送'})}</div></main></div>
   </section>`;
 }
 
@@ -231,30 +225,30 @@ function settingRow(title, sub, control) {
 function settingsPanel(section = 'appearance') {
   if (section === 'desktop') return `<div class="macos27-settings-title"><h2>桌面与 Dock</h2><p>调整 Dock、桌面项目和窗口行为</p></div>
     <section class="macos27-settings-card macos27-settings-card--rows">
-      ${settingRow('Dock 大小', '调整 Dock 图标尺寸', liquidSlider({ value: 62, min: 44, max: 76, ariaLabel: 'Dock 大小', className: 'macos27-shared-slider', setting: 'dockSize' }))}
-      ${settingRow('放大', '将指针移到 Dock 图标上时放大', liquidToggle({ checked: true, ariaLabel: 'Dock 放大', className: 'macos27-shared-toggle', setting: 'dockMagnify' }))}
-      ${settingRow('自动隐藏和显示 Dock', '靠近屏幕底部时显示 Dock', liquidToggle({ checked: false, ariaLabel: '自动隐藏 Dock', className: 'macos27-shared-toggle', setting: 'dockAutohide' }))}
-      ${settingRow('点按墙纸显示桌面', '隐藏窗口以查看桌面', liquidToggle({ checked: true, ariaLabel: '点按墙纸显示桌面', className: 'macos27-shared-toggle', setting: 'clickWallpaper' }))}
+      ${settingRow('Dock 大小', '调整 Dock 图标尺寸', macSlider({ value: 62, min: 44, max: 76, ariaLabel: 'Dock 大小', setting: 'dockSize' }))}
+      ${settingRow('放大', '将指针移到 Dock 图标上时放大', macToggle({ checked: true, ariaLabel: 'Dock 放大', setting: 'dockMagnify' }))}
+      ${settingRow('自动隐藏和显示 Dock', '靠近屏幕底部时显示 Dock', macToggle({ checked: false, ariaLabel: '自动隐藏 Dock', setting: 'dockAutohide' }))}
+      ${settingRow('点按墙纸显示桌面', '隐藏窗口以查看桌面', macToggle({ checked: true, ariaLabel: '点按墙纸显示桌面', setting: 'clickWallpaper' }))}
     </section>`;
   if (section === 'display') return `<div class="macos27-settings-title"><h2>显示器</h2><p>内建显示器</p></div>
     <section class="macos27-display-preview"><div><span>Viudira Display</span></div></section>
     <section class="macos27-settings-card macos27-settings-card--rows">
-      ${settingRow('亮度', '根据环境自动调节', liquidSlider({ value: 72, min: 0, max: 100, ariaLabel: '亮度', className: 'macos27-shared-slider', setting: 'displayBrightness' }))}
-      ${settingRow('原彩显示', '让颜色适应环境光线', liquidToggle({ checked: true, ariaLabel: '原彩显示', className: 'macos27-shared-toggle', setting: 'trueTone' }))}
+      ${settingRow('亮度', '根据环境自动调节', macSlider({ value: 72, min: 0, max: 100, ariaLabel: '亮度', setting: 'displayBrightness' }))}
+      ${settingRow('原彩显示', '让颜色适应环境光线', macToggle({ checked: true, ariaLabel: '原彩显示', setting: 'trueTone' }))}
     </section>`;
   if (section === 'wallpaper') return `<div class="macos27-settings-title"><h2>墙纸</h2><p>Golden Gate 动态配色</p></div>
     <section class="macos27-wallpaper-choices"><button class="is-selected" data-wallpaper="golden"><i class="is-golden"></i><b>Golden Gate</b></button><button data-wallpaper="ocean"><i class="is-ocean"></i><b>Pacific</b></button><button data-wallpaper="dusk"><i class="is-dusk"></i><b>Dusk</b></button><button data-wallpaper="mono"><i class="is-mono"></i><b>Graphite</b></button></section>`;
   if (section === 'accessibility') return `<div class="macos27-settings-title"><h2>辅助功能</h2><p>显示与动态效果</p></div>
     <section class="macos27-settings-card macos27-settings-card--rows">
-      ${settingRow('减少透明度', '以更高不透明度显示半透明区域', liquidToggle({ checked: false, ariaLabel: '减少透明度', className: 'macos27-shared-toggle', setting: 'reduceTransparency' }))}
-      ${settingRow('提高对比度', '增强控件和窗口边界', liquidToggle({ checked: false, ariaLabel: '提高对比度', className: 'macos27-shared-toggle', setting: 'macosContrast' }))}
-      ${settingRow('减少动态效果', '减少窗口与界面动画', liquidToggle({ checked: false, ariaLabel: '减少动态效果', className: 'macos27-shared-toggle', setting: 'reduceMotion' }))}
+      ${settingRow('减少透明度', '以更高不透明度显示半透明区域', macToggle({ checked: false, ariaLabel: '减少透明度', setting: 'reduceTransparency' }))}
+      ${settingRow('提高对比度', '增强控件和窗口边界', macToggle({ checked: false, ariaLabel: '提高对比度', setting: 'macosContrast' }))}
+      ${settingRow('减少动态效果', '减少窗口与界面动画', macToggle({ checked: false, ariaLabel: '减少动态效果', setting: 'reduceMotion' }))}
     </section>`;
   return `<div class="macos27-settings-title"><h2>外观</h2><p>macOS 27 Golden Gate</p></div>
     <section class="macos27-settings-card"><div class="macos27-appearance-options"><button class="is-selected" data-appearance="auto"><span class="macos27-appearance-preview is-auto"></span><b>自动</b></button><button data-appearance="light"><span class="macos27-appearance-preview is-light"></span><b>浅色</b></button><button data-appearance="dark"><span class="macos27-appearance-preview is-dark"></span><b>深色</b></button></div></section>
     <section class="macos27-settings-card macos27-settings-card--rows">
-      ${settingRow('Liquid Glass', '从超清透到完整色调', liquidSlider({ value: 52, min: 0, max: 100, ariaLabel: 'Liquid Glass 透明度', className: 'macos27-shared-slider', setting: 'macosGlass' }))}
-      ${settingRow('显示边框', '增强窗口和控件边缘', liquidToggle({ checked: false, ariaLabel: '显示边框', className: 'macos27-shared-toggle', setting: 'macosBorders' }))}
+      ${settingRow('Liquid Glass', '从超清透到完整色调', macSlider({ value: 52, min: 0, max: 100, ariaLabel: 'Liquid Glass 透明度', setting: 'macosGlass' }))}
+      ${settingRow('显示边框', '增强窗口和控件边缘', macToggle({ checked: false, ariaLabel: '显示边框', setting: 'macosBorders' }))}
     </section>`;
 }
 
@@ -274,21 +268,21 @@ function settingsWindow() {
 function controlCenter() {
   return `<aside class="macos27-control-center liquid-glass" data-macos-control-center data-glass-preset="macos-popover" data-glass-live="true" data-glass-keep-active="true" aria-hidden="true">
     <div class="macos27-cc-grid">
-      <button class="macos27-cc-connect is-active" data-cc-tile="wifi"><span class="macos27-cc-icon">${icon.wifi(18)}</span><p><b>Wi‑Fi</b><small>Viudira 5G</small></p></button>
-      <button class="macos27-cc-connect is-active" data-cc-tile="bluetooth"><span class="macos27-cc-icon">B</span><p><b>蓝牙</b><small>开启</small></p></button>
-      <button class="macos27-cc-connect" data-cc-tile="airdrop"><span class="macos27-cc-icon">◌</span><p><b>AirDrop</b><small>仅限联系人</small></p></button>
-      <button class="macos27-cc-connect" data-cc-tile="focus"><span class="macos27-cc-icon">${icon.moon(17)}</span><p><b>专注模式</b><small>关闭</small></p></button>
+      ${macButton({label:`<span class="macos27-cc-icon">${icon.wifi(18)}</span><p><b>Wi‑Fi</b><small>Viudira 5G</small></p>`,className:'macos27-cc-connect macos27-cc-connect-shared is-active',preset:'macos-clear-control',attributes:'data-cc-tile="wifi"'})}
+      ${macButton({label:'<span class="macos27-cc-icon">B</span><p><b>蓝牙</b><small>开启</small></p>',className:'macos27-cc-connect macos27-cc-connect-shared is-active',preset:'macos-clear-control',attributes:'data-cc-tile="bluetooth"'})}
+      ${macButton({label:'<span class="macos27-cc-icon">◌</span><p><b>AirDrop</b><small>仅限联系人</small></p>',className:'macos27-cc-connect macos27-cc-connect-shared',preset:'macos-clear-control',attributes:'data-cc-tile="airdrop"'})}
+      ${macButton({label:`<span class="macos27-cc-icon">${icon.moon(17)}</span><p><b>专注模式</b><small>关闭</small></p>`,className:'macos27-cc-connect macos27-cc-connect-shared',preset:'macos-clear-control',attributes:'data-cc-tile="focus"'})}
     </div>
-    <div class="macos27-cc-now-playing"><span class="macos27-now-art">V</span><div><b>Night Flight</b><small>Viudira Mix</small></div><button aria-label="播放">▶</button></div>
-    <div class="macos27-cc-slider"><span>显示器</span>${liquidSlider({ value: 72, ariaLabel: '显示器亮度', className: 'macos27-shared-slider', setting: 'ccBrightness' })}</div>
-    <div class="macos27-cc-slider"><span>声音</span>${liquidSlider({ value: 42, ariaLabel: '声音', className: 'macos27-shared-slider', setting: 'ccVolume' })}</div>
+    <div class="macos27-cc-now-playing"><span class="macos27-now-art">V</span><div><b>Night Flight</b><small>Viudira Mix</small></div>${macButton({label:'▶',className:'macos27-toolbar-button',preset:'macos-clear-control',ariaLabel:'播放'})}</div>
+    <div class="macos27-cc-slider"><span>显示器</span>${macSlider({ value: 72, ariaLabel: '显示器亮度', setting: 'ccBrightness' })}</div>
+    <div class="macos27-cc-slider"><span>声音</span>${macSlider({ value: 42, ariaLabel: '声音', setting: 'ccVolume' })}</div>
     <div class="macos27-cc-actions">${macButton({ label: '系统设置', className: 'macos27-cc-button', attributes: 'data-macos-open-settings' })}${macButton({ label: '退出模拟器', className: 'macos27-cc-button', attributes: 'data-macos-exit' })}</div>
   </aside>`;
 }
 
 function systemMenu() {
   return `<div class="macos27-system-menu liquid-glass" data-macos-system-popover data-glass-preset="macos-popover" data-glass-live="true" data-glass-keep-active="true" aria-hidden="true">
-    <strong>Viudira macOS 27</strong><button data-toast="这是一个网站内的交互式模拟器">关于本模拟器</button><hr/><button data-macos-open-settings>系统设置…</button><button data-macos-spotlight-open>Spotlight…</button><hr/><button data-toast="已模拟锁定">锁定屏幕</button><button data-macos-exit>退出到 ViudiraTech</button>
+    <strong>Viudira macOS 27</strong>${macButton({label:'关于本模拟器',className:'macos27-system-menu-item',preset:'macos-clear-control',attributes:'data-toast="这是一个网站内的交互式模拟器"'})}<hr/>${macButton({label:'系统设置…',className:'macos27-system-menu-item',preset:'macos-clear-control',attributes:'data-macos-open-settings'})}${macButton({label:'Spotlight…',className:'macos27-system-menu-item',preset:'macos-clear-control',attributes:'data-macos-spotlight-open'})}<hr/>${macButton({label:'锁定屏幕',className:'macos27-system-menu-item',preset:'macos-clear-control',attributes:'data-toast="已模拟锁定"'})}${macButton({label:'退出到 ViudiraTech',className:'macos27-system-menu-item',preset:'macos-clear-control',attributes:'data-macos-exit'})}
   </div>`;
 }
 
@@ -315,12 +309,71 @@ function launchpad() {
   </div>`;
 }
 
+function desktopWidgets() {
+  return `<aside class="macos27-desktop-widgets" aria-label="桌面小组件">
+    <section class="macos27-desktop-widget macos27-desktop-widget--clock liquid-glass" data-glass-preset="macos-popover" data-glass-live="true" data-glass-keep-active="true">
+      <small>天津</small><strong data-macos-widget-time>20:26</strong><span>星期日 · 8月16日</span>
+    </section>
+    <section class="macos27-desktop-widget macos27-desktop-widget--activity liquid-glass" data-glass-preset="macos-toolbar" data-glass-live="true" data-glass-keep-active="true">
+      <div><b>ViudiraTech</b><small>工作区</small></div><span>7 个窗口</span><i></i>
+    </section>
+  </aside>`;
+}
+
+function missionControl() {
+  const cards = Object.entries(apps).filter(([key]) => key !== 'launchpad').map(([key, app]) =>
+    `<button class="macos27-mission-card" data-mission-window="${key}"><span class="macos27-mission-preview macos27-mission-preview--${key}">${appGlyph(key)}<i></i></span><b>${app.label}</b></button>`
+  ).join('');
+  return `<section class="macos27-mission-control" data-macos-mission aria-hidden="true">
+    <div class="macos27-mission-spaces">
+      <button class="is-active"><span></span><b>桌面 1</b></button>
+      <button data-toast="已创建新的桌面空间"><span class="is-add">＋</span><b>新建桌面</b></button>
+    </div>
+    <div class="macos27-mission-grid">${cards}</div>
+    <div class="macos27-mission-hint">按 Esc 或再次按 Control + ↑ 返回</div>
+  </section>`;
+}
+
+function quickLook() {
+  return `<section class="macos27-quicklook liquid-glass" data-macos-quicklook data-glass-preset="macos-popover" data-glass-live="true" aria-hidden="true">
+    <header><span data-quicklook-title>快速查看</span>${macButton({label:'×',className:'macos27-toolbar-button macos27-quicklook-control',preset:'macos-clear-control',attributes:'data-quicklook-close',ariaLabel:'关闭快速查看'})}</header>
+    <div class="macos27-quicklook-preview" data-quicklook-preview>
+      <span class="macos27-quicklook-glyph">DOC</span>
+      <div><b data-quicklook-name>README.md</b><small data-quicklook-meta>Markdown</small></div>
+    </div>
+    <footer><span>空格键关闭</span>${macButton({label:'共享',className:'macos27-quicklook-control',preset:'macos-clear-control',attributes:'data-toast="已模拟共享"'})}</footer>
+  </section>`;
+}
+
+function promoteMacSystemGlass(root) {
+  const rules = [
+    ['.macos27-window-toolbar:not(.macos27-terminal-toolbar)', 'macos-toolbar'],
+    ['.macos27-finder-sidebar', 'macos-toolbar'],
+    ['.macos27-finder-status', 'macos-clear-control'],
+    ['.macos27-safari-tabs', 'macos-clear-control'],
+    ['.macos27-notes-list', 'macos-toolbar'],
+    ['.macos27-messages-body>aside', 'macos-toolbar'],
+    ['.macos27-calendar-body>aside', 'macos-toolbar'],
+    ['.macos27-settings-sidebar', 'macos-toolbar'],
+    ['.macos27-message-composer', 'macos-control'],
+    ['.macos27-launchpad-search', 'macos-toolbar'],
+  ];
+  for (const [selector, preset] of rules) {
+    root.querySelectorAll(selector).forEach((element) => {
+      element.classList.add('liquid-glass', 'macos27-system-glass');
+      element.dataset.glassPreset = preset;
+      element.dataset.glassLive = 'true';
+      if (!element.closest('[data-macos-window].is-hidden')) activateLiquidGlassElement(element);
+    });
+  }
+}
+
 export function macos27Simulator() {
   return `<section class="macos27-sim" data-macos27-sim aria-label="macOS 27 Golden Gate 模拟桌面">
     <div class="macos27-wallpaper" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <header class="macos27-menubar liquid-glass" data-glass-preset="macos-menubar" data-glass-live="true" data-glass-keep-active="true">
-      <div class="macos27-menubar__left"><button class="macos27-menu-mark" data-macos-system-menu aria-label="系统菜单"><span>V</span></button><b data-macos-active-app>Finder</b><button data-menu-label="文件">文件</button><button data-menu-label="编辑">编辑</button><button data-menu-label="显示">显示</button><button data-menu-label="前往">前往</button><button data-menu-label="窗口">窗口</button><button data-menu-label="帮助">帮助</button></div>
-      <div class="macos27-menubar__right"><span class="macos27-status-glyph">${icon.battery(19)}</span><span class="macos27-status-glyph">${icon.wifi(18)}</span><button class="macos27-status-button" data-macos-cc-toggle aria-label="控制中心">${icon.control(18)}</button><button class="macos27-status-button" data-macos-spotlight-open aria-label="聚焦搜索">${icon.search(17)}</button><button class="macos27-clock-button" data-macos-notifications-toggle><time data-macos-clock></time></button></div>
+      <div class="macos27-menubar__left">${macButton({label:'<span>V</span>',className:'macos27-menu-mark macos27-menubar-icon',preset:'macos-clear-control',attributes:'data-macos-system-menu',ariaLabel:'系统菜单'})}<b data-macos-active-app>Finder</b>${['文件','编辑','显示','前往','窗口','帮助'].map((label)=>macButton({label,className:'macos27-menubar-control',preset:'macos-clear-control',attributes:`data-menu-label="${label}"`})).join('')}</div>
+      <div class="macos27-menubar__right"><span class="macos27-status-glyph">${icon.battery(19)}</span><span class="macos27-status-glyph">${icon.wifi(18)}</span>${macButton({label:icon.control(18),className:'macos27-status-button macos27-menubar-icon',preset:'macos-clear-control',attributes:'data-macos-cc-toggle',ariaLabel:'控制中心'})}${macButton({label:icon.search(17),className:'macos27-status-button macos27-menubar-icon',preset:'macos-clear-control',attributes:'data-macos-spotlight-open',ariaLabel:'聚焦搜索'})}${macButton({label:'<time data-macos-clock></time>',className:'macos27-clock-button macos27-menubar-control',preset:'macos-clear-control',attributes:'data-macos-notifications-toggle',ariaLabel:'通知中心'})}</div>
     </header>
 
     ${systemMenu()}
@@ -330,6 +383,7 @@ export function macos27Simulator() {
 
     <div class="macos27-app-menu liquid-glass" data-macos-app-menu data-glass-preset="macos-popover" data-glass-live="true" data-glass-keep-active="true" aria-hidden="true"></div>
 
+    ${desktopWidgets()}
     <div class="macos27-desktop-icons" aria-label="桌面项目">
       <button data-macos-app="settings"><span class="macos27-desktop-icon macos27-desktop-icon--settings">${icon.gear(30)}</span><b>系统设置</b></button>
       <button data-macos-app="finder"><span class="macos27-desktop-icon macos27-desktop-icon--disk">V</span><b>Viudira</b></button>
@@ -344,6 +398,8 @@ export function macos27Simulator() {
     ${calendarWindow()}
     ${settingsWindow()}
     ${launchpad()}
+    ${missionControl()}
+    ${quickLook()}
 
     <nav class="macos27-dock liquid-glass" data-glass-preset="macos-dock" data-glass-live="true" data-glass-keep-active="true" aria-label="Dock">
       ${dockButton('finder', 'Finder')}${dockButton('launchpad', '启动台')}${dockButton('safari', 'Safari')}${dockButton('messages', '信息')}${dockButton('calendar', '日历')}${dockButton('notes', '备忘录')}${dockButton('terminal', '终端')}<span class="macos27-dock-separator" aria-hidden="true"></span>${dockButton('settings', '系统设置')}
@@ -520,6 +576,18 @@ function bindFinder(root) {
   }));
   finder.querySelector('[data-finder-sidebar-toggle]')?.addEventListener('click', () => finder.classList.toggle('sidebar-collapsed'));
   finder.querySelectorAll('[data-finder-view]').forEach((button) => button.addEventListener('click', () => grid.classList.toggle('is-list', button.dataset.finderView === 'list')));
+  grid.addEventListener('click', (event) => {
+    const file = event.target.closest('.macos27-file');
+    if (!file) return;
+    grid.querySelectorAll('.macos27-file').forEach((item) => item.classList.toggle('is-selected', item === file));
+    root._macosSelectedFile = file;
+  });
+  grid.addEventListener('dblclick', (event) => {
+    const file = event.target.closest('.macos27-file');
+    if (!file || file.dataset.macosApp) return;
+    root._macosSelectedFile = file;
+    root._openQuickLook?.(file);
+  });
 }
 
 function safariPageMarkup(site) {
@@ -580,7 +648,7 @@ function bindTerminal(root) {
 function bindSettings(root) {
   const settings = root.querySelector('[data-macos-window="settings"]'); if (!settings) return;
   const content = settings.querySelector('[data-settings-content]');
-  const rebindContent = () => { bindLiquidButtons(content); bindLiquidToggles(content); bindLiquidSliders(content); bindSettingsControls(root, content); };
+  const rebindContent = () => { bindSystemControls(content); bindSettingsControls(root, content); };
   settings.querySelectorAll('[data-settings-section]').forEach((button) => button.addEventListener('click', () => {
     settings.querySelectorAll('[data-settings-section]').forEach((item) => item.classList.toggle('is-active', item === button));
     content.querySelectorAll('[data-liquid-button]').forEach((el) => el._liquidButtonController?.destroy?.());
@@ -649,18 +717,18 @@ function bindMenuBar(root) {
   const menuItems = {
     文件: [['新建 Finder 窗口', 'finder'], ['新建 Safari 窗口', 'safari'], ['关闭窗口', 'close']],
     编辑: [['撤销', 'toast'], ['拷贝', 'toast'], ['粘贴', 'toast']],
-    显示: [['显示启动台', 'launchpad'], ['显示 Spotlight', 'spotlight'], ['显示桌面', 'desktop']],
+    显示: [['显示启动台', 'launchpad'], ['显示 Spotlight', 'spotlight'], ['调度中心', 'mission'], ['显示桌面', 'desktop']],
     前往: [['应用程序', 'finder'], ['文稿', 'finder'], ['下载', 'finder']],
-    窗口: [['最小化', 'minimize'], ['缩放', 'zoom'], ['前置全部窗口', 'front']],
+    窗口: [['最小化', 'minimize'], ['缩放', 'zoom'], ['调度中心', 'mission'], ['前置全部窗口', 'front']],
     帮助: [['macOS 27 模拟器帮助', 'toast'], ['Liquid Glass 设计说明', 'safari']],
   };
   root.querySelectorAll('[data-menu-label]').forEach((button) => button.addEventListener('click', (event) => {
     event.stopPropagation(); const label = button.dataset.menuLabel; closeOverlays(root, 'app-menu');
-    appMenu.innerHTML = (menuItems[label] || []).map(([text, action]) => `<button data-menu-action="${action}">${text}</button>`).join('');
+    appMenu.innerHTML = (menuItems[label] || []).map(([text, action]) => macButton({ label:text, className:'macos27-system-menu-item', preset:'macos-clear-control', attributes:`data-menu-action="${action}"` })).join(''); bindSystemControls(appMenu);
     const rect = button.getBoundingClientRect(); appMenu.style.left = `${Math.max(6, rect.left - 8)}px`; appMenu.style.top = '34px'; setOverlay(root, 'app-menu', true);
     appMenu.querySelectorAll('[data-menu-action]').forEach((item) => item.addEventListener('click', () => {
       const action = item.dataset.menuAction; const active = root.querySelector('[data-macos-window].is-front:not(.is-hidden)');
-      if (apps[action]) openWindow(root, action); else if (action === 'launchpad') root.classList.add('show-launchpad'); else if (action === 'spotlight') root.querySelector('[data-macos-spotlight-open]')?.click(); else if (action === 'close' && active) closeWindow(root, active); else if (action === 'minimize' && active) minimizeWindow(root, active); else if (action === 'zoom' && active) toggleZoom(active); else if (action === 'desktop') root.classList.toggle('show-desktop'); else showToast(root, `${label} · ${item.textContent}`); setOverlay(root, 'app-menu', false);
+      if (apps[action]) openWindow(root, action); else if (action === 'launchpad') root.classList.add('show-launchpad'); else if (action === 'spotlight') root.querySelector('[data-macos-spotlight-open]')?.click(); else if (action === 'close' && active) closeWindow(root, active); else if (action === 'minimize' && active) minimizeWindow(root, active); else if (action === 'zoom' && active) toggleZoom(active); else if (action === 'mission') root._toggleMissionControl?.(); else if (action === 'desktop') root.classList.toggle('show-desktop'); else showToast(root, `${label} · ${item.textContent}`); setOverlay(root, 'app-menu', false);
     }));
   }));
 }
@@ -668,19 +736,42 @@ function bindMenuBar(root) {
 export function bindMacos27Simulator(root = document.querySelector('[data-macos27-sim]')) {
   if (!root || root.dataset.macosBound === '1') return;
   root.dataset.macosBound = '1';
-  // macOS 27 treats the toolbar as part of the floating control layer. Promote
-  // non-terminal title/toolbar strips to the shared live glass engine here so
-  // the HTML stays readable and newly-added windows inherit the same material.
-  root.querySelectorAll('.macos27-window-toolbar:not(.macos27-terminal-toolbar)').forEach((toolbar) => {
-    toolbar.classList.add('liquid-glass');
-    toolbar.dataset.glassPreset = 'macos-toolbar';
-    toolbar.dataset.glassLive = 'true';
-    toolbar.dataset.glassKeepActive = 'true';
-    activateLiquidGlassElement(toolbar);
-  });
-  bindLiquidButtons(root); bindLiquidToggles(root); bindLiquidSliders(root);
+  // macOS 27 uses Liquid Glass across the whole system chrome: menu/Dock,
+  // titlebars, sidebars, status strips and transient surfaces. Window content
+  // itself stays readable standard material, matching Apple's control/content split.
+  promoteMacSystemGlass(root);
+  bindSystemControls(root);
   root.querySelectorAll('[data-macos-window]').forEach((windowEl) => bindWindowDrag(root, windowEl));
   bindAppLaunchers(root); bindFinder(root); bindSafari(root); bindNotes(root); bindTerminal(root); bindSettings(root); bindSpotlight(root); bindMenuBar(root);
+
+  const mission = root.querySelector('[data-macos-mission]');
+  const quicklook = root.querySelector('[data-macos-quicklook]');
+  const setMissionOpen = (open) => {
+    root.classList.toggle('show-mission-control', open);
+    mission?.setAttribute('aria-hidden', String(!open));
+    if (open) closeOverlays(root);
+  };
+  root._toggleMissionControl = () => setMissionOpen(!root.classList.contains('show-mission-control'));
+  mission?.querySelectorAll('[data-mission-window]').forEach((button) => button.addEventListener('click', () => {
+    const name = button.dataset.missionWindow;
+    setMissionOpen(false);
+    openWindow(root, name);
+  }));
+  const setQuickLookOpen = (open, file = root._macosSelectedFile) => {
+    if (!quicklook) return;
+    if (open && file) {
+      quicklook.querySelector('[data-quicklook-title]').textContent = file.dataset.quicklookName || '快速查看';
+      quicklook.querySelector('[data-quicklook-name]').textContent = file.dataset.quicklookName || '项目';
+      quicklook.querySelector('[data-quicklook-meta]').textContent = file.dataset.quicklookMeta || '文件';
+      const glyph = quicklook.querySelector('.macos27-quicklook-glyph');
+      if (glyph) glyph.textContent = (file.dataset.quicklookName?.split('.').pop() || 'DOC').slice(0,4).toUpperCase();
+    }
+    quicklook.classList.toggle('is-open', open);
+    quicklook.setAttribute('aria-hidden', String(!open));
+    if (open) activateLiquidGlassElement(quicklook); else suspendLiquidGlassElement(quicklook);
+  };
+  root._openQuickLook = (file) => setQuickLookOpen(true, file);
+  quicklook?.querySelector('[data-quicklook-close]')?.addEventListener('click', () => setQuickLookOpen(false));
 
   const setPopover = (name, open) => setOverlay(root, name, open);
   root.querySelector('[data-macos-cc-toggle]')?.addEventListener('click', (event) => { event.stopPropagation(); closeOverlays(root, 'control-center'); const panel = root.querySelector('[data-macos-control-center]'); setPopover('control-center', !panel?.classList.contains('is-open')); });
@@ -742,7 +833,16 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
     if (!root.isConnected) { document.removeEventListener('keydown', keyHandler); return; }
     const mod = event.metaKey || event.ctrlKey;
     if (mod && event.code === 'Space') { event.preventDefault(); root.querySelector('[data-macos-spotlight-open]')?.click(); return; }
-    if (event.key === 'Escape') { closeOverlays(root); return; }
+    if (event.key === 'Escape') {
+      if (root.classList.contains('show-mission-control')) { setMissionOpen(false); return; }
+      if (quicklook?.classList.contains('is-open')) { setQuickLookOpen(false); return; }
+      closeOverlays(root); return;
+    }
+    if (event.key === ' ' && root.dataset.activeApp === 'finder' && !event.target.matches('input,textarea,[contenteditable="true"]')) {
+      const file = root._macosSelectedFile;
+      if (file) { event.preventDefault(); setQuickLookOpen(!quicklook?.classList.contains('is-open'), file); return; }
+    }
+    if ((event.ctrlKey && event.key === 'ArrowUp') || event.key === 'F3') { event.preventDefault(); root._toggleMissionControl?.(); return; }
     if (mod && event.key.toLowerCase() === 'w') { const active = root.querySelector('[data-macos-window].is-front:not(.is-hidden)'); if (active) { event.preventDefault(); closeWindow(root, active); } }
     if (mod && event.key.toLowerCase() === 'm') { const active = root.querySelector('[data-macos-window].is-front:not(.is-hidden)'); if (active) { event.preventDefault(); minimizeWindow(root, active); } return; }
     if (mod && event.key === 'Tab') {
@@ -758,7 +858,7 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
   const clock = root.querySelector('[data-macos-clock]');
   const updateClock = () => {
     if (!root.isConnected) return false;
-    const now = new Date(); if (clock) clock.textContent = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(now); return true;
+    const now = new Date(); if (clock) clock.textContent = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(now); const widgetTime = root.querySelector('[data-macos-widget-time]'); if (widgetTime) widgetTime.textContent = now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); return true;
   };
   updateClock(); const timer = setInterval(() => { if (!updateClock()) clearInterval(timer); }, 15000);
 

@@ -1,6 +1,4 @@
-import { liquidButton, bindLiquidButtons } from './liquid-button.js';
-import { liquidToggle, bindLiquidToggles } from './liquid-toggle.js';
-import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
+import { systemButton, systemToggle, systemSlider, systemTabs, bindSystemControls } from './liquid-system-controls.js';
 import { SpringValue, queueCatalogRender } from '../animation/catalog-motion.js';
 import { activateLiquidGlassElement, suspendLiquidGlassElement, setLiquidGlassState } from '../glass/liquid-glass.js';
 
@@ -53,9 +51,13 @@ function appIcon(kind, label, { dock = false, badge = '' } = {}) {
   return `<button class="ios27-app-icon-button${dock ? ' is-dock' : ''}" type="button" data-ios-app-open="${kind}" data-ios-app-label="${label}" aria-label="打开${label}">${appGlyph(kind, badge)}${dock ? '' : `<small>${label}</small>`}</button>`;
 }
 
-function iosButton({label, className='', preset='ios-control', attrs=''}) {
-  return liquidButton({ label, preset, className:`ios27-liquid-button ${className}`.trim(), live:true, inlineLive:true, attributes:attrs });
+function iosButton({ label, className = '', preset = 'ios-control', attrs = '', ariaLabel = '' }) {
+  const role = preset === 'ios-clear-control' ? 'clear' : preset === 'ios-popover' ? 'popover' : 'control';
+  return systemButton({ platform: 'ios', role, label, className, attributes: attrs, ariaLabel });
 }
+const iosToggle = (options = {}) => systemToggle({ platform: 'ios', ...options });
+const iosSlider = (options = {}) => systemSlider({ platform: 'ios', ...options });
+const iosTabs = (options = {}) => systemTabs({ platform: 'ios', ...options });
 
 function statusBar() {
   return `<div class="ios27-statusbar" data-ios-statusbar>
@@ -69,10 +71,10 @@ function lockScreen() {
   return `<section class="ios27-lockscreen" data-ios-lockscreen aria-label="iOS 27 锁定屏幕">
     <div class="ios27-lock-top"><span>${icon.lock(17)}</span><div data-ios-lock-date>8月16日 星期日</div><strong data-ios-lock-time>9:41</strong></div>
     <div class="ios27-lock-widgets">
-      <div class="ios27-lock-widget"><span>天津</span><b>28°</b><small>晴朗 · 最高 31°</small></div>
-      <div class="ios27-lock-widget"><span>日程</span><b>今天</b><small>ViudiraTech · 20:00</small></div>
+      <div class="ios27-lock-widget ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-control" data-glass-live="true"><span>天津</span><b>28°</b><small>晴朗 · 最高 31°</small></div>
+      <div class="ios27-lock-widget ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-control" data-glass-live="true"><span>日程</span><b>今天</b><small>ViudiraTech · 20:00</small></div>
     </div>
-    <div class="ios27-lock-notification ios27-material"><span>${appGlyph('messages')}</span><div><b>信息</b><small>Liquid Glass 已准备完成</small></div><time>现在</time></div>
+    <div class="ios27-lock-notification ios27-material ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true"><span>${appGlyph('messages')}</span><div><b>信息</b><small>Liquid Glass 已准备完成</small></div><time>现在</time></div>
     <div class="ios27-lock-actions">
       ${iosButton({label:icon.torch(),className:'ios27-lock-action',preset:'ios-clear-control',attrs:'aria-label="手电筒" data-ios-toast="手电筒"'})}
       ${iosButton({label:icon.camera(),className:'ios27-lock-action',preset:'ios-clear-control',attrs:'aria-label="相机" data-ios-app-open="camera"'})}
@@ -103,14 +105,14 @@ function homeScreen() {
         </div>
       </div>
     </div>
-    <button class="ios27-home-search liquid-glass ios27-glass-primary ios27-material" data-ios-spotlight-open data-glass-preset="ios-control" data-glass-live="true" data-glass-keep-active="true">${icon.search(16)}<span>搜索</span></button>
+    ${iosButton({ label:`${icon.search(16)}<span>搜索</span>`, className:'ios27-home-search', attrs:'data-ios-spotlight-open aria-label="搜索"' })}
     <div class="ios27-page-dots"><i class="is-active"></i><i></i></div>
     <div class="ios27-dock liquid-glass ios27-glass-primary ios27-material" data-glass-preset="ios-dock" data-glass-live="true" data-glass-keep-active="true">${dock}</div>
   </section>`;
 }
 
 function appChrome(title, { back = false, trailing = '' } = {}) {
-  return `<header class="ios27-app-nav"><div>${back ? `<button data-ios-app-back aria-label="返回">${icon.back()}</button>` : '<span></span>'}</div><b>${title}</b><div>${trailing}</div></header>`;
+  return `<header class="ios27-app-nav ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-control" data-glass-live="true"><div>${back ? iosButton({ label:icon.back(), className:'ios27-nav-control', preset:'ios-clear-control', attrs:'data-ios-app-back', ariaLabel:'返回' }) : '<span></span>'}</div><b>${title}</b><div>${trailing}</div></header>`;
 }
 
 function settingsApp() {
@@ -127,9 +129,9 @@ function settingsApp() {
       </section>
       <section class="ios27-settings-group ios27-glass-settings">
         <div class="ios27-setting-row"><span class="ios27-setting-glyph is-violet">◌</span><div><b>Liquid Glass</b><small>iOS 27 外观</small></div></div>
-        <div class="ios27-setting-slider"><label>超透明</label>${liquidSlider({value:58,ariaLabel:'Liquid Glass 外观',setting:'iosGlass'})}<label>着色</label></div>
-        <div class="ios27-setting-row"><div><b>减少透明度</b><small>使用更不透明的标准材质</small></div>${liquidToggle({checked:false,ariaLabel:'减少透明度',setting:'iosReduceTransparency'})}</div>
-        <div class="ios27-setting-row"><div><b>减少动态效果</b><small>降低界面位移和缩放</small></div>${liquidToggle({checked:false,ariaLabel:'减少动态效果',setting:'iosReduceMotion'})}</div>
+        <div class="ios27-setting-slider"><label>超透明</label>${iosSlider({value:58,ariaLabel:'Liquid Glass 外观',setting:'iosGlass'})}<label>着色</label></div>
+        <div class="ios27-setting-row"><div><b>减少透明度</b><small>使用更不透明的标准材质</small></div>${iosToggle({checked:false,ariaLabel:'减少透明度',setting:'iosReduceTransparency'})}</div>
+        <div class="ios27-setting-row"><div><b>减少动态效果</b><small>降低界面位移和缩放</small></div>${iosToggle({checked:false,ariaLabel:'减少动态效果',setting:'iosReduceMotion'})}</div>
       </section>
       <section class="ios27-settings-group"><button><span class="ios27-setting-glyph is-orange">☼</span><b>显示与亮度</b>${icon.chevron(14)}</button><button><span class="ios27-setting-glyph is-gray">⌂</span><b>主屏幕与 App 资源库</b>${icon.chevron(14)}</button><button><span class="ios27-setting-glyph is-red">◉</span><b>通知</b>${icon.chevron(14)}</button></section>
     </div>
@@ -144,13 +146,13 @@ function safariApp() {
       <section class="ios27-safari-card"><small>隐私报告</small><b>Safari 已阻止 18 个跨站跟踪器</b><span>18</span></section>
       <section class="ios27-safari-card ios27-safari-reading"><small>阅读列表</small><b>Designing for Liquid Glass</b><p>让内容延伸到边缘，把导航和控件浮在最上层。</p></section>
     </div>
-    <form class="ios27-safari-bottom ios27-material" data-ios-safari-form><button type="button">${icon.back(18)}</button><label>${icon.search(16)}<input data-ios-safari-input value="viudiratech.local" aria-label="Safari 地址"/></label><button type="button" data-ios-toast="标签页">▢</button></form>
+    <form class="ios27-safari-bottom ios27-material ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true" data-ios-safari-form>${iosButton({label:icon.back(18),className:'ios27-bar-control',preset:'ios-clear-control',ariaLabel:'后退'})}<label>${icon.search(16)}<input data-ios-safari-input value="viudiratech.local" aria-label="Safari 地址"/></label>${iosButton({label:'▢',className:'ios27-bar-control',preset:'ios-clear-control',attrs:'data-ios-toast="标签页"',ariaLabel:'标签页'})}</form>
   </article>`;
 }
 
 function messagesApp() {
   return `<article class="ios27-app ios27-app--messages" data-ios-app="messages" aria-label="信息">
-    ${appChrome('信息', { trailing:'<button data-ios-toast="新信息">＋</button>' })}
+    ${appChrome('信息', { trailing:iosButton({label:'＋',className:'ios27-nav-control',preset:'ios-clear-control',attrs:'data-ios-toast="新信息"',ariaLabel:'新信息'}) })}
     <div class="ios27-app-scroll"><h1>信息</h1><div class="ios27-settings-search">${icon.search(18)}<span>搜索</span></div>
       <div class="ios27-message-list">
         <button data-ios-thread="viudira"><span class="ios27-avatar is-blue">V</span><div><b>ViudiraTech</b><small>Liquid Glass 已准备完成</small></div><time>15:30</time></button>
@@ -158,21 +160,21 @@ function messagesApp() {
         <button><span class="ios27-avatar is-green">U</span><div><b>Uinxed</b><small>新的构建通过了。</small></div><time>昨天</time></button>
       </div>
     </div>
-    <div class="ios27-thread" data-ios-thread-view aria-hidden="true"><header><button data-ios-thread-close>${icon.back()}</button><span class="ios27-avatar is-blue">V</span><b>ViudiraTech</b></header><div class="ios27-thread-body"><span class="is-in">iOS 27 手机端已经不是缩小版 macOS 了。</span><span class="is-out">这次动画能随时打断吗？</span><span class="is-in">可以，直接从当前手势进度接管。</span></div><form data-ios-message-form><input placeholder="iMessage"/><button>↑</button></form></div>
+    <div class="ios27-thread" data-ios-thread-view aria-hidden="true"><header class="ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-control" data-glass-live="true">${iosButton({label:icon.back(),className:'ios27-nav-control',preset:'ios-clear-control',attrs:'data-ios-thread-close',ariaLabel:'返回'})}<span class="ios27-avatar is-blue">V</span><b>ViudiraTech</b></header><div class="ios27-thread-body"><span class="is-in">iOS 27 手机端已经不是缩小版 macOS 了。</span><span class="is-out">这次动画能随时打断吗？</span><span class="is-in">可以，直接从当前手势进度接管。</span></div><form class="ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-control" data-glass-live="true" data-ios-message-form><input placeholder="iMessage"/>${iosButton({label:'↑',className:'ios27-nav-control ios27-send-control',preset:'ios-clear-control',ariaLabel:'发送'})}</form></div>
   </article>`;
 }
 
 function photosApp() {
   const tiles = Array.from({length:24},(_,i)=>`<button style="--h:${(i*37)%360};--p:${i%5}" data-ios-toast="照片 ${i+1}"></button>`).join('');
-  return `<article class="ios27-app ios27-app--photos" data-ios-app="photos" aria-label="照片">${appChrome('照片')}<div class="ios27-app-scroll"><div class="ios27-photos-head"><h1>图库</h1><button>选择</button></div><div class="ios27-photo-grid">${tiles}</div></div><nav class="ios27-app-tabbar ios27-material"><button class="is-active">▦<small>图库</small></button><button>◇<small>精选</small></button><button>${icon.search(17)}<small>搜索</small></button></nav></article>`;
+  return `<article class="ios27-app ios27-app--photos" data-ios-app="photos" aria-label="照片">${appChrome('照片')}<div class="ios27-app-scroll"><div class="ios27-photos-head"><h1>图库</h1>${iosButton({label:'选择',className:'ios27-nav-text',preset:'ios-clear-control'})}</div><div class="ios27-photo-grid">${tiles}</div></div>${iosTabs({className:'ios27-app-tabbar ios27-tabbar-shared',items:[{id:'library',label:'图库',icon:'▦'},{id:'featured',label:'精选',icon:'◇'},{id:'search',label:'搜索',icon:icon.search(17)}],selected:0,ariaLabel:'照片标签栏'})}</article>`;
 }
 
 function musicApp() {
-  return `<article class="ios27-app ios27-app--music" data-ios-app="music" aria-label="音乐">${appChrome('音乐')}<div class="ios27-app-scroll"><h1>主页</h1><div class="ios27-album-art"><i></i><i></i><i></i><span>Viudira</span></div><div class="ios27-now-title"><small>正在播放</small><b>夜航星</b><span>Viudira Mix</span></div><div class="ios27-music-progress"><i></i><span>1:48</span><span>-2:31</span></div><div class="ios27-music-controls"><button>↶</button><button data-ios-music-play>${icon.pause(28)}</button><button>↷</button></div><div class="ios27-music-volume">${icon.speaker(18)}${liquidSlider({value:46,ariaLabel:'音乐音量',setting:'iosMusicVolume'})}</div></div></article>`;
+  return `<article class="ios27-app ios27-app--music" data-ios-app="music" aria-label="音乐">${appChrome('音乐')}<div class="ios27-app-scroll"><h1>主页</h1><div class="ios27-album-art"><i></i><i></i><i></i><span>Viudira</span></div><div class="ios27-now-title"><small>正在播放</small><b>夜航星</b><span>Viudira Mix</span></div><div class="ios27-music-progress"><i></i><span>1:48</span><span>-2:31</span></div><div class="ios27-music-controls">${iosButton({label:'↶',className:'ios27-music-control',preset:'ios-clear-control',ariaLabel:'上一首'})}${iosButton({label:icon.pause(28),className:'ios27-music-control ios27-music-control--primary',preset:'ios-clear-control',attrs:'data-ios-music-play',ariaLabel:'播放或暂停'})}${iosButton({label:'↷',className:'ios27-music-control',preset:'ios-clear-control',ariaLabel:'下一首'})}</div><div class="ios27-music-volume">${icon.speaker(18)}${iosSlider({value:46,ariaLabel:'音乐音量',setting:'iosMusicVolume'})}</div></div></article>`;
 }
 
 function notesApp() {
-  return `<article class="ios27-app ios27-app--notes" data-ios-app="notes" aria-label="备忘录">${appChrome('备忘录',{trailing:'<button data-ios-toast="新备忘录">＋</button>'})}<div class="ios27-note-sheet"><small>8月16日 15:30</small><h1 contenteditable="true" data-ios-note-title>iOS 27 模拟器</h1><div contenteditable="true" data-ios-note-body>• 手机端直接进入 iOS 27\n• Liquid Glass 控件层\n• 手势动画可以随时打断\n• 设置会自动保存在浏览器里</div></div></article>`;
+  return `<article class="ios27-app ios27-app--notes" data-ios-app="notes" aria-label="备忘录">${appChrome('备忘录',{trailing:iosButton({label:'＋',className:'ios27-nav-control',preset:'ios-clear-control',attrs:'data-ios-toast="新备忘录"',ariaLabel:'新备忘录'})})}<div class="ios27-note-sheet"><small>8月16日 15:30</small><h1 contenteditable="true" data-ios-note-title>iOS 27 模拟器</h1><div contenteditable="true" data-ios-note-body>• 手机端直接进入 iOS 27\n• Liquid Glass 控件层\n• 手势动画可以随时打断\n• 设置会自动保存在浏览器里</div></div></article>`;
 }
 
 function filesApp() {
@@ -180,7 +182,7 @@ function filesApp() {
 }
 
 function weatherApp() {
-  return `<article class="ios27-app ios27-app--weather" data-ios-app="weather" aria-label="天气">${appChrome('天气')}<div class="ios27-weather-scene"><small>天津市</small><strong>28°</strong><span>晴朗</span><em>最高 31°　最低 23°</em><div class="ios27-weather-hours"><i>现在<b>28°</b></i><i>16时<b>29°</b></i><i>17时<b>29°</b></i><i>18时<b>28°</b></i><i>19时<b>27°</b></i></div><section><b>10 日天气预报</b><p>今天　☀　23° ━━━━━ 31°</p><p>周一　☀　24° ━━━━━ 32°</p><p>周二　☁　24° ━━━━━ 30°</p></section></div></article>`;
+  return `<article class="ios27-app ios27-app--weather" data-ios-app="weather" aria-label="天气">${appChrome('天气')}<div class="ios27-weather-scene"><small>天津市</small><strong>28°</strong><span>晴朗</span><em>最高 31°　最低 23°</em><div class="ios27-weather-hours ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-control" data-glass-live="true"><i>现在<b>28°</b></i><i>16时<b>29°</b></i><i>17时<b>29°</b></i><i>18时<b>28°</b></i><i>19时<b>27°</b></i></div><section class="ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true"><b>10 日天气预报</b><p>今天　☀　23° ━━━━━ 31°</p><p>周一　☀　24° ━━━━━ 32°</p><p>周二　☁　24° ━━━━━ 30°</p></section></div></article>`;
 }
 
 function genericApp(kind, title) {
@@ -190,9 +192,9 @@ function genericApp(kind, title) {
   } else if (kind === 'calendar') {
     body = `<div class="ios27-app-scroll ios27-calendar-app"><div class="ios27-calendar-head"><div><small>2026年</small><h1>8月</h1></div><button data-ios-toast="今天">今天</button></div><div class="ios27-calendar-week"><b>日</b><b>一</b><b>二</b><b>三</b><b>四</b><b>五</b><b>六</b></div><div class="ios27-calendar-grid">${Array.from({length:35},(_,i)=>{const d=i-5;return `<button class="${d===16?'is-today':''}${d<1||d>31?' is-outside':''}">${d<1?31+d:d>31?d-31:d}${d===16?'<i></i>':''}</button>`}).join('')}</div><section class="ios27-calendar-agenda"><b>今天</b><article><i></i><div><strong>ViudiraTech</strong><small>20:00–21:00</small></div></article><article><i class="is-blue"></i><div><strong>整理项目计划</strong><small>全天</small></div></article></section></div>`;
   } else if (kind === 'maps') {
-    body = `<div class="ios27-map-app"><div class="ios27-map-canvas"><i class="r1"></i><i class="r2"></i><i class="river"></i><span class="pin p1">V</span><span class="pin p2">●</span><b>天津</b><small>南开区</small></div><div class="ios27-map-sheet ios27-material"><label>${icon.search(17)}<input placeholder="搜索地图"/></label><div class="ios27-map-shortcuts"><button><span>⌂</span><b>家</b></button><button><span>★</span><b>收藏</b></button><button><span>＋</span><b>添加</b></button></div><p><strong>附近</strong><span>咖啡 · 公园 · 地铁</span></p></div></div>`;
+    body = `<div class="ios27-map-app"><div class="ios27-map-canvas"><i class="r1"></i><i class="r2"></i><i class="river"></i><span class="pin p1">V</span><span class="pin p2">●</span><b>天津</b><small>南开区</small></div><div class="ios27-map-sheet ios27-material ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true"><label>${icon.search(17)}<input placeholder="搜索地图"/></label><div class="ios27-map-shortcuts"><button><span>⌂</span><b>家</b></button><button><span>★</span><b>收藏</b></button><button><span>＋</span><b>添加</b></button></div><p><strong>附近</strong><span>咖啡 · 公园 · 地铁</span></p></div></div>`;
   } else if (kind === 'clock') {
-    body = `<div class="ios27-app-scroll ios27-clock-app"><h1>世界时钟</h1><div class="ios27-clock-card"><div><b>天津</b><small>今天，+0 小时</small></div><strong>19:32</strong></div><div class="ios27-clock-card"><div><b>东京</b><small>今天，+1 小时</small></div><strong>20:32</strong></div><h2>闹钟</h2><div class="ios27-alarm-card"><span><b>07:00</b><small>工作日</small></span>${liquidToggle({checked:true,ariaLabel:'07:00 闹钟',setting:'iosAlarm'})}</div><div class="ios27-alarm-card"><span><b>09:30</b><small>周末</small></span>${liquidToggle({checked:false,ariaLabel:'09:30 闹钟',setting:'iosAlarmWeekend'})}</div></div>`;
+    body = `<div class="ios27-app-scroll ios27-clock-app"><h1>世界时钟</h1><div class="ios27-clock-card"><div><b>天津</b><small>今天，+0 小时</small></div><strong>19:32</strong></div><div class="ios27-clock-card"><div><b>东京</b><small>今天，+1 小时</small></div><strong>20:32</strong></div><h2>闹钟</h2><div class="ios27-alarm-card"><span><b>07:00</b><small>工作日</small></span>${iosToggle({checked:true,ariaLabel:'07:00 闹钟',setting:'iosAlarm'})}</div><div class="ios27-alarm-card"><span><b>09:30</b><small>周末</small></span>${iosToggle({checked:false,ariaLabel:'09:30 闹钟',setting:'iosAlarmWeekend'})}</div></div>`;
   } else if (kind === 'store') {
     body = `<div class="ios27-app-scroll ios27-store-app"><small>星期日 · 8月16日</small><h1>今天</h1><article class="ios27-store-feature"><div><small>编辑精选</small><b>为创造而生</b><p>发现适合开发、设计与创作的新 App。</p></div><span>A</span></article><h2>本周热门</h2><div class="ios27-store-list">${[['V','Viudira Tools','开发工具'],['N','Nova Notes','效率'],['P','Pixel Lab','图形与设计']].map(([g,n,c])=>`<button><span>${g}</span><div><b>${n}</b><small>${c}</small></div><em>获取</em></button>`).join('')}</div></div>`;
   } else if (kind === 'phone') {
@@ -208,38 +210,59 @@ function appStage() {
 }
 
 function controlCenter() {
-  return `<aside class="ios27-overlay ios27-control-center" data-ios-control-center aria-hidden="true">
-    <div class="ios27-cc-head"><b>控制中心</b><button data-ios-cc-close>完成</button></div>
+  return `<aside class="ios27-overlay ios27-control-center ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true" data-ios-control-center aria-hidden="true">
+    <div class="ios27-cc-head"><b>控制中心</b>${iosButton({label:'完成',className:'ios27-nav-text',preset:'ios-clear-control',attrs:'data-ios-cc-close'})}</div>
     <div class="ios27-cc-grid">
-      <section class="ios27-cc-connectivity ios27-material"><button class="is-active" data-ios-cc-tile="airplane">${icon.airplane()}<span>飞行模式</span></button><button class="is-active" data-ios-cc-tile="wifi">${icon.wifi(20)}<span>Wi‑Fi</span></button><button class="is-active" data-ios-cc-tile="bluetooth">${icon.bluetooth()}<span>蓝牙</span></button><button data-ios-cc-tile="cell">▰<span>蜂窝网络</span></button></section>
-      <section class="ios27-cc-nowplaying ios27-material"><span class="ios27-cc-art">V</span><div><b>夜航星</b><small>Viudira Mix</small></div><button data-ios-music-play>${icon.pause()}</button></section>
-      <section class="ios27-cc-slider ios27-material"><span>${icon.sun()}</span>${liquidSlider({value:72,ariaLabel:'亮度',setting:'iosBrightness'})}</section>
-      <section class="ios27-cc-slider ios27-material"><span>${icon.speaker()}</span>${liquidSlider({value:44,ariaLabel:'音量',setting:'iosVolume'})}</section>
-      <button class="ios27-cc-small ios27-material" data-ios-cc-tile="focus"><b>◐</b><span>专注模式</span></button>
-      <button class="ios27-cc-small ios27-material" data-ios-cc-tile="rotation"><b>↻</b><span>方向锁定</span></button>
-      <button class="ios27-cc-small ios27-material" data-ios-toast="屏幕镜像"><b>▣</b><span>屏幕镜像</span></button>
-      <button class="ios27-cc-small ios27-material" data-ios-toast="相机"><b>◎</b><span>相机</span></button>
+      <section class="ios27-cc-connectivity ios27-material">${iosButton({label:icon.airplane(),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="airplane"',ariaLabel:'飞行模式'})}${iosButton({label:icon.wifi(20),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="wifi"',ariaLabel:'Wi-Fi'})}${iosButton({label:icon.bluetooth(),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="bluetooth"',ariaLabel:'蓝牙'})}${iosButton({label:'▰',className:'ios27-cc-round',preset:'ios-clear-control',attrs:'data-ios-cc-tile="cell"',ariaLabel:'蜂窝网络'})}</section>
+      <section class="ios27-cc-nowplaying ios27-material"><span class="ios27-cc-art">V</span><div><b>夜航星</b><small>Viudira Mix</small></div>${iosButton({label:icon.pause(),className:'ios27-nav-control',preset:'ios-clear-control',attrs:'data-ios-music-play',ariaLabel:'播放或暂停'})}</section>
+      <section class="ios27-cc-slider ios27-material"><span>${icon.sun()}</span>${iosSlider({value:72,ariaLabel:'亮度',setting:'iosBrightness'})}</section>
+      <section class="ios27-cc-slider ios27-material"><span>${icon.speaker()}</span>${iosSlider({value:44,ariaLabel:'音量',setting:'iosVolume'})}</section>
+      ${iosButton({label:'<b>◐</b><span>专注模式</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-cc-tile="focus"'})}
+      ${iosButton({label:'<b>↻</b><span>方向锁定</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-cc-tile="rotation"'})}
+      ${iosButton({label:'<b>▣</b><span>屏幕镜像</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-toast="屏幕镜像"'})}
+      ${iosButton({label:'<b>◎</b><span>相机</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-toast="相机"'})}
     </div>
   </aside>`;
 }
 
 function notificationCenter() {
-  return `<aside class="ios27-overlay ios27-notification-center" data-ios-notifications aria-hidden="true"><header><small>8月16日</small><strong>星期日</strong></header><div class="ios27-notification-stack"><article class="ios27-material"><span>${appGlyph('messages')}</span><div><b>信息</b><p>iOS 27 手机端模拟已经启用。</p></div><time>现在</time></article><article class="ios27-material"><span>${appGlyph('calendar')}</span><div><b>日历</b><p>20:00 · ViudiraTech</p></div><time>1小时前</time></article></div></aside>`;
+  return `<aside class="ios27-overlay ios27-notification-center" data-ios-notifications aria-hidden="true"><header><small>8月16日</small><strong>星期日</strong></header><div class="ios27-notification-stack"><article class="ios27-material ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true"><span>${appGlyph('messages')}</span><div><b>信息</b><p>iOS 27 手机端模拟已经启用。</p></div><time>现在</time></article><article class="ios27-material ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true"><span>${appGlyph('calendar')}</span><div><b>日历</b><p>20:00 · ViudiraTech</p></div><time>1小时前</time></article></div></aside>`;
 }
 
 function spotlight() {
-  return `<aside class="ios27-spotlight" data-ios-spotlight aria-hidden="true"><div class="ios27-spotlight-search liquid-glass ios27-glass-primary ios27-material" data-glass-preset="ios-popover" data-glass-live="true" data-glass-keep-active="true">${icon.search(20)}<input data-ios-spotlight-input placeholder="搜索 App 和内容"/><button data-ios-spotlight-close>取消</button></div><div class="ios27-spotlight-results" data-ios-spotlight-results></div></aside>`;
+  return `<aside class="ios27-spotlight" data-ios-spotlight aria-hidden="true"><div class="ios27-spotlight-search liquid-glass ios27-glass-primary ios27-material" data-glass-preset="ios-popover" data-glass-live="true" data-glass-keep-active="true">${icon.search(20)}<input data-ios-spotlight-input placeholder="搜索 App 和内容"/>${iosButton({label:'取消',className:'ios27-nav-text',preset:'ios-clear-control',attrs:'data-ios-spotlight-close'})}</div><div class="ios27-spotlight-results ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true" data-ios-spotlight-results></div></aside>`;
+}
+
+function appContextMenu() {
+  return `<aside class="ios27-context-menu ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true" data-ios-context-menu aria-hidden="true">
+    <header><span data-ios-context-icon>${appGlyph('messages')}</span><div><b data-ios-context-title>信息</b><small>快捷操作</small></div></header>
+    ${iosButton({label:'打开',className:'ios27-context-action',preset:'ios-clear-control',attrs:'data-ios-context-action="open"'})}
+    ${iosButton({label:'编辑主屏幕',className:'ios27-context-action',preset:'ios-clear-control',attrs:'data-ios-context-action="edit"'})}
+    ${iosButton({label:'共享 App',className:'ios27-context-action',preset:'ios-clear-control',attrs:'data-ios-context-action="share"'})}
+    ${iosButton({label:'移除 App',className:'ios27-context-action is-danger',preset:'ios-clear-control',attrs:'data-ios-context-action="remove"'})}
+  </aside>`;
+}
+
+function promoteIosSystemGlass(root) {
+  // The heavy displacement filter is grouped at actual system chrome boundaries.
+  // Secondary rows remain lightweight material so iPhone-class GPUs don't render
+  // dozens of independent full-resolution backdrop filters every frame.
+  root.querySelectorAll('.ios27-system-glass').forEach((element) => {
+    element.classList.add('liquid-glass', 'ios27-glass-primary');
+    element.dataset.glassLive = 'true';
+    if (!element.dataset.glassPreset) element.dataset.glassPreset = 'ios-control';
+  });
 }
 
 export function ios27Simulator() {
   return `<section class="ios27-sim" data-ios27-sim data-ios-state="locked" aria-label="iOS 27 模拟器">
     <div class="ios27-wallpaper" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="ios27-scene-dim" data-ios-scene-dim></div>
-    ${statusBar()}${homeScreen()}${lockScreen()}${appStage()}${controlCenter()}${notificationCenter()}${spotlight()}
+    ${statusBar()}${homeScreen()}${lockScreen()}${appStage()}${controlCenter()}${notificationCenter()}${spotlight()}${appContextMenu()}
     <div class="ios27-top-gesture ios27-top-gesture--left" data-ios-notification-gesture></div><div class="ios27-top-gesture ios27-top-gesture--right" data-ios-cc-gesture></div>
     <div class="ios27-home-gesture" data-ios-home-gesture><span></span></div>
     <div class="ios27-toast ios27-material" data-ios-toast-box aria-live="polite"></div>
-    <button class="ios27-exit" type="button" data-ios-exit aria-label="退出 iOS 27 模拟器">退出模拟器</button>
+    ${iosButton({label:'退出模拟器',className:'ios27-exit',preset:'ios-clear-control',attrs:'data-ios-exit',ariaLabel:'退出 iOS 27 模拟器'})}
   </section>`;
 }
 
@@ -299,8 +322,13 @@ function searchResults(root, query='') {
 export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]')) {
   if(!root || root.dataset.iosBound==='1') return;
   root.dataset.iosBound='1';
-  root.querySelectorAll('.ios27-glass-primary[data-glass-preset^="ios-"]').forEach((el)=>{const r=el.getBoundingClientRect();if(r.width>.5&&r.height>.5)activateLiquidGlassElement(el);});
-  bindLiquidButtons(root); bindLiquidToggles(root); bindLiquidSliders(root);
+  promoteIosSystemGlass(root);
+  root.querySelectorAll('.ios27-glass-primary[data-glass-preset^="ios-"]').forEach((el)=>{
+    const inInactiveApp=el.closest('[data-ios-app]:not(.is-active)');
+    const inHiddenOverlay=el.closest('[aria-hidden="true"]');
+    if(!inInactiveApp && !inHiddenOverlay){const r=el.getBoundingClientRect();if(r.width>.5&&r.height>.5)activateLiquidGlassElement(el);}
+  });
+  bindSystemControls(root);
 
   const status=root.querySelector('[data-ios-statusbar]');
   const home=root.querySelector('[data-ios-home]');
@@ -309,6 +337,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   const cc=root.querySelector('[data-ios-control-center]');
   const notifications=root.querySelector('[data-ios-notifications]');
   const spotlight=root.querySelector('[data-ios-spotlight]');
+  const contextMenu=root.querySelector('[data-ios-context-menu]');
   const dim=root.querySelector('[data-ios-scene-dim]');
   const homePages=root.querySelector('[data-ios-home-pages]');
   const pageDots=[...root.querySelectorAll('.ios27-page-dots i')];
@@ -318,7 +347,14 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   updateSimMetrics();
   const simResizeObserver=new ResizeObserver(updateSimMetrics); simResizeObserver.observe(root);
   const homePrimaryGlass=[...root.querySelectorAll('.ios27-home .ios27-glass-primary')];
+  const lockSystemGlass=[...lock.querySelectorAll('.ios27-system-glass')];
+  const ccSystemGlass=[...cc.querySelectorAll('.ios27-system-glass')];
+  const notificationSystemGlass=[...notifications.querySelectorAll('.ios27-system-glass')];
+  const spotlightSystemGlass=[...spotlight.querySelectorAll('.ios27-system-glass')];
   const spotlightGlass=root.querySelector('.ios27-spotlight-search.liquid-glass');
+  const contextGlass=contextMenu;
+  const setGlassGroupActive=(elements,active)=>elements.forEach(active?activateLiquidGlassElement:suspendLiquidGlassElement);
+  const setActiveAppGlass=(app,active)=>app?.querySelectorAll('.ios27-system-glass').forEach(active?activateLiquidGlassElement:suspendLiquidGlassElement);
   let homePrimaryActive=true;
   const setHomePrimaryActive=(active)=>{
     if(homePrimaryActive===active)return; homePrimaryActive=active;
@@ -327,7 +363,12 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   // Lock screen starts above Home. Do not keep two large displacement lenses
   // composited underneath it; wake them just before Home becomes visible.
   setHomePrimaryActive(false);
+  setGlassGroupActive(lockSystemGlass,true);
+  setGlassGroupActive(ccSystemGlass,false);
+  setGlassGroupActive(notificationSystemGlass,false);
+  setGlassGroupActive(spotlightSystemGlass,false);
   suspendLiquidGlassElement(spotlightGlass);
+  suspendLiquidGlassElement(contextGlass);
 
   const renderUnlock=(p)=>{
     root.style.setProperty('--ios-unlock',p.toFixed(4));
@@ -335,7 +376,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     lock.style.opacity=(1-p).toFixed(4); home.style.opacity=p.toFixed(4); home.style.transform=`scale(${mix(.94,1,p).toFixed(4)})`;
     if(p>.22 && !activeApp && !document.hidden)setHomePrimaryActive(true);
     else if(p<.04)setHomePrimaryActive(false);
-    if(p>.995){ lock.style.pointerEvents='none'; unlocked=true; root.dataset.iosState='home'; } else if(p<.005){ lock.style.pointerEvents='auto'; unlocked=false; root.dataset.iosState='locked'; }
+    if(p>.995){ lock.style.pointerEvents='none'; unlocked=true; root.dataset.iosState='home'; setGlassGroupActive(lockSystemGlass,false); } else if(p<.005){ lock.style.pointerEvents='auto'; unlocked=false; root.dataset.iosState='locked'; setGlassGroupActive(lockSystemGlass,true); }
   };
   const unlock=makeSpring(0,renderUnlock,{dampingRatio:.88,stiffness:360});
 
@@ -349,16 +390,16 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     home.style.transform=`translate3d(0,0,0) scale(${mix(1,.925,p).toFixed(4)})`; home.style.opacity=mix(1,.52,p).toFixed(4);
     status.classList.toggle('is-app',p>.55);
     if(p>.08)setHomePrimaryActive(false); else if(p<.02 && unlocked && !document.hidden)setHomePrimaryActive(true);
-    if(p<.005){stage.setAttribute('aria-hidden','true');stage.style.pointerEvents='none';activeApp='';root.dataset.iosState='home';}
+    if(p<.005){const closing=activeApp?root.querySelector(`[data-ios-app="${activeApp}"]`):null;setActiveAppGlass(closing,false);stage.setAttribute('aria-hidden','true');stage.style.pointerEvents='none';activeApp='';root.dataset.iosState='home';}
     else{stage.removeAttribute('aria-hidden');root.dataset.iosState='app';}
   };
   const appMotion=makeSpring(0,renderApp,{dampingRatio:.86,stiffness:430});
 
-  const renderCC=(p)=>{ root.style.setProperty('--ios-cc',p.toFixed(4)); cc.style.transform=`translate3d(0,${(-104*(1-p)).toFixed(3)}%,0)`; cc.style.opacity=clamp(p*1.6).toFixed(4); cc.style.pointerEvents=p>.04?'auto':'none'; cc.setAttribute('aria-hidden',String(p<.02)); dim.style.opacity=(.34*p).toFixed(3); };
+  const renderCC=(p)=>{ root.style.setProperty('--ios-cc',p.toFixed(4)); cc.style.transform=`translate3d(0,${(-104*(1-p)).toFixed(3)}%,0)`; cc.style.opacity=clamp(p*1.6).toFixed(4); cc.style.pointerEvents=p>.04?'auto':'none'; cc.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(ccSystemGlass,false); dim.style.opacity=(.34*p).toFixed(3); };
   const ccMotion=makeSpring(0,renderCC,{dampingRatio:.9,stiffness:430});
-  const renderNC=(p)=>{ notifications.style.transform=`translate3d(0,${(-103*(1-p)).toFixed(3)}%,0)`; notifications.style.opacity=clamp(p*1.6).toFixed(4); notifications.style.pointerEvents=p>.04?'auto':'none'; notifications.setAttribute('aria-hidden',String(p<.02)); dim.style.opacity=(Math.max(ccMotion.value,p)*.34).toFixed(3); };
+  const renderNC=(p)=>{ notifications.style.transform=`translate3d(0,${(-103*(1-p)).toFixed(3)}%,0)`; notifications.style.opacity=clamp(p*1.6).toFixed(4); notifications.style.pointerEvents=p>.04?'auto':'none'; notifications.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(notificationSystemGlass,false); dim.style.opacity=(Math.max(ccMotion.value,p)*.34).toFixed(3); };
   const ncMotion=makeSpring(0,renderNC,{dampingRatio:.9,stiffness:430});
-  const renderSpot=(p)=>{ spotlight.style.opacity=p.toFixed(4); spotlight.style.transform=`translate3d(0,${mix(28,0,p).toFixed(2)}px,0) scale(${mix(.97,1,p).toFixed(4)})`; spotlight.style.pointerEvents=p>.04?'auto':'none'; spotlight.setAttribute('aria-hidden',String(p<.02)); if(p<.015)suspendLiquidGlassElement(spotlightGlass); dim.style.opacity=(Math.max(ccMotion.value,ncMotion.value,p*.75)*.34).toFixed(3); };
+  const renderSpot=(p)=>{ spotlight.style.opacity=p.toFixed(4); spotlight.style.transform=`translate3d(0,${mix(28,0,p).toFixed(2)}px,0) scale(${mix(.97,1,p).toFixed(4)})`; spotlight.style.pointerEvents=p>.04?'auto':'none'; spotlight.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(spotlightSystemGlass,false); dim.style.opacity=(Math.max(ccMotion.value,ncMotion.value,p*.75)*.34).toFixed(3); };
   const spotMotion=makeSpring(0,renderSpot,{dampingRatio:.92,stiffness:460});
   const renderPage=(p)=>{page=clamp(p);homePages.style.transform=`translate3d(${(-50*page).toFixed(3)}%,0,0)`;pageDots.forEach((dot,i)=>dot.classList.toggle('is-active',i===Math.round(page)));};
   const pageMotion=makeSpring(0,renderPage,{dampingRatio:.9,stiffness:420});
@@ -368,13 +409,42 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     if(!unlocked){ unlock.snap(1); }
     closeOverlays();
     const app=root.querySelector(`[data-ios-app="${kind}"]`); if(!app){showToast(root,`${kind} · 演示`);return;}
-    root.querySelectorAll('[data-ios-app]').forEach(el=>el.classList.toggle('is-active',el===app));
+    root.querySelectorAll('[data-ios-app]').forEach(el=>{const active=el===app;el.classList.toggle('is-active',active);if(!active)setActiveAppGlass(el,false);});
+    setActiveAppGlass(app,true);
     updateSimMetrics(); sourceRect=trigger?.getBoundingClientRect?.() || sourceRect; activeApp=kind;
     appMotion.interrupt(); appMotion.to(1);
   };
 
+  let longPressTimer=0, contextTarget=null;
+  const closeContextMenu=()=>{if(!contextMenu)return;contextMenu.classList.remove('is-open');contextMenu.setAttribute('aria-hidden','true');suspendLiquidGlassElement(contextGlass);contextTarget=null;};
+  const openContextMenu=(button)=>{
+    if(!contextMenu||!button)return;
+    contextTarget=button;
+    const kind=button.dataset.iosAppOpen,label=button.dataset.iosAppLabel||apps.find(([k])=>k===kind)?.[1]||dockApps.find(([k])=>k===kind)?.[1]||kind;
+    contextMenu.querySelector('[data-ios-context-title]').textContent=label;
+    const iconHost=contextMenu.querySelector('[data-ios-context-icon]'); if(iconHost)iconHost.innerHTML=appGlyph(kind);
+    const rect=button.getBoundingClientRect(),rootRect=root.getBoundingClientRect();
+    contextMenu.style.setProperty('--context-x',`${clamp((rect.left+rect.width/2-rootRect.left)/simWidth,0.14,.86)*100}%`);
+    contextMenu.style.setProperty('--context-y',`${clamp((rect.top-rootRect.top)/simHeight,.12,.66)*100}%`);
+    contextMenu.classList.add('is-open');contextMenu.setAttribute('aria-hidden','false');activateLiquidGlassElement(contextGlass);
+    root._iosLongPressUntil=performance.now()+520;
+  };
+  root.querySelectorAll('.ios27-app-icon-button').forEach((button)=>{
+    button.addEventListener('pointerdown',(e)=>{if(e.pointerType==='mouse'&&e.button!==0)return;clearTimeout(longPressTimer);longPressTimer=setTimeout(()=>openContextMenu(button),430);});
+    ['pointerup','pointercancel','pointerleave'].forEach((type)=>button.addEventListener(type,()=>clearTimeout(longPressTimer)));
+    button.addEventListener('contextmenu',(e)=>{e.preventDefault();openContextMenu(button);});
+  });
+  contextMenu?.addEventListener('click',(e)=>{
+    const action=e.target.closest('[data-ios-context-action]')?.dataset.iosContextAction;if(!action)return;
+    if(action==='open'&&contextTarget)openApp(contextTarget.dataset.iosAppOpen,contextTarget);
+    else if(action==='edit'){root.classList.add('is-editing-home');showToast(root,'主屏幕编辑模式');}
+    else if(action==='share')showToast(root,'共享菜单 · 已模拟');
+    else if(action==='remove')showToast(root,'演示模式不会真的移除 App');
+    closeContextMenu();
+  });
+
   root.addEventListener('click',(e)=>{
-    const opener=e.target.closest('[data-ios-app-open]'); if(opener){ e.preventDefault(); openApp(opener.dataset.iosAppOpen,opener); return; }
+    const opener=e.target.closest('[data-ios-app-open]'); if(opener){ if(performance.now()<(root._iosLongPressUntil||0)){e.preventDefault();return;} e.preventDefault(); closeContextMenu(); openApp(opener.dataset.iosAppOpen,opener); return; }
     const toast=e.target.closest('[data-ios-toast]'); if(toast) showToast(root,toast.dataset.iosToast);
 
     const shutter=e.target.closest('.ios27-camera-controls button');
@@ -390,8 +460,6 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     }
     const phoneFilter=e.target.closest('.ios27-phone-filter button');
     if(phoneFilter)phoneFilter.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('is-active',b===phoneFilter));
-    const photoTab=e.target.closest('.ios27-app-tabbar button');
-    if(photoTab)photoTab.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('is-active',b===photoTab));
     const mapShortcut=e.target.closest('.ios27-map-shortcuts button');
     if(mapShortcut)showToast(root,`${mapShortcut.textContent.trim()} · 已选择`);
   });
@@ -417,19 +485,19 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
 
   let ccGestureStart=0, ncGestureStart=0;
   bindDirectGesture(root.querySelector('[data-ios-cc-gesture]'),{
-    onStart(){ccGestureStart=ccMotion.value;ccMotion.interrupt(); ncMotion.to(0); spotMotion.to(0); },
+    onStart(){closeContextMenu();setGlassGroupActive(ccSystemGlass,true);ccGestureStart=ccMotion.value;ccMotion.interrupt(); ncMotion.to(0); spotMotion.to(0); },
     onMove({dy,velocityY}){const d=Math.max(simHeight*.55,1);ccMotion.direct(ccGestureStart+dy/d,velocityY*1000/d);},
     onEnd({dy,velocityY,cancel}){ ccMotion.to(!cancel && (ccMotion.value>.4 || dy>75 || velocityY>.5)?1:0); }
   });
   bindDirectGesture(root.querySelector('[data-ios-notification-gesture]'),{
-    onStart(){ncGestureStart=ncMotion.value;ncMotion.interrupt(); ccMotion.to(0); spotMotion.to(0); },
+    onStart(){closeContextMenu();setGlassGroupActive(notificationSystemGlass,true);ncGestureStart=ncMotion.value;ncMotion.interrupt(); ccMotion.to(0); spotMotion.to(0); },
     onMove({dy,velocityY}){const d=Math.max(simHeight*.58,1);ncMotion.direct(ncGestureStart+dy/d,velocityY*1000/d);},
     onEnd({dy,velocityY,cancel}){ ncMotion.to(!cancel && (ncMotion.value>.4 || dy>75 || velocityY>.5)?1:0); }
   });
   // Panels themselves can be pushed back before their spring finishes opening.
   let ccPanelStart=0,ncPanelStart=0;
-  bindDirectGesture(cc,{onStart(){ccPanelStart=ccMotion.value;ccMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ccMotion.direct(ccPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ccMotion.to(ccMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
-  bindDirectGesture(notifications,{onStart(){ncPanelStart=ncMotion.value;ncMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ncMotion.direct(ncPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ncMotion.to(ncMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
+  bindDirectGesture(cc,{onStart(){setGlassGroupActive(ccSystemGlass,true);ccPanelStart=ccMotion.value;ccMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ccMotion.direct(ccPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ccMotion.to(ccMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
+  bindDirectGesture(notifications,{onStart(){setGlassGroupActive(notificationSystemGlass,true);ncPanelStart=ncMotion.value;ncMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ncMotion.direct(ncPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ncMotion.to(ncMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
 
   // Horizontal Home/App Library paging: fully interruptible spring + direct drag.
   let pageStart=0;
@@ -440,11 +508,11 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   });
 
   root.querySelector('[data-ios-cc-close]')?.addEventListener('click',()=>ccMotion.to(0));
-  root.querySelector('[data-ios-spotlight-open]')?.addEventListener('click',()=>{closeOverlays();activateLiquidGlassElement(spotlightGlass);spotMotion.interrupt();spotMotion.to(1);const input=root.querySelector('[data-ios-spotlight-input]');const results=root.querySelector('[data-ios-spotlight-results]');results.innerHTML=searchResults(root,'');setTimeout(()=>input?.focus(),120);});
+  root.querySelector('[data-ios-spotlight-open]')?.addEventListener('click',()=>{closeContextMenu();closeOverlays();setGlassGroupActive(spotlightSystemGlass,true);activateLiquidGlassElement(spotlightGlass);spotMotion.interrupt();spotMotion.to(1);const input=root.querySelector('[data-ios-spotlight-input]');const results=root.querySelector('[data-ios-spotlight-results]');results.innerHTML=searchResults(root,'');setTimeout(()=>input?.focus(),120);});
   root.querySelector('[data-ios-spotlight-close]')?.addEventListener('click',()=>spotMotion.to(0));
   const spotInput=root.querySelector('[data-ios-spotlight-input]'); spotInput?.addEventListener('input',()=>root.querySelector('[data-ios-spotlight-results]').innerHTML=searchResults(root,spotInput.value));
   root.querySelector('[data-ios-spotlight-results]')?.addEventListener('click',(e)=>{const b=e.target.closest('[data-ios-app-open]');if(b)openApp(b.dataset.iosAppOpen,b);});
-  dim.addEventListener('click',closeOverlays);
+  dim.addEventListener('click',()=>{closeContextMenu();closeOverlays();root.classList.remove('is-editing-home');});
 
   const island=root.querySelector('[data-ios-island]');
   const renderIsland=(p)=>{island.style.setProperty('--island-open',p.toFixed(4));island.classList.toggle('is-expanded',p>.5);};
@@ -453,7 +521,8 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   root.querySelectorAll('[data-ios-cc-tile]').forEach(tile=>tile.addEventListener('click',()=>tile.classList.toggle('is-active')));
   let playing=true; root.querySelectorAll('[data-ios-music-play]').forEach(btn=>btn.addEventListener('click',()=>{playing=!playing;root.querySelectorAll('[data-ios-music-play]').forEach(x=>x.innerHTML=playing?icon.pause(20):icon.play(20));}));
 
-  root.querySelectorAll('[data-ios-thread]').forEach(btn=>btn.addEventListener('click',()=>{const view=root.querySelector('[data-ios-thread-view]');view.classList.add('is-open');view.setAttribute('aria-hidden','false');}));
+  root.querySelectorAll('[data-ios-app-back]').forEach(btn=>btn.addEventListener('click',()=>appMotion.to(0)));
+  root.querySelectorAll('[data-ios-thread]').forEach(btn=>btn.addEventListener('click',()=>{const view=root.querySelector('[data-ios-thread-view]');view.classList.add('is-open');view.setAttribute('aria-hidden','false');view.querySelectorAll('.ios27-system-glass').forEach(activateLiquidGlassElement);}));
   root.querySelector('[data-ios-thread-close]')?.addEventListener('click',()=>{const view=root.querySelector('[data-ios-thread-view]');view.classList.remove('is-open');view.setAttribute('aria-hidden','true');});
   root.querySelector('[data-ios-message-form]')?.addEventListener('submit',(e)=>{e.preventDefault();const input=e.currentTarget.querySelector('input');if(!input.value.trim())return;const body=root.querySelector('.ios27-thread-body');const bubble=document.createElement('span');bubble.className='is-out';bubble.textContent=input.value.trim();body.append(bubble);input.value='';body.scrollTop=body.scrollHeight;});
 
@@ -478,7 +547,12 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   const visibilityHandler=()=>{
     if(document.hidden){
       setHomePrimaryActive(false);
-      suspendLiquidGlassElement(spotlightGlass);
+      setGlassGroupActive(lockSystemGlass,false);
+      setGlassGroupActive(ccSystemGlass,false);
+      setGlassGroupActive(notificationSystemGlass,false);
+      setGlassGroupActive(spotlightSystemGlass,false);
+      root.querySelectorAll('[data-ios-app] .ios27-system-glass').forEach(suspendLiquidGlassElement);
+      suspendLiquidGlassElement(contextGlass);
       return;
     }
     if(unlocked && !activeApp)setHomePrimaryActive(true);

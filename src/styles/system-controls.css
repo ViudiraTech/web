@@ -1,0 +1,219 @@
+/* Shared simulator controls -------------------------------------------------------
+   iOS 27 / macOS 27 consume the exact same LiquidButton / LiquidToggle /
+   LiquidSlider / LiquidBottomTabs primitives as the rest of the site.
+
+   IMPORTANT: this file only supplies semantic sizing/layout tokens. It does not
+   redraw glass, thumbs, tracks, highlights, borders or spring states. Those are
+   owned by components.css + liquid-*.js so the simulators cannot visually fork
+   from the shared controls again. */
+
+.system-liquid-button.catalog-button{
+  min-width:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transform-origin:center;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.system-liquid-button.catalog-button>svg{pointer-events:none;flex:none}
+
+.system-liquid-button--ios.catalog-button{
+  --catalog-button-height:42px;
+  --catalog-button-padding:0 14px;
+  --catalog-button-radius:999px;
+  --catalog-button-font:600 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --catalog-button-color:#0a84ff;
+}
+.system-liquid-button--ios.system-liquid-button--clear.catalog-button{--catalog-button-color:inherit}
+.system-liquid-button--ios.system-liquid-button--popover.catalog-button{--catalog-button-height:44px}
+
+.system-liquid-button--macos.catalog-button{
+  --catalog-button-height:32px;
+  --catalog-button-padding:0 11px;
+  --catalog-button-radius:10px;
+  --catalog-button-font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --catalog-button-color:var(--macos27-text,#181b1e);
+}
+.system-liquid-button--macos.system-liquid-button--clear.catalog-button{--catalog-button-color:inherit}
+.system-liquid-button--macos.system-liquid-button--popover.catalog-button{
+  --catalog-button-height:34px;
+  --catalog-button-radius:11px;
+}
+
+/* Toggle/slider mechanics and paint remain 100% Catalog-owned. The only desktop
+   adaptation is density scaling of the entire already-rendered shared control. */
+.system-liquid-toggle--ios.catalog-toggle{flex:none}
+.system-liquid-slider--ios.catalog-slider{min-width:0}
+.system-liquid-toggle--macos.catalog-toggle{flex:none;transform:scale(.84);transform-origin:right center}
+.system-liquid-slider--macos.catalog-slider{min-width:0;width:100%}
+
+.system-liquid-tabs{--system-tabs-height:64px}
+.system-liquid-tabs--ios.catalog-tabs,.system-liquid-tabs--macos.catalog-tabs{width:100%;max-width:none}
+
+/* iOS placements/sizes. No glass paint here. */
+.ios27-nav-control.catalog-button,.ios27-bar-control.catalog-button{
+  width:38px;min-width:38px;
+  --catalog-button-height:38px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:19px;
+}
+.ios27-nav-text.catalog-button{
+  --catalog-button-height:36px;
+  --catalog-button-padding:0 11px;
+  --catalog-button-font:600 13px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+}
+.ios27-home-search.catalog-button{
+  position:absolute;left:50%;bottom:max(91px,calc(env(safe-area-inset-bottom) + 82px));
+  transform:translateX(-50%);z-index:4;min-width:82px;
+  --catalog-button-height:30px;
+  --catalog-button-padding:0 12px;
+  --catalog-button-radius:16px;
+  --catalog-button-font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --catalog-button-color:#fff;
+}
+.ios27-music-control.catalog-button{
+  width:48px;min-width:48px;
+  --catalog-button-height:48px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:24px;
+  --catalog-button-color:#111;
+}
+.ios27-music-control--primary.catalog-button{
+  width:58px;min-width:58px;
+  --catalog-button-height:58px;
+  --catalog-button-radius:29px;
+}
+.ios27-cc-round.catalog-button{
+  width:46px;min-width:46px;justify-self:center;
+  --catalog-button-height:46px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:50%;
+  --catalog-button-color:#fff;
+}
+.ios27-cc-round.catalog-button>span{display:none}
+.ios27-cc-round.catalog-button.is-active{
+  --lg-tint-rgb:10 132 255;
+  --lg-tint-alpha:.68;
+}
+.ios27-cc-small-shared.catalog-button{
+  width:100%;min-width:0;align-items:stretch;justify-content:flex-start;flex-direction:column;text-align:left;
+  --catalog-button-height:86px;
+  --catalog-button-padding:12px;
+  --catalog-button-radius:24px;
+  --catalog-button-color:#fff;
+}
+.ios27-cc-small-shared.catalog-button>b{font-size:22px}
+.ios27-cc-small-shared.catalog-button span{font-size:10px;align-self:flex-end;margin-top:auto}
+.ios27-cc-small-shared.catalog-button.is-active{--lg-tint-rgb:10 132 255;--lg-tint-alpha:.62}
+.ios27-tabbar-shared.catalog-tabs{
+  position:absolute;left:10px;right:10px;bottom:max(8px,env(safe-area-inset-bottom));
+  width:auto;max-width:none;z-index:9;
+}
+.ios27-context-action.catalog-button{
+  width:100%;min-width:0;justify-content:flex-start;
+  --catalog-button-height:42px;
+  --catalog-button-padding:0 14px;
+  --catalog-button-radius:12px;
+  --catalog-button-color:#111;
+}
+.ios27-context-action.is-danger.catalog-button{--catalog-button-color:#ff3b30}
+.ios27-exit.catalog-button{
+  position:absolute;z-index:240;left:8px;top:max(7px,env(safe-area-inset-top));
+  opacity:.12;transition:opacity .2s;
+  --catalog-button-height:29px;
+  --catalog-button-padding:0 9px;
+  --catalog-button-radius:15px;
+  --catalog-button-font:600 9px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --catalog-button-color:#fff;
+}
+.ios27-exit.catalog-button:focus-visible,.ios27-exit.catalog-button:active{opacity:.88}
+
+/* macOS placements/sizes. Again, only geometry + semantic color. */
+.macos27-toolbar-button.catalog-button{
+  width:32px;min-width:32px;
+  --catalog-button-height:32px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:10px;
+}
+.macos27-toolbar-text-button.catalog-button{--catalog-button-height:32px;--catalog-button-padding:0 10px}
+.macos27-dock-button.catalog-button{
+  width:var(--macos27-dock-size);min-width:var(--macos27-dock-size);
+  --catalog-button-height:var(--macos27-dock-size);
+  --catalog-button-padding:0;
+  --catalog-button-radius:15px;
+  --catalog-button-color:#fff;
+}
+.macos27-menubar-control.catalog-button{
+  --catalog-button-height:25px;
+  --catalog-button-padding:0 8px;
+  --catalog-button-radius:7px;
+  --catalog-button-font:500 12.5px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --catalog-button-color:inherit;
+}
+.macos27-menubar-icon.catalog-button{
+  width:26px;min-width:26px;
+  --catalog-button-height:25px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:7px;
+  --catalog-button-color:inherit;
+}
+.macos27-menu-mark.catalog-button span{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#111;color:#fff;font:750 10px/1 ui-sans-serif}
+.macos27-clock-button.catalog-button{--catalog-button-font:500 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;--catalog-button-padding:0 7px}
+.macos27-cc-connect-shared.catalog-button{
+  width:100%;min-width:0;min-height:63px;height:auto;justify-content:flex-start;text-align:left;
+  --catalog-button-height:auto;
+  --catalog-button-padding:9px;
+  --catalog-button-radius:14px;
+}
+.macos27-quicklook-control.catalog-button{--catalog-button-height:30px;--catalog-button-padding:0 10px}
+.macos27-system-menu-item.catalog-button{
+  width:100%;min-width:0;justify-content:flex-start;
+  --catalog-button-height:30px;
+  --catalog-button-padding:0 9px;
+  --catalog-button-radius:8px;
+  --catalog-button-font:500 12px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --catalog-button-color:inherit;
+}
+.macos27-cc-button.catalog-button{
+  width:100%;min-width:0;
+  --catalog-button-height:38px;
+  --catalog-button-padding:0 8px;
+  --catalog-button-font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+}
+
+@media(max-width:780px){
+  .macos27-toolbar-button.catalog-button{width:29px;min-width:29px;--catalog-button-height:29px}
+  .macos27-dock-button.catalog-button{--catalog-button-radius:13px}
+}
+@media(max-width:760px){
+  .system-liquid-button--ios.catalog-button{--catalog-button-font:600 13px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif}
+  .ios27-nav-text.catalog-button{--catalog-button-font:600 13px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif}
+  .ios27-home-search.catalog-button{--catalog-button-font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif}
+}
+
+/* Semantic interaction states remain on shared controls via variables, rather
+   than simulator-local background overrides. */
+.macos27-menubar-control.catalog-button:hover,
+.macos27-menubar-icon.catalog-button:hover{--lg-tint-rgb:0 0 0;--lg-tint-alpha:.075}
+.macos27-system-menu-item.catalog-button:hover{--lg-tint-rgb:8 124 255;--lg-tint-alpha:.88;--catalog-button-color:#fff}
+.macos27-cc-connect-shared.catalog-button{display:flex;align-items:center;gap:9px;--catalog-button-color:#1b2024}
+.macos27-cc-connect-shared.catalog-button:hover{--lg-tint-rgb:255 255 255;--lg-tint-alpha:.12}
+.ios27-send-control.catalog-button{--lg-tint-rgb:10 132 255;--lg-tint-alpha:.72;--catalog-button-color:#fff}
+@media(max-height:700px){.ios27-context-action.catalog-button{--catalog-button-height:38px}}
+.macos27-message-send.catalog-button{
+  width:26px;min-width:26px;
+  --catalog-button-height:26px;
+  --catalog-button-radius:50%;
+  --lg-tint-rgb:11 132 255;
+  --lg-tint-alpha:.72;
+  --catalog-button-color:#fff;
+}
+@media(max-width:780px){
+  .macos27-menubar__left>.macos27-menubar-control.catalog-button{display:none}
+}
+@media(max-width:560px){
+  .macos27-status-button.catalog-button{width:23px;min-width:23px}
+  .macos27-cc-connect-shared.catalog-button{min-height:58px;--catalog-button-padding:8px}
+}

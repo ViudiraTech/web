@@ -6,9 +6,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const legacyPages = ['projects.html','community.html','activity.html','about.html','glass-ui.html','glass-test.html'];
 const required = [
   'index.html', ...legacyPages, 'vite.config.js', 'src/main.js', 'src/router/routes.js',
-  'src/styles/tokens.css', 'src/styles/components.css', 'src/styles/responsive.css',
+  'src/styles/tokens.css', 'src/styles/components.css', 'src/styles/responsive.css', 'src/styles/system-controls.css',
   'src/github/api.js', 'src/github/repositories.js', 'src/glass/liquid-glass.js',
-  'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/liquid-dialog.js', 'src/components/settings.js',
+  'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/liquid-system-controls.js', 'src/components/liquid-dialog.js', 'src/components/settings.js',
   'src/animation/catalog-motion.js', 'src/glass/site-preferences.js', 'src/glass/readability-glass.js', 'public/assets/logo-mark.svg', '.github/workflows/deploy-pages.yml',
 ];
 const missing = required.filter((f) => !fs.existsSync(path.join(root, f)));
@@ -352,6 +352,64 @@ if (!viteConfig.includes("mode === 'production' ? './' : '/'")) {
 }
 if (/VITE_BASE_PATH:\s*\/web\//.test(pagesWorkflow)) {
   console.error('Deployment base regression: Pages workflow hard-codes VITE_BASE_PATH=/web/');
+  process.exit(1);
+}
+
+// iOS/macOS simulators must consume the exact same Liquid controls as the site.
+// Platform styles may size/place them, but must never redraw Catalog buttons.
+const systemControls = fs.readFileSync(path.join(root, 'src/components/liquid-system-controls.js'), 'utf8');
+const systemControlsCss = fs.readFileSync(path.join(root, 'src/styles/system-controls.css'), 'utf8');
+const ios27 = fs.readFileSync(path.join(root, 'src/components/ios27-sim.js'), 'utf8');
+const macos27 = fs.readFileSync(path.join(root, 'src/components/macos27-sim.js'), 'utf8');
+const ios27Css = fs.readFileSync(path.join(root, 'src/styles/ios27.css'), 'utf8');
+const macos27Css = fs.readFileSync(path.join(root, 'src/styles/macos27.css'), 'utf8');
+for (const marker of ['liquidButton(', 'liquidToggle(', 'liquidSlider(', 'liquidBottomTabs(', 'bindSystemControls']) {
+  if (!systemControls.includes(marker)) {
+    console.error(`Shared OS controls regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+for (const [name, source] of [['iOS 27', ios27], ['macOS 27', macos27]]) {
+  if (!source.includes("from './liquid-system-controls.js'")) {
+    console.error(`${name} no longer imports the shared system-control adapter`);
+    process.exit(1);
+  }
+  if (!source.includes('bindSystemControls(root)')) {
+    console.error(`${name} no longer binds shared Liquid controls`);
+    process.exit(1);
+  }
+  if (/from ['"]\.\/liquid-(?:button|toggle|slider|bottom-tabs)\.js['"]/.test(source)) {
+    console.error(`${name} bypasses the shared system-control adapter`);
+    process.exit(1);
+  }
+}
+for (const [name, css] of [['iOS 27', ios27Css], ['macOS 27', macos27Css]]) {
+  if (/\.catalog-button/.test(css)) {
+    console.error(`${name} CSS redraws shared LiquidButton instead of using shared control tokens`);
+    process.exit(1);
+  }
+}
+for (const marker of ['--catalog-button-height', '--catalog-button-padding', '--catalog-button-radius', '--catalog-button-font', '--catalog-button-color']) {
+  if (!componentCss.includes(marker)) {
+    console.error(`Shared LiquidButton token regression: components.css missing ${marker}`);
+    process.exit(1);
+  }
+}
+if (systemControlsCss.includes('backdrop-filter:') || /background:[^;{}]+!important/.test(systemControlsCss)) {
+  console.error('Shared OS adapter started painting its own glass instead of reusing components.css');
+  process.exit(1);
+}
+const systemCssIndex = index.indexOf('system-controls.css');
+if (systemCssIndex < 0 || systemCssIndex < index.indexOf('ios27.css') || systemCssIndex < index.indexOf('macos27.css')) {
+  console.error('Shared OS control token stylesheet must load after both simulator layout styles');
+  process.exit(1);
+}
+if (!ios27.includes("iosTabs({className:'ios27-app-tabbar ios27-tabbar-shared'")) {
+  console.error('iOS Photos tab bar stopped using shared LiquidBottomTabs');
+  process.exit(1);
+}
+if (ios27.includes("classList.toggle('is-active',b===photoTab)")) {
+  console.error('Legacy iOS hand-rolled tab selection returned');
   process.exit(1);
 }
 
