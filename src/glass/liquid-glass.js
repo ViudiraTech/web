@@ -212,6 +212,15 @@ function presetFor(element, profile) {
     'macos-dock': { lensHeight: 18, lensAmount: 25, blur: 14, vibrancy: 1.25, brightness: 1.07, depthEffect: 0.10, surfaceRgb: '247 250 252', surfaceAlpha: 0.30, highlightAlpha: 0.92, innerShadowAlpha: 0.035, outerShadowAlpha: 0.10, mapResolution: 1 },
     'macos-popover': { lensHeight: 18, lensAmount: 30, blur: 18, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.13, surfaceRgb: '247 249 251', surfaceAlpha: 0.52, highlightAlpha: 0.94, innerShadowAlpha: 0.04, outerShadowAlpha: 0.13, mapResolution: 1 },
 
+    // iOS 27 touch-first materials. The 27 refresh diffuses complex content more
+    // evenly, adds a darker edge and brighter specular highlight, and lets direct
+    // touch produce a more pronounced fluid response than pointer interaction.
+    'ios-island': { lensHeight: 8, lensAmount: 13, blur: 5, vibrancy: 1.18, brightness: 1.03, depthEffect: 0.07, surfaceRgb: '8 10 12', surfaceAlpha: 0.88, highlightAlpha: 0.32, innerShadowAlpha: 0.10, outerShadowAlpha: 0.12, mapResolution: 1 },
+    'ios-control': { lensHeight: 11, lensAmount: 18, blur: 7, vibrancy: 1.22, brightness: 1.06, depthEffect: 0.11, surfaceRgb: '246 249 251', surfaceAlpha: 0.26, highlightAlpha: 1, innerShadowAlpha: 0.055, outerShadowAlpha: 0.09, mapResolution: 1 },
+    'ios-clear-control': { lensHeight: 13, lensAmount: 22, blur: 4, vibrancy: 1.20, brightness: 1.05, depthEffect: 0.13, surfaceRgb: '249 251 252', surfaceAlpha: 0.12, highlightAlpha: 1, innerShadowAlpha: 0.06, outerShadowAlpha: 0.10, mapResolution: 1 },
+    'ios-dock': { lensHeight: 20, lensAmount: 29, blur: 14, vibrancy: 1.28, brightness: 1.08, depthEffect: 0.14, surfaceRgb: '246 249 251', surfaceAlpha: 0.30, highlightAlpha: 1, innerShadowAlpha: 0.05, outerShadowAlpha: 0.13, mapResolution: 1 },
+    'ios-popover': { lensHeight: 20, lensAmount: 32, blur: 18, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.15, surfaceRgb: '244 248 251', surfaceAlpha: 0.48, highlightAlpha: 1, innerShadowAlpha: 0.055, outerShadowAlpha: 0.15, mapResolution: 1 },
+
     'catalog-button': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0, highlightAlpha: 1, outerShadowAlpha: 0.08, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-button-surface': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0.3, highlightAlpha: 1, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-button-blue': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.04, tintRgb: '0 136 255', tintAlpha: 0.75, highlightAlpha: 1, innerShadowAlpha: 0.06, mapResolution: Math.max(profile.mapResolution, 0.82) },

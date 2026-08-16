@@ -233,12 +233,16 @@ export function bindSettingsPage(root = document.querySelector('#main') || docum
       easterPending = true;
       let enter = false;
       try {
+        const mobileOs = (window.matchMedia?.('(pointer: coarse)').matches ?? false)
+          || Math.min(window.innerWidth || 9999, window.innerHeight || 9999) <= 760;
         enter = await showLiquidDialog({
-          title: '进入模拟 macOS 27？',
+          title: mobileOs ? '进入模拟 iOS 27？' : '进入模拟 macOS 27？',
           message: '你发现了 ViudiraTech 设置里的隐藏入口。',
-          detail: '进入后会打开一个全屏 macOS 27 Golden Gate 风格桌面模拟器。Finder、系统设置、控制中心、Dock 以及 Liquid Glass 控件都可以交互。',
+          detail: mobileOs
+            ? '手机端会进入完整的 iOS 27 触屏模拟器：锁屏、主屏幕、App、控制中心、通知中心、Spotlight 和可随时打断的手势动画都可以交互。'
+            : '桌面端会打开完整的 macOS 27 Golden Gate 风格桌面模拟器。Finder、系统设置、控制中心、Dock 以及 Liquid Glass 控件都可以交互。',
           cancelLabel: '留在设置',
-          confirmLabel: '进入桌面',
+          confirmLabel: mobileOs ? '进入 iOS' : '进入桌面',
         });
       } finally {
         easterPending = false;

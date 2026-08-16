@@ -17,6 +17,7 @@ import { glassTest } from './components/glass-test.js';
 import { glassControlsLab, bindGlassControls } from './components/glass-controls.js';
 import { settingsPage, bindSettingsPage } from './components/settings.js';
 import { macos27Simulator, bindMacos27Simulator } from './components/macos27-sim.js';
+import { ios27Simulator, bindIos27Simulator, prefersIos27Simulator } from './components/ios27-sim.js';
 import { prepareReadabilityGlass } from './glass/readability-glass.js';
 import { bindLiquidButtons, destroyLiquidButtonsWithin } from './components/liquid-button.js';
 import { fetchRepositories, fetchOrgActivity, fetchLanguages, fetchReadme, decodeBase64Utf8 } from './github/api.js';
@@ -90,7 +91,7 @@ const routeMeta = {
   about: ['关于 — ViudiraTech', '关于 ViudiraTech 开放技术社区。'],
   settings: ['设置 — ViudiraTech', '调整 ViudiraTech 网站界面的 Liquid Glass 透明度与模糊度。'],
   'glass-test': ['Liquid Glass Test — ViudiraTech', 'ViudiraTech Liquid Glass 折射测试。'],
-  macos27: ['macOS 27 Golden Gate — ViudiraTech Easter Egg', 'ViudiraTech 隐藏的 macOS 27 Golden Gate 交互式桌面模拟彩蛋。'],
+  macos27: ['Apple OS 27 Simulator — ViudiraTech Easter Egg', 'ViudiraTech 隐藏的 OS 27 交互式系统模拟彩蛋：桌面端 macOS 27，手机端 iOS 27。'],
 };
 
 function ambientLayer() {
@@ -133,7 +134,7 @@ function pageBody() {
   if (page === 'glass-ui') return glassControlsLab();
   if (page === 'settings') return settingsPage();
   if (page === 'glass-test') return glassTest();
-  if (page === 'macos27') return macos27Simulator();
+  if (page === 'macos27') return prefersIos27Simulator() ? ios27Simulator() : macos27Simulator();
   return hero(repositories, repoState);
 }
 
@@ -368,7 +369,10 @@ async function hydrateCurrentView(serial = routeSerial) {
   bindLiquidButtons(main);
   if (page === 'glass-ui') bindGlassControls();
   if (page === 'settings') bindSettingsPage(main);
-  if (page === 'macos27') bindMacos27Simulator(main.querySelector('[data-macos27-sim]'));
+  if (page === 'macos27') {
+    bindMacos27Simulator(main.querySelector('[data-macos27-sim]'));
+    bindIos27Simulator(main.querySelector('[data-ios27-sim]'));
+  }
   initReveal();
 }
 
@@ -478,7 +482,10 @@ async function boot() {
   bindLiquidButtons(document);
   if (page === 'glass-ui') bindGlassControls();
   if (page === 'settings') bindSettingsPage(document.querySelector('#main'));
-  if (page === 'macos27') bindMacos27Simulator(document.querySelector('[data-macos27-sim]'));
+  if (page === 'macos27') {
+    bindMacos27Simulator(document.querySelector('[data-macos27-sim]'));
+    bindIos27Simulator(document.querySelector('[data-ios27-sim]'));
+  }
   ensureDataForPage(page);
 }
 
