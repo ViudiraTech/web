@@ -1,0 +1,61 @@
+@media(max-width:1024px){.hero-grid{grid-template-columns:1fr;gap:34px}.hero{padding-top:135px}.network{min-height:410px;max-width:720px;width:100%;margin:auto}.section-head{grid-template-columns:1fr;gap:18px}.activity-layout{grid-template-columns:1fr;gap:34px}.activity-intro{position:static}.community-flow{grid-template-columns:repeat(4,1fr)}.flow-step{border:1px solid var(--border-subtle);border-radius:12px!important}.flow-step::after{display:none}.tech-graph{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){:root{--space-9:78px;--space-8:58px}.container{width:min(calc(100% - 28px),var(--max))}.site-nav{width:calc(100% - 22px)}.site-nav__links{display:none}.nav-menu-btn{display:grid}.hero{min-height:auto;padding:122px 0 50px}.hero h1{font-size:clamp(3rem,17vw,5.5rem)}.network{min-height:370px;aspect-ratio:auto}.network-node{width:116px;min-height:60px;padding:9px}.network-node:nth-of-type(n+6){display:none}.stats-strip{grid-template-columns:repeat(2,1fr)}.stat+.stat{padding-left:18px}.stat:nth-child(3){border-left:0;border-top:1px solid var(--border-subtle)}.stat:nth-child(4){border-top:1px solid var(--border-subtle)}.project-toolbar{top:82px;margin-left:-5px;margin-right:-5px}.project-toolbar__note{display:none}.project-grid{grid-template-columns:1fr}.project-card{min-height:240px;padding:20px}.drawer-meta-grid{grid-template-columns:repeat(2,1fr)}.community-flow{grid-template-columns:repeat(2,1fr);gap:7px}.tech-graph{grid-template-columns:1fr}.tech-node--primary{grid-column:auto}.join-panel{grid-template-columns:1fr;gap:28px}.join-actions{grid-template-columns:1fr 1fr}.footer-row{align-items:flex-start;flex-wrap:wrap}.footer-links{width:100%;margin-left:0}.language-row{grid-template-columns:78px 1fr 40px}}
+@media(max-width:430px){.hero-copy{font-size:.9rem}.hero-domains{gap:5px}.hero-domain{font-size:.66rem}.network{min-height:330px}.network-center{width:124px;height:75px}.network-node{width:102px}.project-drawer{right:7px;top:7px;bottom:7px;width:calc(100vw - 14px);border-radius:18px}.project-drawer__content{padding:16px}.drawer-meta-grid{grid-template-columns:1fr 1fr}.join-actions{grid-template-columns:1fr}.footer-links{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.ambient__mesh{animation:none}.reveal{opacity:1;transform:none}}
+@media(max-width:1024px){.page-intro__grid,.about-copy{grid-template-columns:1fr;gap:28px}.project-grid--preview{grid-template-columns:repeat(2,1fr)}.project-grid--preview .project-card:nth-child(3){display:none}.about-principles>div{grid-template-columns:42px 140px 1fr}}
+@media(max-width:760px){.page-intro{padding:126px 0 46px}.page-intro h1{font-size:clamp(2.8rem,13vw,4.8rem)}.site-nav{left:11px;right:11px;max-width:none;width:auto}.site-nav.is-scrolled{max-width:none}.project-grid--preview{grid-template-columns:1fr}.project-grid--preview .project-card:nth-child(3){display:block}.about-principles>div{grid-template-columns:36px 1fr}.about-principles p{grid-column:2}}
+
+@media(max-width:900px){.control-doc-row{grid-template-columns:1fr;gap:28px}.control-doc-copy{max-width:680px}.control-stage{min-height:190px}.glass-ui-orbit{opacity:.44;right:-12%}.control-sources__inner{grid-template-columns:1fr;gap:24px}}
+@media(max-width:760px){.glass-ui-hero{padding:126px 0 54px}.glass-ui-hero>.container{min-height:330px;align-items:flex-end}.glass-ui-hero h1{font-size:clamp(3.1rem,16vw,5rem)}.glass-ui-orbit{width:280px;top:-1%;right:-24%}.control-doc-row{padding:40px 0}.control-stage{padding:24px 16px;border-radius:20px}.control-stage--buttons{gap:10px}.glass-button-demo{padding:0 15px}.glass-segmented{grid-template-columns:repeat(2,1fr);max-width:330px}.glass-toolbar-demo{width:100%}.glass-toolbar-demo button{padding:0 9px}.toolbar-status{display:none}}
+
+@media(max-width:900px){.catalog-showcase__grid{grid-template-columns:1fr}.catalog-demo--wide{grid-column:auto}.catalog-demo{min-height:480px}.catalog-note__inner{grid-template-columns:1fr;gap:24px}}
+@media(max-width:760px){.catalog-hero{padding:126px 0 42px}.catalog-hero h1{font-size:clamp(3.2rem,16vw,5.4rem)}.catalog-showcase{padding-bottom:70px}.catalog-demo{border-radius:22px;min-height:450px}.catalog-demo__copy{padding:24px 20px 20px}.catalog-canvas{padding:26px 14px;min-height:260px}.catalog-slider{width:86%}.catalog-tabs{width:96%}.catalog-tab span{font-size:10px}}
+@media(max-width:430px){.catalog-button{max-width:92%;font-size:14px}.catalog-tabs{width:100%}.catalog-tab svg{width:24px;height:24px}.catalog-tab span{font-size:9px}}
+@media(max-width:760px){.site-nav__indicator{display:none}.site-nav__links{padding:0}}
+
+/* The desktop header uses the exact shared LiquidBottomTabs component. On mobile
+   the same desktop component is hidden and the existing compact menu takes over. */
+@media(max-width:900px){
+  .site-nav__tabs{width:min(620px,calc(100vw - 210px));flex-basis:620px}
+  .site-nav__tabs .catalog-tab{font-size:.72rem;padding-inline:5px}
+}
+@media(max-width:760px){
+  .site-nav__tabs{display:none}
+  .site-nav__content{padding:9px 10px 9px 14px;min-height:58px}
+}
+
+/* Shared Bottom Tabs Header sizing. Preserve the 64dp component until the
+   compact mobile menu takes over; do not squeeze/refactor the component itself. */
+@media (max-width:1100px) and (min-width:761px){
+  .site-nav{left:10px;right:10px;max-width:none!important}
+  .site-nav__content{gap:9px;padding-inline:12px 8px}
+  .site-nav__tabs{width:auto;flex:1 1 auto;min-width:0;max-width:none}
+  .site-nav__tabs .catalog-tab{font-size:.72rem;padding-inline:5px}
+  .brand{gap:7px}
+  .brand span{font-size:.92rem}
+}
+@media(max-width:760px){
+  .site-nav{min-height:58px!important;overflow:visible!important}
+  .site-nav__content{min-height:58px;padding:9px 10px 9px 14px}
+}
+
+@media(max-width:980px){
+  .settings-hero__inner,.settings-layout{grid-template-columns:1fr;gap:28px}
+  .settings-preview{position:static}
+  .settings-preview__scene{min-height:340px}
+}
+@media(max-width:760px){
+  .settings-hero{padding:126px 0 44px}
+  .settings-hero h1{font-size:clamp(3rem,15vw,5rem)}
+  .settings-control{grid-template-columns:1fr;gap:16px;padding:24px 0}
+  .settings-panel__head{align-items:center}
+  .settings-isolation-note{grid-template-columns:1fr;gap:10px}
+  .settings-preview__glass{left:20px;right:20px;padding:24px}
+}
+
+@media (max-width:680px){
+}
+
+/* Shared project-category LiquidBottomTabs */
+@media(max-width:900px){.project-toolbar{top:86px;display:block}.project-filter-tabs{width:100%;max-width:none}.project-toolbar__note{display:block;margin:7px 4px 0;text-align:right}.project-filter-tabs .catalog-tab{font-size:.64rem;padding-inline:4px}}
+@media(max-width:640px){.project-filter-tabs{min-width:680px}.project-toolbar{overflow-x:auto;overflow-y:visible;padding-bottom:8px;scrollbar-width:none}.project-toolbar::-webkit-scrollbar{display:none}.project-toolbar__note{display:none}}

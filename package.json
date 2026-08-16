@@ -1,0 +1,15 @@
+{
+  "name": "viudiratech-community-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "vite": "^8.2.0"
+  }
+}

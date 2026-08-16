@@ -1,0 +1,39 @@
+html{background:var(--surface);color:var(--text-primary)}body{font-family:Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;background:transparent;line-height:1.62;overflow-x:hidden}.skip-link{position:fixed;left:16px;top:12px;z-index:1000;transform:translateY(-150%);padding:9px 14px;background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);text-decoration:none}.skip-link:focus{transform:none}.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;background-image:linear-gradient(180deg,rgba(246,248,247,.34) 0%,rgba(238,243,240,.46) 47%,rgba(246,247,244,.58) 100%),url("https://picsum.photos/id/1015/2560/1440");background-size:cover;background-position:center center;background-repeat:no-repeat}.ambient__mesh{position:absolute;border-radius:50%;opacity:.72;will-change:transform;contain:paint;backface-visibility:hidden;transform:translateZ(0)}.ambient__mesh--a{width:64vw;height:64vw;left:-17vw;top:-1vh;background:radial-gradient(circle,rgba(131,175,166,.18) 0%,rgba(131,175,166,.10) 28%,rgba(131,175,166,.035) 52%,rgba(131,175,166,.008) 68%,rgba(131,175,166,0) 80%);animation:mesh-a 28s ease-in-out infinite alternate}.ambient__mesh--b{width:58vw;height:58vw;right:-18vw;top:29vh;background:radial-gradient(circle,rgba(184,178,162,.16) 0%,rgba(184,178,162,.095) 30%,rgba(184,178,162,.03) 54%,rgba(184,178,162,.008) 70%,rgba(184,178,162,0) 82%);animation:mesh-b 34s ease-in-out infinite alternate}.ambient__noise{position:absolute;inset:0;opacity:.012;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E")}.container{width:min(calc(100% - 40px),var(--max));margin-inline:auto}.section{padding:var(--space-9) 0;position:relative}.section--compact{padding:var(--space-8) 0}.section-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,420px);gap:48px;align-items:end;margin-bottom:42px}.eyebrow{font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:720}.section-title{font-size:clamp(2rem,4vw,3.55rem);line-height:1.03;letter-spacing:-.055em;font-weight:670;margin-top:12px}.section-copy{color:var(--text-secondary);max-width:620px}.button-row{display:flex;gap:10px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border-radius:12px;text-decoration:none;font-weight:620;font-size:.92rem;border:1px solid transparent;transition:transform 140ms ease,background 140ms ease,border-color 140ms ease,color 140ms ease}.button:hover{transform:translateY(-1px)}.button--primary{background:var(--surface-dark);color:#f7faf9}.button--primary:hover{background:#23302f}.button--secondary{background:rgba(255,255,255,.48);border-color:var(--border-subtle)}.button--secondary:hover{background:rgba(255,255,255,.78);border-color:var(--border-strong)}.icon-button{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.36);color:var(--text-primary);cursor:pointer;border:1px solid var(--border-subtle)}.muted{color:var(--text-secondary)}.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}.reveal{opacity:0;transform:translateY(14px);transition:opacity 560ms var(--ease),transform 560ms var(--ease)}.reveal.is-visible{opacity:1;transform:none}@keyframes mesh-a{to{transform:translate3d(12vw,5vh,0) scale(1.08)}}@keyframes mesh-b{to{transform:translate3d(-9vw,-6vh,0) scale(.93)}}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+#app{position:relative;z-index:1;min-height:100vh}.section-action{display:grid;gap:14px;justify-items:start}.text-link{display:inline-flex;align-items:center;gap:7px;color:var(--accent);font-weight:680;text-decoration:none;font-size:.86rem}.text-link:hover{text-decoration:underline}.section--home{padding:var(--space-8) 0}.page-intro{padding:154px 0 64px;border-bottom:1px solid var(--border-subtle)}.page-intro__grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:64px;align-items:end}.page-intro h1{font-size:clamp(3rem,6vw,6.1rem);line-height:.94;letter-spacing:-.07em;font-weight:670;margin-top:16px;max-width:900px}.page-intro__copy{font-size:1.02rem;color:var(--text-secondary);max-width:520px}.about-copy{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:72px;align-items:start}.about-copy__lead h2{font-size:clamp(2rem,4vw,3.6rem);line-height:1.04;letter-spacing:-.055em;margin:14px 0 18px}.about-copy__lead p{color:var(--text-secondary);max-width:620px}.about-principles{display:grid;border-top:1px solid var(--border-strong)}.about-principles>div{display:grid;grid-template-columns:48px 150px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid var(--border-subtle);align-items:start}.about-principles span{font-family:monospace;color:var(--text-tertiary);font-size:.72rem}.about-principles strong{font-size:.9rem}.about-principles p{font-size:.82rem;color:var(--text-secondary)}
+
+/* Offscreen sections keep full visual/animation quality when visible, while the
+   browser can skip their layout/paint work outside the viewport. */
+.section{content-visibility:auto;contain-intrinsic-size:auto 720px}
+
+/* SPA route transition -----------------------------------------------------------
+   The Liquid Header never participates in a snapshot and never unmounts. Only
+   <main> is captured while the real Bottom Tabs/lens animation keeps running. */
+html{view-transition-name:none}
+main{view-transition-name:viudira-page-content}
+
+::view-transition-group(viudira-page-content){
+  animation-duration:300ms;
+  animation-timing-function:cubic-bezier(.2,.8,.2,1);
+}
+::view-transition-old(viudira-page-content){
+  animation:viudira-spa-page-out 220ms cubic-bezier(.4,0,1,1) both;
+}
+::view-transition-new(viudira-page-content){
+  animation:viudira-spa-page-in 300ms cubic-bezier(0,.55,.45,1) both;
+}
+@keyframes viudira-spa-page-out{
+  to{opacity:0;transform:translate3d(0,-7px,0) scale(.997)}
+}
+@keyframes viudira-spa-page-in{
+  from{opacity:0;transform:translate3d(0,10px,0) scale(.997)}
+  to{opacity:1;transform:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(viudira-page-content),
+  ::view-transition-old(viudira-page-content),
+  ::view-transition-new(viudira-page-content){animation-duration:1ms!important}
+}

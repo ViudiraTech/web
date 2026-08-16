@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9eee8"/>
+      <stop offset=".46" stop-color="#aecbd2"/>
+      <stop offset="1" stop-color="#d9c8a7"/>
+    </linearGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#243c39" stroke-opacity=".18" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="700" fill="url(#g)"/>
+  <rect width="1200" height="700" fill="url(#grid)"/>
+  <circle cx="230" cy="180" r="120" fill="#83c8b8" fill-opacity=".72"/>
+  <rect x="730" y="120" width="260" height="180" rx="40" fill="#f4c67d" fill-opacity=".62"/>
+  <path d="M70 540C310 360 520 690 770 492s330 60 400-40" fill="none" stroke="#425c59" stroke-width="20" stroke-linecap="round" stroke-opacity=".42"/>
+  <text x="90" y="370" font-family="system-ui,sans-serif" font-size="72" font-weight="700" fill="#12201f">REFRACTION TEST</text>
+  <text x="94" y="420" font-family="ui-monospace,monospace" font-size="24" fill="#24423f">grid / text / shape / gradient / image</text>
+</svg>
