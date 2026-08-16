@@ -51,6 +51,8 @@ export function bindLiquidToggle(root) {
   let dragging = false;
   let moved = false;
   let downX = 0;
+  let downY = 0;
+  let dragThreshold = 3;
 
   const render = () => {
     const f = clamp(visualFraction, 0, 1);
@@ -122,6 +124,11 @@ export function bindLiquidToggle(root) {
     dragging = true;
     moved = false;
     downX = event.clientX;
+    downY = event.clientY;
+    // A finger almost always jitters by a few CSS pixels. Treat that as a tap,
+    // not as a horizontal drag; otherwise mobile users need several attempts
+    // before a simple tap actually toggles the switch.
+    dragThreshold = event.pointerType === 'touch' ? 10 : event.pointerType === 'pen' ? 7 : 3;
     pointerClientX = event.clientX;
     pointerClientY = event.clientY;
     dragRect = root.getBoundingClientRect();
@@ -133,7 +140,15 @@ export function bindLiquidToggle(root) {
     if (!dragging || !dragRect) return;
     pointerClientX = event.clientX;
     pointerClientY = event.clientY;
-    if (Math.abs(event.clientX - downX) > 2) moved = true;
+    const dx = event.clientX - downX;
+    const dy = event.clientY - downY;
+    if (!moved && Math.abs(dx) >= dragThreshold && Math.abs(dx) > Math.abs(dy) * 1.12) moved = true;
+    // Until horizontal intent is clear, keep the visual at the committed value.
+    // This makes a slightly wandering phone tap deterministic.
+    if (!moved) {
+      requestRender();
+      return;
+    }
     targetFraction = clamp((event.clientX - dragRect.left - (2 + thumbWidth * 0.5)) / travel, 0, 1);
     fractionSpring.to(targetFraction, SPRING_VALUE);
     requestRender();
@@ -147,9 +162,21 @@ export function bindLiquidToggle(root) {
     setPressed(false);
     dragRect = null;
   };
+  const cancelGesture = () => {
+    if (!dragging) return;
+    dragging = false;
+    targetFraction = root.getAttribute('aria-checked') === 'true' ? 1 : 0;
+    fractionSpring.to(targetFraction, SPRING_VALUE);
+    setPressed(false);
+    dragRect = null;
+  };
   root.addEventListener('pointerup', release);
-  root.addEventListener('pointercancel', release);
-  root.addEventListener('lostpointercapture', release);
+  root.addEventListener('pointercancel', cancelGesture);
+  root.addEventListener('lostpointercapture', () => {
+    // pointerup normally runs first. If capture is lost for another reason
+    // (native scrolling/gesture arbitration), cancel instead of toggling.
+    if (dragging) cancelGesture();
+  });
   root.addEventListener('keydown', (event) => {
     if (![' ', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
     event.preventDefault();

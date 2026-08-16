@@ -80,3 +80,158 @@
   .hero-domains{gap:6px}
   .network-projects .network-project:nth-child(n+5){display:none}
 }
+
+/* --------------------------------------------------------------------------
+   Mobile composition pass (2026-08)
+   One coherent phone layout wins over the older incremental breakpoint rules.
+   -------------------------------------------------------------------------- */
+@media (max-width:760px){
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{overflow-x:clip}
+  .container{width:calc(100% - 24px);max-width:none}
+  .section{padding:64px 0}
+  .section--compact,.section--home{padding:52px 0}
+
+  /* Header: compact shell + reliable thumb-sized action. */
+  .site-nav,
+  .site-nav.is-scrolled{
+    top:max(10px,env(safe-area-inset-top))!important;
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    min-height:58px!important;
+    max-width:none!important;
+    border-radius:19px!important;
+    transform:none!important;
+  }
+  .site-nav__content{min-height:58px!important;padding:5px 7px 5px 12px!important;gap:8px!important}
+  .brand{gap:8px;min-width:0}
+  .brand img{width:29px;height:29px;flex:0 0 auto}
+  .brand span{font-size:.94rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .catalog-icon-button.nav-menu-btn{width:48px;min-width:48px;height:48px;margin-left:auto}
+  .mobile-menu{
+    top:calc(max(10px,env(safe-area-inset-top)) + 66px)!important;
+    left:10px!important;
+    right:10px!important;
+    max-height:calc(100dvh - max(10px,env(safe-area-inset-top)) - 82px);
+    overflow:auto;
+    border-radius:18px;
+    overscroll-behavior:contain;
+  }
+  .mobile-menu__content{padding:8px}
+  .mobile-menu a{min-height:48px;padding:11px 12px}
+
+  /* Hero: remove desktop-scale whitespace and make the hierarchy linear. */
+  .hero{padding:104px 0 38px!important;min-height:0!important;align-items:stretch}
+  .hero-grid{grid-template-columns:1fr!important;gap:26px!important;align-items:start}
+  .hero-copy-block{min-width:0}
+  .hero h1{font-size:clamp(2.7rem,13vw,3.55rem)!important;line-height:.94!important;margin:14px 0!important;width:100%}
+  .hero-lead{font-size:1.02rem!important;line-height:1.48;width:100%}
+  .hero-copy{font-size:.88rem!important;line-height:1.68;margin:12px 0 18px!important;width:100%}
+  .hero-kicker{max-width:100%;font-size:.70rem;line-height:1.35}
+  .hero .button-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;width:100%}
+  .hero .site-liquid-action{width:100%;min-width:0!important;padding-inline:10px;font-size:.88rem}
+  .hero-domains{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px!important;margin-top:16px!important;max-width:none!important}
+  .hero-domain{min-width:0;justify-content:center;padding:7px 8px!important;border-radius:12px!important}
+  .hero-domain strong{font-size:.72rem!important;overflow:hidden;text-overflow:ellipsis}
+  .hero-domain:nth-child(5){grid-column:1/-1}
+
+  /* Readability plates line up as a column instead of staggered floating tags. */
+  :where(
+    .hero h1,.hero-lead,.hero-copy,
+    .page-intro h1,.page-intro__copy,
+    .settings-hero h1,.settings-hero p,
+    .catalog-hero h1,.catalog-hero p,
+    .glass-ui-hero h1,
+    .activity-intro .section-title,.activity-intro .section-copy,
+    .about-copy__lead h2,.about-copy__lead p
+  ){width:100%;max-width:100%}
+
+  /* Project network: four compact rows are much easier to scan on a phone. */
+  .network{width:100%;margin:0;padding:15px!important;border-radius:20px!important;min-height:0!important;max-width:none!important}
+  .network-head{display:grid!important;grid-template-columns:1fr;gap:10px!important;padding-bottom:13px}
+  .network-head h2{font-size:1.38rem}
+  .network-status{justify-self:start!important;min-height:26px;font-size:.64rem}
+  .network-projects{grid-template-columns:1fr!important;gap:7px;margin-top:12px}
+  .network-project{min-height:56px!important;padding:8px 10px}
+  .network-projects .network-project:nth-child(n+5){display:none}
+  .network-foot{margin-top:12px;padding-top:11px;font-size:.62rem!important;gap:8px}
+
+  /* Stat cards: explicit 2x2 grid, no inherited desktop divider logic. */
+  .stats-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+  .stat,.stat+.stat{padding:13px 14px!important;border:1px solid rgba(255,255,255,.48)!important}
+  .stat:nth-child(n){border-left:1px solid rgba(255,255,255,.48)!important;border-top:1px solid rgba(255,255,255,.48)!important}
+  .stat strong{font-size:1.25rem}
+  .stat span{font-size:.69rem}
+
+  /* Generic page headers and cards. */
+  .page-intro{padding:104px 0 34px!important}
+  .page-intro__grid{grid-template-columns:1fr!important;gap:16px!important;align-items:start}
+  .page-intro h1{font-size:clamp(2.25rem,10.5vw,3.2rem)!important;line-height:.98!important;margin-top:10px}
+  .page-intro__copy{font-size:.92rem}
+  .section-head{grid-template-columns:1fr!important;gap:12px!important;margin-bottom:26px}
+  .section-title{font-size:clamp(1.72rem,7.7vw,2.3rem)!important}
+  .project-card{min-height:0!important;padding:18px!important;border-radius:16px}
+  .project-card__desc{min-height:0}
+
+  /* Shared project-category BottomTabs stay one row without touching the edges. */
+  .project-toolbar{top:78px!important;margin:0 -2px 20px!important;padding:3px 2px 7px!important}
+  .project-filter-tabs{width:100%!important;min-width:0!important;max-width:none!important}
+  .project-filter-tabs .catalog-tab{font-size:.61rem!important;padding-inline:0!important}
+  .project-filter-tabs .catalog-tab span[data-mobile-label]::after{font-size:.61rem!important}
+
+  /* Settings: controls first, compact preview second, no awkward half-desktop row. */
+  .settings-hero{padding:104px 0 34px!important}
+  .settings-hero__inner{grid-template-columns:1fr!important;gap:14px!important;align-items:start}
+  .settings-hero h1{font-size:clamp(2.25rem,10.5vw,3.2rem)!important;line-height:.98!important;width:100%}
+  .settings-hero p{font-size:.90rem;line-height:1.65}
+  .settings-layout{grid-template-columns:1fr!important;gap:26px!important}
+  .settings-panel__head{align-items:center!important;gap:12px;padding-bottom:16px}
+  .settings-panel__head h2{font-size:1.65rem}
+  .settings-panel__head .catalog-button{flex:0 0 auto}
+  .settings-control{grid-template-columns:1fr!important;gap:12px!important;padding:18px 0!important}
+  .settings-control__copy{width:100%;padding:13px 14px!important}
+  .settings-control__title{align-items:flex-start;gap:10px}
+  .settings-control__title strong{font-size:.94rem;line-height:1.35}
+  .settings-control__title output{flex:0 0 auto;padding-top:2px}
+  .settings-control__copy p{font-size:.78rem;line-height:1.58;max-width:none}
+  .settings-control__toggle-wrap{justify-content:flex-end!important;padding:0 4px 0 0!important}
+  .catalog-toggle{touch-action:pan-y}
+  .catalog-toggle:disabled{cursor:wait;opacity:.72}
+  .settings-isolation-note{grid-template-columns:1fr!important;gap:8px!important;padding:13px 14px!important}
+  .settings-preview{position:static!important;margin-top:0}
+  .settings-preview__scene{min-height:270px!important;border-radius:20px}
+  .settings-preview__glass{left:16px!important;right:16px!important;min-height:130px;padding:20px!important;border-radius:24px}
+
+  /* Dialog uses the safe viewport and keeps the two actions readable. */
+  .liquid-dialog-layer{padding:12px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important}
+  .liquid-dialog{width:100%!important;max-width:520px;max-height:calc(100dvh - 24px);border-radius:28px!important}
+  .liquid-dialog__content{padding:20px 18px 9px!important;gap:8px}
+  .liquid-dialog__content h2{font-size:21px}
+  .liquid-dialog__content p{font-size:14px}
+  .liquid-dialog__content .liquid-dialog__detail{font-size:12px;line-height:1.5}
+  .liquid-dialog__actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important;padding:9px 14px 14px!important}
+  .liquid-dialog__action{min-width:0!important;padding-inline:8px!important;font-size:13px!important}
+
+  /* Drawer: real phone inset, comfortable scroll padding, close target untouched. */
+  .project-drawer{top:6px!important;right:6px!important;bottom:6px!important;width:calc(100vw - 12px)!important;border-radius:21px!important}
+  .project-drawer__content{padding:14px 14px calc(22px + env(safe-area-inset-bottom))!important;scrollbar-gutter:auto}
+  .drawer-close-floating{top:14px!important;right:14px!important}
+  .drawer-summary__content{padding:24px 18px 18px}
+  .drawer-title{font-size:clamp(1.85rem,9vw,2.55rem);margin-top:20px}
+  .drawer-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  .join-panel{padding:20px!important;border-radius:20px}
+  .join-actions{grid-template-columns:1fr!important}
+  .footer-row{gap:16px}
+  .footer-links{gap:12px;row-gap:8px}
+}
+
+@media (max-width:380px){
+  .hero .button-row{grid-template-columns:1fr}
+  .hero-domain{padding-inline:6px!important}
+  .liquid-dialog__actions{grid-template-columns:1fr!important}
+  .liquid-dialog__action{width:100%}
+  .settings-panel__head{align-items:flex-start;flex-direction:column}
+  .settings-panel__head .catalog-button{align-self:flex-start}
+}

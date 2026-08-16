@@ -8,6 +8,71 @@ import { SpringValue, queueCatalogRender, SPRING_INTERACTIVE } from '../animatio
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const proxyRoots = new Map();
+const activeButtonControllers = new Set();
+let proxyLifecycleObserver = null;
+let proxyLifecycleRaf = 0;
+
+function effectiveOwnerState(button) {
+  if (!button?.isConnected) return { visible: false, opacity: 0 };
+  let opacity = 1;
+  let node = button;
+  while (node && node instanceof Element) {
+    const style = getComputedStyle(node);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse') {
+      return { visible: false, opacity: 0 };
+    }
+    const nodeOpacity = Number.parseFloat(style.opacity);
+    if (Number.isFinite(nodeOpacity)) opacity *= nodeOpacity;
+    if (opacity < 0.015) return { visible: false, opacity: 0 };
+    node = node.parentElement;
+  }
+  return { visible: true, opacity: clamp(opacity, 0, 1) };
+}
+
+function sweepButtonProxies({ sync = true } = {}) {
+  for (const controller of [...activeButtonControllers]) {
+    if (!controller.ownerElement?.isConnected) {
+      controller.destroy?.();
+      continue;
+    }
+    if (sync) controller.syncProxy?.();
+  }
+
+  for (const [key, root] of [...proxyRoots]) {
+    if (!root?.isConnected) {
+      proxyRoots.delete(key);
+      continue;
+    }
+    root.querySelectorAll('.liquid-button-proxy').forEach((proxy) => {
+      const owner = proxy._liquidButtonOwner;
+      if (!owner?.isConnected || owner._liquidButtonProxy !== proxy) {
+        deactivateLiquidGlassElement(proxy);
+        proxy.remove();
+      }
+    });
+    if (!root.childElementCount) {
+      root.remove();
+      proxyRoots.delete(key);
+    }
+  }
+}
+
+function scheduleProxyLifecycleSweep() {
+  if (proxyLifecycleRaf) return;
+  proxyLifecycleRaf = requestAnimationFrame(() => {
+    proxyLifecycleRaf = 0;
+    sweepButtonProxies({ sync: true });
+  });
+}
+
+function ensureProxyLifecycleObserver() {
+  if (proxyLifecycleObserver || !document.documentElement) return;
+  proxyLifecycleObserver = new MutationObserver(scheduleProxyLifecycleSweep);
+  proxyLifecycleObserver.observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener('orientationchange', scheduleProxyLifecycleSweep, { passive: true });
+  window.addEventListener('load', scheduleProxyLifecycleSweep, { once: true });
+  document.fonts?.ready?.then(scheduleProxyLifecycleSweep).catch?.(() => {});
+}
 
 
 function proxyLayer(button) {
@@ -33,13 +98,18 @@ function ensureProxyRoot(button) {
 
 function syncProxyRect(button, proxy) {
   if (!proxy || !button?.isConnected) return;
-  const style = getComputedStyle(button);
-  if (style.display === 'none' || style.visibility === 'hidden') {
+  const ownerState = effectiveOwnerState(button);
+  const rect = button.getBoundingClientRect();
+  if (!ownerState.visible || rect.width <= 0.5 || rect.height <= 0.5) {
     proxy.style.display = 'none';
+    proxy.style.opacity = '0';
     return;
   }
   proxy.style.display = 'flex';
-  const rect = button.getBoundingClientRect();
+  // Portal visuals do not inherit ancestor opacity (reveal/Dialog transitions),
+  // so mirror the effective owner opacity explicitly. Without this, an old or
+  // closing proxy can float above the next UI and look like a button collage.
+  proxy.style.opacity = ownerState.opacity.toFixed(4);
   // Feed geometry through dedicated CSS variables. The proxy CSS consumes
   // these with !important so inherited/legacy button rules cannot pin the
   // optical proxy back to the portal origin.
@@ -67,6 +137,7 @@ function ensureLiveProxy(button) {
     proxy.dataset.glassSettingsScope = 'site';
   }
   proxy.innerHTML = button.innerHTML;
+  proxy._liquidButtonOwner = button;
 
   root.append(proxy);
   button.classList.add('liquid-button-anchor');
@@ -86,6 +157,7 @@ function removeLiveProxy(button) {
   const proxy = button?._liquidButtonProxy;
   if (proxy) {
     deactivateLiquidGlassElement(proxy);
+    delete proxy._liquidButtonOwner;
     proxy.remove();
   }
   button?.classList.remove('liquid-button-anchor');
@@ -239,6 +311,7 @@ export function bindLiquidButton(button) {
     document.addEventListener('scroll', onViewportMove, { passive: true, capture: true });
     window.addEventListener('resize', onViewportMove, { passive: true });
     window.visualViewport?.addEventListener('resize', onViewportMove, { passive: true });
+    window.visualViewport?.addEventListener('scroll', onViewportMove, { passive: true });
     document.addEventListener('transitionrun', onTransitionRun, true);
     document.addEventListener('transitionend', onTransitionDone, true);
     document.addEventListener('transitioncancel', onTransitionDone, true);
@@ -328,18 +401,25 @@ export function bindLiquidButton(button) {
     peakPress = 0;
   };
 
+  let destroyed = false;
   const controller = {
+    ownerElement: button,
     visualElement: visual,
+    syncProxy,
     waitForRest,
     completeActivationAndWait,
     release,
     destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      activeButtonControllers.delete(controller);
       resizeObserver.disconnect();
       if (proxySyncRaf) cancelAnimationFrame(proxySyncRaf);
       if (proxy) {
         document.removeEventListener('scroll', onViewportMove, true);
         window.removeEventListener('resize', onViewportMove);
         window.visualViewport?.removeEventListener('resize', onViewportMove);
+        window.visualViewport?.removeEventListener('scroll', onViewportMove);
         document.removeEventListener('transitionrun', onTransitionRun, true);
         document.removeEventListener('transitionend', onTransitionDone, true);
         document.removeEventListener('transitioncancel', onTransitionDone, true);
@@ -358,6 +438,8 @@ export function bindLiquidButton(button) {
     },
   };
   button._liquidButtonController = controller;
+  activeButtonControllers.add(controller);
+  ensureProxyLifecycleObserver();
   syncProxy();
   requestRender();
   return controller;
@@ -365,10 +447,13 @@ export function bindLiquidButton(button) {
 
 export function bindLiquidButtons(root = document) {
   if (!root) return;
+  ensureProxyLifecycleObserver();
+  sweepButtonProxies({ sync: false });
   const buttons = [];
   if (root instanceof Element && root.matches('[data-liquid-button]')) buttons.push(root);
   if (root.querySelectorAll) buttons.push(...root.querySelectorAll('[data-liquid-button]'));
   buttons.forEach(bindLiquidButton);
+  scheduleProxyLifecycleSweep();
 }
 
 export function destroyLiquidButtonsWithin(root) {
@@ -377,4 +462,10 @@ export function destroyLiquidButtonsWithin(root) {
   if (root instanceof Element && root.matches('[data-liquid-button]')) buttons.push(root);
   if (root.querySelectorAll) buttons.push(...root.querySelectorAll('[data-liquid-button]'));
   buttons.forEach((button) => button._liquidButtonController?.destroy?.());
+  scheduleProxyLifecycleSweep();
 }
+
+export function syncLiquidButtonProxies() {
+  scheduleProxyLifecycleSweep();
+}
+

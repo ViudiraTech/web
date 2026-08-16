@@ -169,6 +169,11 @@ function updateProjectGrid() {
   const grid = document.querySelector('[data-project-grid]');
   if (!grid) return;
   const repos = filteredRepositories();
+  // Tear down top-level LiquidButton proxies before replacing their owners.
+  // Waiting for a MutationObserver sweep leaves a one-frame orphan that is very
+  // visible on phones during rapid tab changes.
+  destroyLiquidButtonsWithin(grid);
+  destroyLiquidGlassWithin(grid);
   grid.innerHTML = repos.length ? repos.map(projectCard).join('') : '<div class="empty-state">当前分类没有可由公开元数据可靠归入的仓库。</div>';
   prepareReadabilityGlass(grid);
   hydrateLiquidGlass(grid).then(() => bindLiquidButtons(grid));
@@ -273,9 +278,9 @@ async function openDrawer(fullName) {
   drawer.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
 
-  // The close button's top-level optical proxy is CSS-anchor tethered to the
-  // Drawer button, so the browser follows the Drawer transform without a JS
-  // sampling loop. We only watch transition end for lifecycle cleanup.
+  // The close button uses the shared top-level optical proxy. Its rectangle is
+  // synchronized by the LiquidButton controller during ancestor transforms;
+  // backdrop pixels remain a real live capture rather than a copied wallpaper.
   await new Promise((resolve) => requestAnimationFrame(resolve));
   watchDrawerTransform(drawer);
   drawer.querySelector('[data-drawer-close]')?.focus();

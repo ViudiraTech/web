@@ -33,7 +33,7 @@ function liquidReadabilityRow(enabled) {
   return `<div class="settings-control settings-control--toggle" data-setting-row="readabilityLiquid">
     <div class="settings-control__copy">
       <div class="settings-control__title"><strong>易读背景使用完整 Liquid Glass</strong><output data-setting-output="readabilityLiquid">${enabled ? '开启' : '关闭'}</output></div>
-      <p>关闭时，易读层使用性能友好的 CSS 毛玻璃；开启后，核心阅读面板保持完整 Liquid Glass，重复卡片与胶囊按当前视口和交互动态升级，避免大量 SVG 滤镜同时占用 GPU。</p>
+      <p>关闭时，文字易读层使用轻量 CSS 毛玻璃；开启后，仅这些阅读底切换为完整 Liquid Glass。项目卡、Network、技术图和其它内容卡仍保持各自原有材质。</p>
     </div>
     <div class="settings-control__toggle-wrap">
       ${liquidToggle({
@@ -148,9 +148,26 @@ export function bindSettingsPage(root = document.querySelector('#main') || docum
   const readabilityToggle = root.querySelector('[data-setting-toggle="readabilityLiquid"]');
   if (readabilityToggle && readabilityToggle.dataset.settingBound !== '1') {
     readabilityToggle.dataset.settingBound = '1';
+    let promptPending = false;
+
     readabilityToggle.addEventListener('liquidtoggle:change', async (event) => {
       const wantsEnabled = Boolean(event.detail?.checked);
       const controller = readabilityToggle._liquidToggleController;
+      const committed = getSiteGlassPreferences().readabilityLiquid;
+
+      // The setting is transactional: the switch mirrors only the committed
+      // preference. While the confirmation dialog is open, ignore duplicate
+      // touch/pointer events instead of opening/closing multiple dialog states.
+      if (promptPending) {
+        controller?.setChecked(committed, { animate: true, emit: false, source: 'dialog-pending' });
+        return;
+      }
+
+      if (wantsEnabled === committed) {
+        controller?.setChecked(committed, { animate: true, emit: false, source: 'already-committed' });
+        updateOutputs(root, getSiteGlassPreferences());
+        return;
+      }
 
       if (!wantsEnabled) {
         const settings = setSiteGlassPreferences({ readabilityLiquid: false });
@@ -160,13 +177,28 @@ export function bindSettingsPage(root = document.querySelector('#main') || docum
         return;
       }
 
-      const approved = await showLiquidDialog({
-        title: '开启完整 Liquid Glass？',
-        message: '用于提升文字可读性的毛玻璃阅读底将切换为完整的折射材质。',
-        detail: '开启后所有可见易读层在静止状态统一使用完整 SVG lens、blur、depth、highlight 与阴影；页面滚动期间整批统一切到高质量毛玻璃，滚停后一起恢复满血折射。Liquid UI Lab 仍保持隔离。',
-        cancelLabel: '保持毛玻璃',
-        confirmLabel: '开启',
-      });
+      // Do not visually commit ON before the user confirms. This removes the
+      // phone-only race where a tiny pointer drift could leave the switch ON,
+      // close/reopen a dialog, or require several taps before one dialog survives.
+      controller?.setChecked(false, { animate: true, emit: false, source: 'awaiting-confirmation' });
+      promptPending = true;
+      readabilityToggle.disabled = true;
+      readabilityToggle.setAttribute('aria-busy', 'true');
+
+      let approved = false;
+      try {
+        approved = await showLiquidDialog({
+          title: '开启完整 Liquid Glass？',
+          message: '用于提升文字可读性的毛玻璃阅读底将切换为完整的折射材质。',
+          detail: '开启后，可见的易读层保持完整 SVG lens、blur、depth、highlight 与阴影；页面滚动不会再自动退回普通毛玻璃。Liquid UI Lab 仍保持隔离。',
+          cancelLabel: '保持毛玻璃',
+          confirmLabel: '开启',
+        });
+      } finally {
+        promptPending = false;
+        readabilityToggle.disabled = false;
+        readabilityToggle.removeAttribute('aria-busy');
+      }
 
       if (!approved) {
         controller?.setChecked(false, { animate: true, emit: false, source: 'dialog-cancel' });
