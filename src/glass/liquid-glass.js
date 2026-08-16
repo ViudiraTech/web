@@ -27,8 +27,44 @@ let sharedDefs = null;
 let lazyObserver = null;
 let activityObserver = null;
 let currentProfile = null;
+let localSampleSyncRaf = 0;
+let localSampleSyncBound = false;
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+// Local-sampled glass is a foreground copy of another element's background.
+// Any viewport movement (page scroll, nested scrolling container, browser UI
+// resize/zoom) changes which scene pixels sit behind a fixed button even when
+// that button's own transform/springs are idle. Coalesce those events into one
+// rAF and only touch visible local-sample controllers.
+function refreshVisibleLocalBackdropSamples() {
+  localSampleSyncRaf = 0;
+  const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  const margin = 120;
+  for (const controller of controllers) {
+    if (!controller?.localSample || controller.suspended || !controller.element?.isConnected) continue;
+    const rect = controller.element.getBoundingClientRect();
+    if (rect.bottom < -margin || rect.top > vh + margin || rect.right < -margin || rect.left > vw + margin) continue;
+    controller.updateLocalLayers();
+  }
+}
+
+function scheduleLocalBackdropSampleSync() {
+  if (localSampleSyncRaf) return;
+  localSampleSyncRaf = requestAnimationFrame(refreshVisibleLocalBackdropSamples);
+}
+
+function ensureLocalBackdropSampleSync() {
+  if (localSampleSyncBound) return;
+  localSampleSyncBound = true;
+  // Capture scroll so nested scrolling surfaces (drawers/panels) are covered too.
+  document.addEventListener('scroll', scheduleLocalBackdropSampleSync, { passive: true, capture: true });
+  window.addEventListener('scroll', scheduleLocalBackdropSampleSync, { passive: true });
+  window.addEventListener('resize', scheduleLocalBackdropSampleSync, { passive: true });
+  window.visualViewport?.addEventListener('scroll', scheduleLocalBackdropSampleSync, { passive: true });
+  window.visualViewport?.addEventListener('resize', scheduleLocalBackdropSampleSync, { passive: true });
+}
 
 function ensureSharedDefs() {
   if (sharedDefs?.isConnected) return sharedDefs;
@@ -88,10 +124,14 @@ function supportsSvgBackdropFilter() {
 }
 
 const LOCAL_STATIC_PRESETS = new Set([
-  // Bottom-tabs panels are large enough to benefit from a cached local sample.
-  // LiquidButton stays on the real live backdrop pipeline: at only 48px high the
-  // cost is small, while true backdrop sampling makes the 12/24 lens visible on
-  // photographic backdrops and avoids the old 'highlight-only' appearance.
+  // Catalog demo controls sample their photographic canvas into a foreground
+  // layer and apply the SVG SDF lens with `filter:url(...)`. This is more
+  // deterministic in Chromium than `backdrop-filter:url(...)` and preserves
+  // the exact 12/24 LiquidButton lens without increasing its strength.
+  'catalog-button',
+  'catalog-button-surface',
+  'catalog-button-blue',
+  'catalog-button-orange',
   'catalog-tabs-panel',
 ]);
 
@@ -335,10 +375,14 @@ class LiquidBackdrop {
       if (Number.isFinite(alpha)) this.config.surfaceAlpha = alpha;
     }
     this.surfaceOnly = element.dataset.glassSurfaceOnly === 'true';
+    this.surfaceFloorRatio = clamp(Number(element.dataset.glassSurfaceFloorRatio || 0), 0, 1);
     this.siteSettingsScoped = element.dataset.glassSettingsScope === 'site' || Boolean(element.closest('[data-glass-settings-scope="site"]'));
     this.suspended = false;
     this.preset = element.dataset.glassPreset || 'default';
-    this.localBackdrop = LOCAL_STATIC_PRESETS.has(this.preset) && element.dataset.glassLive !== 'true' ? element.closest('.catalog-canvas') : null;
+    const localSampleEligible = LOCAL_STATIC_PRESETS.has(this.preset) && element.dataset.glassLive !== 'true';
+    const requestedBackdrop = element.dataset.glassBackdrop || '';
+    const explicitBackdrop = requestedBackdrop === 'ambient' ? document.querySelector('#ambient') : null;
+    this.localBackdrop = localSampleEligible ? (element.closest('.catalog-canvas') || explicitBackdrop) : null;
     this.localSample = Boolean(this.localBackdrop);
     this.id = `viudira-liquid-${Math.random().toString(36).slice(2, 10)}`;
     this.filter = this.surfaceOnly ? null : createFilter(this.id, this.config.chromaticAberration);
@@ -416,7 +460,13 @@ class LiquidBackdrop {
     // surface coat while keeping refraction/highlight intact; moving toward 0%
     // increases opacity without flattening every preset to the same alpha.
     const factor = 2 - (prefs.transparency / 50);
-    return clamp(value * factor, 0, 0.96);
+    // Interactive selection indicators may request a small authored-alpha floor
+    // so the selected capsule never disappears completely at 100% transparency.
+    // The floor is proportional to the *current* authored alpha, so Catalog's
+    // 0.10 -> 0.03 press fade is preserved instead of being flattened.
+    const authored = clamp(value, 0, 1);
+    const floor = authored * this.surfaceFloorRatio;
+    return clamp(Math.max(authored * factor, floor), 0, 0.96);
   }
 
   effectiveBlur(value = this.state.blur) {
@@ -635,6 +685,7 @@ function createController(element, profile) {
   if (element.dataset.glassKeepActive !== 'true' && !controller.surfaceOnly) {
     ensureActivityObserver()?.observe(element);
   }
+  if (controller.localSample) ensureLocalBackdropSampleSync();
   return controller;
 }
 
@@ -649,6 +700,16 @@ export function setLiquidGlassState(element, patch) {
 
 export function getLiquidGlassController(element) {
   return controllerMap.get(element) || null;
+}
+
+// Re-sample a cached/local backdrop after an interactive control has moved.
+// LiquidButton uses transform-based drag motion, so ResizeObserver does not fire;
+// without this explicit sync the glass shell moves while the sampled scene stays
+// pinned to the button's original location.
+export function refreshLiquidGlassBackdropSample(element) {
+  const controller = controllerMap.get(element);
+  if (!controller?.localSample || controller.suspended) return;
+  controller.updateLocalLayers();
 }
 
 export function refreshSiteGlassPreferences() {
@@ -670,6 +731,16 @@ export function destroyLiquidGlass() {
   lazyObserver = null;
   activityObserver?.disconnect();
   activityObserver = null;
+  if (localSampleSyncRaf) cancelAnimationFrame(localSampleSyncRaf);
+  localSampleSyncRaf = 0;
+  if (localSampleSyncBound) {
+    document.removeEventListener('scroll', scheduleLocalBackdropSampleSync, true);
+    window.removeEventListener('scroll', scheduleLocalBackdropSampleSync);
+    window.removeEventListener('resize', scheduleLocalBackdropSampleSync);
+    window.visualViewport?.removeEventListener('scroll', scheduleLocalBackdropSampleSync);
+    window.visualViewport?.removeEventListener('resize', scheduleLocalBackdropSampleSync);
+    localSampleSyncBound = false;
+  }
   while (controllers.length) controllers.pop().destroy();
 }
 

@@ -43,7 +43,8 @@ function renderItem(item, index, selectedIndex) {
   const itemId = item.id ? ` data-tab-id="${escapeHtml(item.id)}"` : '';
   const className = ['catalog-tab', item.className || '', selected ? 'is-selected' : ''].filter(Boolean).join(' ');
   const icon = item.icon || '';
-  return `<${tag} class="${className}"${href}${target}${rel}${type}${current}${itemId}>${icon}<span>${escapeHtml(item.label)}</span></${tag}>`;
+  const mobileLabel = item.mobileLabel ? ` data-mobile-label="${escapeHtml(item.mobileLabel)}"` : '';
+  return `<${tag} class="${className}"${href}${target}${rel}${type}${current}${itemId}>${icon}<span${mobileLabel}>${escapeHtml(item.label)}</span></${tag}>`;
 }
 
 /**
@@ -63,8 +64,9 @@ export function liquidBottomTabs({
   // upstream light-theme black surface explicitly so site tabs can never
   // accidentally regress to an opaque-looking black pill.
   indicatorSurfaceRgb = '255 255 255',
-  indicatorIdleAlpha = 0.11,
-  indicatorPressedAlpha = 0.04,
+  indicatorIdleAlpha = 0.10,
+  indicatorPressedAlpha = 0.03,
+  indicatorSurfaceFloorRatio = 0,
 } = {}) {
   const selectedIndex = typeof selected === 'string'
     ? Math.max(0, items.findIndex((item) => item.id === selected))
@@ -72,10 +74,13 @@ export function liquidBottomTabs({
   const classes = ['catalog-tabs', 'liquid-bottom-tabs', className].filter(Boolean).join(' ');
   const liveAttr = live ? ' data-glass-live="true"' : '';
   const surfaceOnlyAttr = surfaceOnly ? ' data-glass-surface-only="true"' : '';
+  const indicatorFloorAttr = Number(indicatorSurfaceFloorRatio) > 0
+    ? ` data-glass-surface-floor-ratio="${clamp(Number(indicatorSurfaceFloorRatio), 0, 1)}"`
+    : '';
   return `
     <div class="${classes}" data-liquid-bottom-tabs data-tabs-mode="${escapeHtml(mode)}" data-tabs-navigate-on-drag="${navigateOnDrag ? 'true' : 'false'}" data-tabs-indicator-idle-alpha="${indicatorIdleAlpha}" data-tabs-indicator-pressed-alpha="${indicatorPressedAlpha}" style="--liquid-tab-count:${Math.max(items.length, 1)}" aria-label="${escapeHtml(ariaLabel)}">
       <span class="catalog-tabs__glass liquid-glass" data-glass-preset="catalog-tabs-panel"${liveAttr}${surfaceOnlyAttr} aria-hidden="true"></span>
-      <span class="catalog-tabs__indicator liquid-glass" data-glass-preset="catalog-tab-indicator" data-glass-surface-rgb="${escapeHtml(indicatorSurfaceRgb)}"${liveAttr}${surfaceOnlyAttr} aria-hidden="true"></span>
+      <span class="catalog-tabs__indicator liquid-glass" data-glass-preset="catalog-tab-indicator" data-glass-surface-rgb="${escapeHtml(indicatorSurfaceRgb)}"${indicatorFloorAttr}${liveAttr}${surfaceOnlyAttr} aria-hidden="true"></span>
       <div class="catalog-tabs__items">${items.map((item, index) => renderItem(item, index, selectedIndex)).join('')}</div>
     </div>`;
 }

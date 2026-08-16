@@ -33,7 +33,7 @@ export function hero(repos = [], state = 'loading') {
           <span class="hero-kicker">Open Source Engineering Community</span>
           <h1>Viudira<br/>Tech</h1>
           <p class="hero-lead">一个由开发者共同构建的开放技术社区。</p>
-          <p class="hero-copy">我们关注操作系统、内核、系统软件、开发者工具与实验性技术。这里的内容直接来自公开仓库与真实开发活动，而不是一组用来装饰首页的假数字。</p>
+          <p class="hero-copy">我们关注操作系统、内核、系统软件、开发者工具与前沿技术探索。项目与开发动态均来自公开仓库和 GitHub 活动，保持信息可验证、可追溯。</p>
           <div class="button-row">
             <a class="button button--primary" href="#/projects">查看项目 ${icons.arrow(16)}</a>
             <a class="button button--secondary" href="https://github.com/ViudiraTech" target="_blank" rel="noreferrer">${icons.github(17)} 探索 GitHub</a>

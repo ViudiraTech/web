@@ -410,10 +410,6 @@ html[data-glass="svg"] .catalog-tabs__indicator.liquid-live{position:absolute!im
   background:rgba(250,250,250,.24);
   box-shadow:inset 0 0 0 .5px rgba(255,255,255,.40),0 2px 9px rgba(0,0,0,.035);
 }
-.site-nav__tabs .catalog-tabs__indicator{
-  background:rgba(255,255,255,.13);
-  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.48),0 2px 8px rgba(0,0,0,.045);
-}
 html[data-glass="svg"] .site-nav__backplate.liquid-live{position:absolute!important}
 
 /* A surface-only combined glass layer keeps all Catalog motion/highlight state
@@ -644,4 +640,173 @@ html[data-glass="svg"] .drawer-close-floating.liquid-live{overflow:visible!impor
 .drawer-summary--plain,
 .drawer-section-card{
   filter:none!important;
+}
+
+/* Public-site readability over the photographic background ----------------------
+   Important page copy gets its own lightweight frosted reading plate. These are
+   intentionally CSS-only (no SVG displacement), so dense text stays legible
+   without multiplying the expensive Liquid Glass lens pipeline. */
+:where(
+  .hero-kicker,
+  .hero h1,
+  .hero-lead,
+  .hero-copy,
+  .section-head .eyebrow,
+  .section-head .section-title,
+  .section-head .section-copy,
+  .page-intro .eyebrow,
+  .page-intro h1,
+  .page-intro__copy,
+  .about-copy__lead .eyebrow,
+  .about-copy__lead h2,
+  .about-copy__lead p,
+  .activity-intro .eyebrow,
+  .activity-intro .section-title,
+  .activity-intro .section-copy,
+  .community-note,
+  .settings-hero .eyebrow,
+  .settings-hero h1,
+  .settings-hero p,
+  .catalog-hero .eyebrow,
+  .catalog-hero h1,
+  .catalog-hero p
+){
+  width:fit-content;
+  max-width:100%;
+  padding:7px 11px;
+  border:1px solid rgba(255,255,255,.52);
+  border-radius:12px;
+  background:rgba(248,251,250,.66);
+  box-shadow:0 6px 22px rgba(18,35,32,.055),inset 0 1px 0 rgba(255,255,255,.58);
+  -webkit-backdrop-filter:blur(9px) saturate(1.08);
+  backdrop-filter:blur(9px) saturate(1.08);
+}
+:where(.hero h1,.section-head .section-title,.page-intro h1,.about-copy__lead h2,.activity-intro .section-title,.settings-hero h1,.catalog-hero h1){
+  padding:10px 14px;
+  background:rgba(248,251,250,.52);
+  border-radius:16px;
+}
+.hero-copy-block>:where(.hero-kicker,.hero h1,.hero-lead,.hero-copy),
+.about-copy__lead>:where(.eyebrow,h2,p),
+.activity-intro>:where(.eyebrow,.section-title,.section-copy),
+.catalog-hero__inner>:where(.eyebrow,h1,p){
+  margin-right:auto;
+}
+.about-principles>div{
+  margin-bottom:9px;
+  padding:16px 14px;
+  border:1px solid rgba(255,255,255,.46);
+  border-radius:14px;
+  background:rgba(248,251,250,.60);
+  box-shadow:0 5px 18px rgba(18,35,32,.045);
+  -webkit-backdrop-filter:blur(8px) saturate(1.06);
+  backdrop-filter:blur(8px) saturate(1.06);
+}
+
+/* Catalog LiquidButton: keep the backdrop photographic so the exact 12/24 lens
+   has edges and texture to displace. The buttons themselves use local sampled
+   SVG filtering; no stronger lens values are required. */
+.catalog-canvas{
+  background:
+    linear-gradient(135deg,rgba(232,241,239,.12),rgba(245,239,231,.06)),
+    url("https://picsum.photos/id/1015/1200/800");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+/* Project filter Bottom Tabs: on phones keep the shared seven-tab component in
+   one viewport instead of forcing a 680px strip that gets visually clipped. */
+@media(max-width:640px){
+  .project-toolbar{
+    overflow:visible!important;
+    padding-inline:0;
+  }
+  .project-filter-tabs{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+  .project-filter-tabs .catalog-tabs__items{
+    inset:4px;
+  }
+  .project-filter-tabs .catalog-tab{
+    min-width:0;
+    padding-inline:1px!important;
+    font-size:.64rem!important;
+  }
+  .project-filter-tabs .catalog-tab span[data-mobile-label]{
+    font-size:0!important;
+    overflow:visible;
+    text-overflow:clip;
+  }
+  .project-filter-tabs .catalog-tab span[data-mobile-label]::after{
+    content:attr(data-mobile-label);
+    font-size:.64rem;
+    line-height:1;
+    white-space:nowrap;
+  }
+}
+@media(max-width:390px){
+  .project-filter-tabs .catalog-tab span[data-mobile-label]::after{font-size:.59rem}
+}
+
+/* Additional reading plates for bare text regions that sit directly over the
+   landscape. Existing project/tech/catalog/drawer cards already provide their
+   own surfaces and are intentionally not double-filtered. */
+.stats-strip{
+  gap:8px;
+  border:0;
+}
+.stat{
+  padding:16px 18px!important;
+  border:1px solid rgba(255,255,255,.48)!important;
+  border-radius:14px;
+  background:rgba(248,251,250,.62);
+  box-shadow:0 5px 18px rgba(18,35,32,.045);
+  -webkit-backdrop-filter:blur(8px) saturate(1.06);
+  backdrop-filter:blur(8px) saturate(1.06);
+}
+.stat+.stat{padding-left:18px!important}
+.activity-item{
+  margin-bottom:10px;
+  padding:16px 18px 16px 40px;
+  border:1px solid rgba(255,255,255,.48);
+  border-radius:14px;
+  background:rgba(248,251,250,.62);
+  box-shadow:0 5px 18px rgba(18,35,32,.045);
+  -webkit-backdrop-filter:blur(8px) saturate(1.06);
+  backdrop-filter:blur(8px) saturate(1.06);
+}
+.activity-dot{left:12px;top:22px}
+.activity-list::before{left:17px}
+.settings-control__copy,
+.settings-isolation-note,
+.control-doc-copy{
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,.48);
+  border-radius:14px;
+  background:rgba(248,251,250,.62);
+  box-shadow:0 5px 18px rgba(18,35,32,.04);
+  -webkit-backdrop-filter:blur(8px) saturate(1.06);
+  backdrop-filter:blur(8px) saturate(1.06);
+}
+.settings-isolation-note{margin-top:14px!important}
+.join-panel>div:first-child{
+  align-self:start;
+  padding:18px;
+  border:1px solid rgba(255,255,255,.48);
+  border-radius:16px;
+  background:rgba(248,251,250,.62);
+  box-shadow:0 5px 18px rgba(18,35,32,.04);
+  -webkit-backdrop-filter:blur(8px) saturate(1.06);
+  backdrop-filter:blur(8px) saturate(1.06);
+}
+.footer-copy,.footer-brand{
+  padding:6px 9px;
+  border:1px solid rgba(255,255,255,.42);
+  border-radius:10px;
+  background:rgba(248,251,250,.56);
+  -webkit-backdrop-filter:blur(7px) saturate(1.05);
+  backdrop-filter:blur(7px) saturate(1.05);
 }

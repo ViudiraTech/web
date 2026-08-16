@@ -65,23 +65,23 @@ function ambientLayer() {
 const pageIntros = {
   projects: {
     eyebrow: 'Projects / Repository Explorer',
-    title: '项目不是首页的一排装饰卡片。',
-    copy: '这里单独承载 ViudiraTech 的公开仓库。筛选、Stars、Forks、语言、Topics、License、更新时间与 README 详情都围绕真实 GitHub 数据组织。',
+    title: '完整浏览 ViudiraTech 公开项目。',
+    copy: '这里集中展示 ViudiraTech 的公开仓库。筛选、Stars、Forks、语言、Topics、License、更新时间与 README 详情均围绕 GitHub 公开数据组织。',
   },
   community: {
     eyebrow: 'Community / Collaboration',
     title: '社区，是发生在代码旁边的协作。',
-    copy: '不虚构成员规模。参与方式从 Issue、Pull Request、Review、文档和测试开始，并最终回到公开仓库。',
+    copy: '参与方式围绕公开仓库展开，从 Issue、Pull Request、Review、文档和测试进入完整的协作流程。',
   },
   activity: {
     eyebrow: 'Activity / Public Events',
     title: '把开发动态留给一整页。',
-    copy: '只展示 GitHub Public Events 可以证实的 Push、Release、Pull Request、Issue 与创建事件。获取不到数据时不会补假 commit。',
+    copy: '展示 GitHub Public Events 中的 Push、Release、Pull Request、Issue 与创建事件，并保持与公开活动数据同步。',
   },
   about: {
     eyebrow: 'About / ViudiraTech',
     title: '一个关注底层技术的开放组织。',
-    copy: 'ViudiraTech 的重点是操作系统、内核、系统软件、开发者工具和实验性技术。官网负责连接这些工作，而不是替项目本身抢戏。',
+    copy: 'ViudiraTech 聚焦操作系统、内核、系统软件、开发者工具和前沿技术探索，官网用于连接项目、技术方向与开放协作。',
   },
 };
 

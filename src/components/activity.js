@@ -26,11 +26,11 @@ function eventUrl(event) {
 export function activitySection(events = [], state = 'loading', options = {}) {
   const limit = options.limit || 10;
   const title = options.title || '最近发生了什么。';
-  const copy = options.copy || '时间线只显示 GitHub 返回的公开事件；API 不可用或没有数据时，直接留空并引导到 GitHub。';
+  const copy = options.copy || '时间线基于 GitHub Public Events 展示公开开发活动；当 API 暂时不可用时，会提供 GitHub 入口以便继续查看。';
   const useful = events.filter((event) => ['PushEvent','ReleaseEvent','PullRequestEvent','IssuesEvent','CreateEvent'].includes(event.type)).slice(0, limit);
   let list = '';
   if (state === 'loading') list = '<div class="loading-state">正在读取 GitHub Public Events…<div class="loading-bar"></div></div>';
-  else if (!useful.length) list = `<div class="empty-state">暂未取得可展示的公开 Activity。不会生成假的 commit 或 release。<br/><a class="activity-link" href="https://github.com/ViudiraTech" target="_blank" rel="noreferrer">前往 GitHub 查看最新开发动态 ${icons.arrow(14)}</a></div>`;
+  else if (!useful.length) list = `<div class="empty-state">暂未取得可展示的公开 Activity。你可以前往 GitHub 查看最新提交、发布与协作动态。<br/><a class="activity-link" href="https://github.com/ViudiraTech" target="_blank" rel="noreferrer">前往 GitHub 查看最新开发动态 ${icons.arrow(14)}</a></div>`;
   else list = useful.map((event) => {
     const text = eventText(event);
     return `<article class="activity-item reveal"><span class="activity-dot"></span><div class="activity-time">${formatRelative(event.created_at)}</div><h3>${escapeHtml(text.title)}</h3><p class="activity-message">${escapeHtml(text.message)}</p><a class="activity-link" href="${eventUrl(event)}" target="_blank" rel="noreferrer">在 GitHub 查看 ${icons.external(13)}</a></article>`;

@@ -1,5 +1,5 @@
 import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
-import { bindLiquidButtons } from './liquid-button.js';
+import { liquidButton, bindLiquidButtons } from './liquid-button.js';
 import {
   DEFAULT_SITE_GLASS_PREFERENCES,
   getSiteGlassPreferences,
@@ -44,7 +44,12 @@ export function settingsPage() {
             <span class="eyebrow">Material</span>
             <h2>透明与模糊</h2>
           </div>
-          <button class="catalog-button liquid-glass" data-liquid-button data-glass-preset="catalog-button-surface" type="button" data-settings-reset>恢复默认</button>
+          ${liquidButton({
+            label: '恢复默认',
+            preset: 'catalog-button-surface',
+            backdrop: 'ambient',
+            attributes: 'data-settings-reset data-shared-surface-button',
+          })}
         </div>
         ${settingRow({
           key: 'transparency',

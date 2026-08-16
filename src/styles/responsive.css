@@ -58,4 +58,4 @@
 
 /* Shared project-category LiquidBottomTabs */
 @media(max-width:900px){.project-toolbar{top:86px;display:block}.project-filter-tabs{width:100%;max-width:none}.project-toolbar__note{display:block;margin:7px 4px 0;text-align:right}.project-filter-tabs .catalog-tab{font-size:.64rem;padding-inline:4px}}
-@media(max-width:640px){.project-filter-tabs{min-width:680px}.project-toolbar{overflow-x:auto;overflow-y:visible;padding-bottom:8px;scrollbar-width:none}.project-toolbar::-webkit-scrollbar{display:none}.project-toolbar__note{display:none}}
+@media(max-width:640px){.project-filter-tabs{width:100%;min-width:0}.project-toolbar{overflow:visible;padding-bottom:8px}.project-toolbar__note{display:none}}

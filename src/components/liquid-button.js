@@ -1,7 +1,20 @@
-import { setLiquidGlassState } from '../glass/liquid-glass.js';
+import { setLiquidGlassState, refreshLiquidGlassBackdropSample } from '../glass/liquid-glass.js';
 import { SpringValue, queueCatalogRender, SPRING_INTERACTIVE } from '../animation/catalog-motion.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+export function liquidButton({
+  label,
+  preset = 'catalog-button',
+  className = '',
+  backdrop = '',
+  attributes = '',
+  type = 'button',
+} = {}) {
+  const classes = ['catalog-button', 'liquid-glass', className].filter(Boolean).join(' ');
+  const backdropAttr = backdrop ? ` data-glass-backdrop="${backdrop}"` : '';
+  return `<button class="${classes}" data-liquid-button data-glass-preset="${preset}"${backdropAttr} type="${type}" ${attributes}>${label ?? ''}</button>`;
+}
 
 function pointerPercent(clientX, clientY, rect, width, height) {
   return {
@@ -42,6 +55,10 @@ export function bindLiquidButton(button) {
     const sx = baseScale + dragScale * Math.abs(Math.cos(angle) * offsetX / Math.max(maxDimension, 1)) * Math.min(width / Math.max(height, 1), 1);
     const sy = baseScale + dragScale * Math.abs(Math.sin(angle) * offsetY / Math.max(maxDimension, 1)) * Math.min(height / Math.max(width, 1), 1);
     button.style.transform = `translate3d(${tx.toFixed(3)}px,${ty.toFixed(3)}px,0) scale(${sx.toFixed(5)},${sy.toFixed(5)})`;
+    // The local-sample renderer is a foreground copy of the backdrop. Transform
+    // motion does not trigger ResizeObserver, so keep the sample anchored to the
+    // scene while the glass capsule itself translates.
+    refreshLiquidGlassBackdropSample(button);
     setLiquidGlassState(button, { press, highlightAlpha: 1, pointerX, pointerY });
   };
 

@@ -2,7 +2,7 @@ import { setLiquidGlassState } from '../glass/liquid-glass.js';
 import { SpringValue, queueCatalogRender as queueRender, SPRING_INTERACTIVE, SPRING_VALUE, SPRING_PRESS, SPRING_SCALE_X, SPRING_SCALE_Y } from '../animation/catalog-motion.js';
 import { liquidBottomTabs, bindLiquidBottomTabs } from './liquid-bottom-tabs.js';
 import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
-import { bindLiquidButtons } from './liquid-button.js';
+import { liquidButton, bindLiquidButtons } from './liquid-button.js';
 
 const svg = (body, size = 22) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
 const planeIcon = svg('<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2.5 1.5V22L11.5 21l4 1v-1.5L13 19v-5.5L21 16Z"/>', 27);
@@ -152,10 +152,10 @@ export function glassControlsLab() {
             <p>48px 高度、2px blur、12/24 lens。按压时整体弹性放大，并根据手指拖动方向产生轻微非均匀拉伸和局部高光。</p>
           </div>
           <div class="catalog-canvas catalog-canvas--buttons">
-            <button class="catalog-button liquid-glass" data-liquid-button data-glass-preset="catalog-button" data-glass-live="true" type="button">Transparent Liquid Button</button>
-            <button class="catalog-button liquid-glass" data-liquid-button data-glass-preset="catalog-button-surface" data-glass-live="true" type="button">Surface Liquid Button</button>
-            <button class="catalog-button catalog-button--tinted liquid-glass" data-liquid-button data-glass-preset="catalog-button-blue" data-glass-live="true" type="button">Tinted Liquid Button</button>
-            <button class="catalog-button catalog-button--tinted liquid-glass" data-liquid-button data-glass-preset="catalog-button-orange" data-glass-live="true" type="button">Tinted Liquid Button</button>
+            ${liquidButton({ label: 'Transparent Liquid Button', preset: 'catalog-button' })}
+            ${liquidButton({ label: 'Surface Liquid Button', preset: 'catalog-button-surface', attributes: 'data-shared-surface-button' })}
+            ${liquidButton({ label: 'Tinted Liquid Button', preset: 'catalog-button-blue', className: 'catalog-button--tinted' })}
+            ${liquidButton({ label: 'Tinted Liquid Button', preset: 'catalog-button-orange', className: 'catalog-button--tinted' })}
           </div>
         </article>
 

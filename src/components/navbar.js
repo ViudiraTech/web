@@ -37,9 +37,13 @@ export function navbar(current = 'home') {
           live: true,
           surfaceOnly: false,
           navigateOnDrag: true,
-          indicatorSurfaceRgb: '255 255 255',
-          indicatorIdleAlpha: 0.13,
-          indicatorPressedAlpha: 0.045,
+          // Backdrop Catalog light-theme selected capsule: Black 10%
+          // fading to Black 3% while pressed. Keep 60% of authored alpha as
+          // an accessibility/selection floor when site transparency is maxed.
+          indicatorSurfaceRgb: '0 0 0',
+          indicatorIdleAlpha: 0.10,
+          indicatorPressedAlpha: 0.03,
+          indicatorSurfaceFloorRatio: 0.60,
         })}
         <button class="icon-button nav-menu-btn" type="button" aria-label="打开导航菜单" aria-expanded="false" data-menu-toggle>${icons.menu(20)}</button>
       </div>

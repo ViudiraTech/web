@@ -75,7 +75,7 @@ for (const marker of ["projects: '#/projects'", "'glass-ui': '#/glass-ui'", "set
 }
 
 const glass = fs.readFileSync(path.join(root, 'src/glass/liquid-glass.js'), 'utf8');
-for (const marker of ['feDisplacementMap', 'backdropFilter', 'sdRoundedRect', 'userSpaceOnUse', 'hydrateLiquidGlass', 'destroyLiquidGlassWithin', 'dataset.glassSurfaceRgb', 'refreshSiteGlassPreferences', 'siteSettingsScoped']) {
+for (const marker of ['feDisplacementMap', 'backdropFilter', 'sdRoundedRect', 'userSpaceOnUse', 'hydrateLiquidGlass', 'destroyLiquidGlassWithin', 'dataset.glassSurfaceRgb', 'glassSurfaceFloorRatio', 'refreshSiteGlassPreferences', 'siteSettingsScoped']) {
   if (!glass.includes(marker)) {
     console.error(`Live SVG Liquid Glass implementation missing ${marker}`);
     process.exit(1);
@@ -178,7 +178,7 @@ if (!controls.includes('liquidSlider({ value: 46') || !controls.includes('bindLi
 }
 
 const projectExplorer = fs.readFileSync(path.join(root, 'src/components/project-explorer.js'), 'utf8');
-for (const marker of ['liquidBottomTabs({', "className: 'project-filter-tabs'", "mode: 'filter'"]) {
+for (const marker of ['liquidBottomTabs({', "className: 'project-filter-tabs'", "mode: 'filter'", "indicatorSurfaceRgb: '0 0 0'", "indicatorIdleAlpha: 0.10", 'indicatorSurfaceFloorRatio: 0.60']) {
   if (!projectExplorer.includes(marker)) {
     console.error(`Projects shared BottomTabs regression: missing ${marker}`);
     process.exit(1);
@@ -192,9 +192,25 @@ if (!main.includes("'liquidtabs:change'") || !main.includes('bindLiquidBottomTab
   console.error('Projects shared BottomTabs binding regression');
   process.exit(1);
 }
+for (const marker of ['PROJECT_CATEGORY_MOBILE_LABELS', 'mobileLabel: PROJECT_CATEGORY_MOBILE_LABELS']) {
+  if (!projectExplorer.includes(marker)) {
+    console.error(`Projects mobile BottomTabs regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+if (controls.includes('data-glass-preset="catalog-button" data-glass-live="true"')) {
+  console.error('Catalog LiquidButton regression: test button forced back to unreliable live backdrop SVG filtering');
+  process.exit(1);
+}
+for (const marker of ["'catalog-button'", "'catalog-button-surface'", "requestedBackdrop === 'ambient'"]) {
+  if (!glass.includes(marker)) {
+    console.error(`LiquidButton local refraction regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
 
 const navbar = fs.readFileSync(path.join(root, 'src/components/navbar.js'), 'utf8');
-for (const marker of ['liquidBottomTabs({', "className: 'site-nav__tabs'", 'bindLiquidBottomTabs(headerTabs)', "indicatorSurfaceRgb: '255 255 255'", "indicatorIdleAlpha: 0.13", "['settings', '设置']", 'data-glass-settings-scope="site"']) {
+for (const marker of ['liquidBottomTabs({', "className: 'site-nav__tabs'", 'bindLiquidBottomTabs(headerTabs)', "indicatorSurfaceRgb: '0 0 0'", "indicatorIdleAlpha: 0.10", 'indicatorSurfaceFloorRatio: 0.60', "['settings', '设置']", 'data-glass-settings-scope="site"']) {
   if (!navbar.includes(marker)) {
     console.error(`Shared BottomTabs Header regression: missing ${marker}`);
     process.exit(1);
@@ -211,6 +227,12 @@ for (const marker of ['liquid-local-sample', 'content-visibility:auto', '.catalo
 if (componentCss.includes('catalog-webgl-canvas') || componentCss.includes('data-catalog-glass="webgl"')) {
   console.error('WebGL Catalog compositor CSS returned after SVG rollback');
   process.exit(1);
+}
+for (const marker of ['Public-site readability over the photographic background', 'data-mobile-label', 'picsum.photos/id/1015/1200/800']) {
+  if (!componentCss.includes(marker)) {
+    console.error(`Public readability/mobile/refraction CSS regression: missing ${marker}`);
+    process.exit(1);
+  }
 }
 
 const layoutCss = fs.readFileSync(path.join(root, 'src/styles/layout.css'), 'utf8');
