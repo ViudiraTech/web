@@ -47,7 +47,11 @@ export function systemButton({
     className: classes,
     live: true,
     inlineLive: true,
-    attributes: `${attributes}${aria}`,
+    // Shared system buttons keep LiquidButton geometry/spring/highlights, but
+    // do not allocate one independent live SVG backdrop filter each. The parent
+    // system chrome (Dock/toolbars/popovers) owns real refraction; controls sit
+    // on that optical plane as a lightweight interactive glass surface.
+    attributes: `${attributes}${aria} data-glass-surface-only="true"`,
     type,
     href,
     target,

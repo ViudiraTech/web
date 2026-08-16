@@ -322,3 +322,110 @@ html[data-glass="svg"] .ios27-sim .ios27-glass-primary.liquid-live{
   .ios27-context-menu{transition-duration:.15s,.19s}
 }
 @media(max-height:700px){.ios27-context-menu{top:42%;width:214px}.ios27-context-menu>button:not([data-liquid-button]){min-height:38px}}
+
+/* OS 27 performance governor --------------------------------------------------
+   Never animate a viewport-sized backdrop blur. The scene dim/tint provides the
+   depth transition; actual refraction stays on Dock, notification cards,
+   Spotlight search/results and compact popovers. */
+.ios27-notification-center,
+.ios27-spotlight{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.ios27-control-center[data-glass-surface-only="true"]{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+
+/* iOS 27 Control Center ---------------------------------------------------------
+   The system scene itself is not another glass card. Individual controls live on
+   the floating material plane, matching Apple's no-glass-on-glass hierarchy. */
+.ios27-control-center{
+  padding:calc(max(54px,env(safe-area-inset-top) + 44px)) 20px max(24px,env(safe-area-inset-bottom)) 14px!important;
+  color:#fff;
+  background:
+    radial-gradient(circle at 82% 14%,rgba(170,211,242,.13),transparent 29%),
+    linear-gradient(180deg,rgba(13,26,39,.28),rgba(12,24,37,.43))!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.ios27-control-center::-webkit-scrollbar{width:0;height:0;display:none}
+.ios27-control-center::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(145deg,rgba(255,255,255,.075),transparent 31% 72%,rgba(120,177,222,.055));
+}
+.ios27-control-center::after{content:none!important}
+.ios27-cc-chrome{
+  position:relative;z-index:4;display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:8px;
+  max-width:404px;margin:0 auto 13px;will-change:transform,opacity;
+}
+.ios27-cc-grabber{justify-self:center;width:31px;height:5px;border-radius:999px;background:rgba(255,255,255,.30);box-shadow:inset 0 1px rgba(255,255,255,.28)}
+.ios27-cc-content{position:relative;z-index:3;max-width:404px;margin:auto;transform-origin:50% 0;will-change:transform,opacity}
+.ios27-cc-grid{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-rows:64px!important;
+  gap:9px!important;align-items:stretch!important;
+}
+.ios27-cc-module{
+  position:relative;min-width:0;overflow:hidden;
+  border-radius:25px!important;
+  background:linear-gradient(145deg,rgba(236,246,252,.17),rgba(231,241,248,.085))!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  box-shadow:0 13px 34px rgba(3,15,28,.16),inset 0 1px rgba(255,255,255,.44),inset 0 -1px rgba(0,0,0,.06)!important;
+}
+.ios27-cc-module::after{
+  content:"";position:absolute;inset:1px;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(130deg,rgba(255,255,255,.22),transparent 30% 68%,rgba(121,190,237,.06));opacity:.72;
+}
+.ios27-cc-connectivity{
+  grid-column:span 2;grid-row:span 2;padding:11px 10px 22px!important;
+  display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-rows:1fr 1fr!important;gap:8px!important;
+}
+.ios27-cc-connectivity>small{position:absolute;z-index:4;left:13px;bottom:7px;font-size:9px;font-weight:650;opacity:.72}
+.ios27-cc-connectivity [data-liquid-button]{position:relative;z-index:4;align-self:center}
+.ios27-cc-nowplaying{
+  grid-column:span 2;grid-row:span 2;padding:12px!important;
+  display:grid!important;grid-template-columns:44px 1fr 36px!important;grid-template-rows:auto 1fr 6px!important;
+  align-items:center!important;gap:8px!important;
+}
+.ios27-cc-art{position:relative;z-index:4;width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#5e668b,#985f81 58%,#dc926f);box-shadow:0 7px 18px rgba(10,15,30,.26);font-weight:800}
+.ios27-cc-nowplaying>div:not(.ios27-cc-media-progress){position:relative;z-index:4;display:grid;min-width:0}
+.ios27-cc-nowplaying b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ios27-cc-nowplaying small{font-size:9px;opacity:.68}
+.ios27-cc-media-play{position:relative;z-index:5}
+.ios27-cc-media-progress{position:relative;z-index:4;grid-column:1/-1;height:3px!important;border-radius:999px;background:rgba(255,255,255,.20);overflow:hidden}
+.ios27-cc-media-progress i{display:block;width:38%;height:100%;border-radius:inherit;background:rgba(255,255,255,.78)}
+.ios27-cc-wide{grid-column:span 2;grid-row:span 1;position:relative;z-index:3}
+.ios27-cc-vertical-slider{grid-column:span 1;grid-row:span 2;display:grid!important;grid-template-rows:1fr auto;place-items:center;padding:10px 4px 9px!important}
+.ios27-cc-vertical-slider>span{position:relative;z-index:4;align-self:end;margin-bottom:2px;opacity:.94}
+.ios27-cc-vertical-slider>div{position:relative;z-index:4;width:100%;height:82px;display:grid;place-items:center;overflow:visible}
+.ios27-cc-vertical-slider .catalog-slider{width:90px;min-width:90px;transform:rotate(-90deg);transform-origin:center}
+.ios27-cc-utility{grid-column:span 1;grid-row:span 1;position:relative;z-index:3}
+.ios27-cc-page-rail{
+  position:absolute;z-index:5;right:7px;top:50%;display:grid;gap:8px;place-items:center;
+  transform:translate3d(0,-50%,0);will-change:transform,opacity;
+}
+.ios27-cc-page-rail i{width:5px;height:5px;border-radius:999px;background:rgba(255,255,255,.33);box-shadow:0 1px 4px rgba(0,0,0,.14);transition:height .2s cubic-bezier(.2,.8,.2,1),background .2s ease}
+.ios27-cc-page-rail i.is-active{height:17px;background:rgba(255,255,255,.88)}
+.ios27-control-center.is-settled .ios27-cc-module{box-shadow:0 15px 38px rgba(3,15,28,.17),inset 0 1px rgba(255,255,255,.46),inset 0 -1px rgba(0,0,0,.06)!important}
+
+/* Notification Center scrolls like the system: no browser chrome, no gutter. */
+.ios27-notification-center{
+  overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none!important;-ms-overflow-style:none;
+  padding-bottom:max(28px,env(safe-area-inset-bottom))!important;
+}
+.ios27-notification-center::-webkit-scrollbar,.ios27-notification-stack::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+.ios27-notification-stack{scrollbar-width:none!important}
+
+@media(max-width:390px){
+  .ios27-control-center{padding-left:11px!important;padding-right:17px!important}
+  .ios27-cc-grid{gap:8px!important;grid-auto-rows:60px!important}
+}
+@media(max-height:700px){
+  .ios27-control-center{padding-top:48px!important}
+  .ios27-cc-grid{grid-auto-rows:56px!important;gap:7px!important}
+  .ios27-cc-connectivity{padding:7px 8px 18px!important}
+  .ios27-cc-nowplaying{padding:9px!important}
+  .ios27-cc-vertical-slider>div{height:68px}.ios27-cc-vertical-slider .catalog-slider{width:76px;min-width:76px}
+}

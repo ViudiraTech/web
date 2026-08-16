@@ -1,4 +1,5 @@
 import { systemButton, systemToggle, systemSlider, systemTabs, bindSystemControls } from './liquid-system-controls.js';
+import { bindSystemGlassDynamics } from './system-glass-dynamics.js';
 import { SpringValue, queueCatalogRender } from '../animation/catalog-motion.js';
 import { activateLiquidGlassElement, suspendLiquidGlassElement, setLiquidGlassState } from '../glass/liquid-glass.js';
 
@@ -31,6 +32,11 @@ const icon = {
   torch: (s=22) => svg('<path d="M8 3h8l-1.5 6h-5Z"/><path d="M10 9h4v10a2 2 0 0 1-4 0Z"/>', s),
   airplane: (s=20) => svg('<path d="m3 14 8-3V4l2-1 1 7 6-2 1 2-6 4 1 6-2 1-3-6-5 2Z"/>', s),
   bluetooth: (s=20) => svg('<path d="m12 3 5 5-10 8 5 5V3Zm0 0v18M7 8l10 8"/>', s),
+  plus: (s=20) => svg('<path d="M12 5v14M5 12h14"/>', s),
+  power: (s=20) => svg('<path d="M12 3v8"/><path d="M6.6 6.4a8 8 0 1 0 10.8 0"/>', s),
+  moon: (s=20) => svg('<path d="M19 15.5A7.5 7.5 0 0 1 8.5 5 7.5 7.5 0 1 0 19 15.5Z"/>', s),
+  rotation: (s=20) => svg('<path d="M7.2 7.1A7 7 0 0 1 19 10"/><path d="m19 5 .2 5-5-.2"/><path d="M16.8 16.9A7 7 0 0 1 5 14"/><path d="m5 19-.2-5 5 .2"/>', s),
+  mirror: (s=20) => svg('<rect x="3" y="5" width="13" height="10" rx="2"/><rect x="8" y="9" width="13" height="10" rx="2"/>', s),
 };
 
 const apps = [
@@ -210,18 +216,37 @@ function appStage() {
 }
 
 function controlCenter() {
-  return `<aside class="ios27-overlay ios27-control-center ios27-system-glass liquid-glass ios27-glass-primary" data-glass-preset="ios-popover" data-glass-live="true" data-ios-control-center aria-hidden="true">
-    <div class="ios27-cc-head"><b>控制中心</b>${iosButton({label:'完成',className:'ios27-nav-text',preset:'ios-clear-control',attrs:'data-ios-cc-close'})}</div>
-    <div class="ios27-cc-grid">
-      <section class="ios27-cc-connectivity ios27-material">${iosButton({label:icon.airplane(),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="airplane"',ariaLabel:'飞行模式'})}${iosButton({label:icon.wifi(20),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="wifi"',ariaLabel:'Wi-Fi'})}${iosButton({label:icon.bluetooth(),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="bluetooth"',ariaLabel:'蓝牙'})}${iosButton({label:'▰',className:'ios27-cc-round',preset:'ios-clear-control',attrs:'data-ios-cc-tile="cell"',ariaLabel:'蜂窝网络'})}</section>
-      <section class="ios27-cc-nowplaying ios27-material"><span class="ios27-cc-art">V</span><div><b>夜航星</b><small>Viudira Mix</small></div>${iosButton({label:icon.pause(),className:'ios27-nav-control',preset:'ios-clear-control',attrs:'data-ios-music-play',ariaLabel:'播放或暂停'})}</section>
-      <section class="ios27-cc-slider ios27-material"><span>${icon.sun()}</span>${iosSlider({value:72,ariaLabel:'亮度',setting:'iosBrightness'})}</section>
-      <section class="ios27-cc-slider ios27-material"><span>${icon.speaker()}</span>${iosSlider({value:44,ariaLabel:'音量',setting:'iosVolume'})}</section>
-      ${iosButton({label:'<b>◐</b><span>专注模式</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-cc-tile="focus"'})}
-      ${iosButton({label:'<b>↻</b><span>方向锁定</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-cc-tile="rotation"'})}
-      ${iosButton({label:'<b>▣</b><span>屏幕镜像</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-toast="屏幕镜像"'})}
-      ${iosButton({label:'<b>◎</b><span>相机</span>',className:'ios27-cc-small ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-toast="相机"'})}
+  const glass = 'ios27-system-glass liquid-glass ios27-glass-primary';
+  return `<aside class="ios27-overlay ios27-control-center" data-ios-control-center aria-hidden="true">
+    <div class="ios27-cc-chrome" data-ios-cc-chrome>
+      ${iosButton({label:icon.plus(),className:'ios27-cc-chrome-button',preset:'ios-clear-control',attrs:'data-ios-toast="添加控制"',ariaLabel:'添加控制'})}
+      <span class="ios27-cc-grabber" aria-hidden="true"></span>
+      ${iosButton({label:icon.power(),className:'ios27-cc-chrome-button',preset:'ios-clear-control',attrs:'data-ios-toast="电源选项"',ariaLabel:'电源选项'})}
     </div>
+    <div class="ios27-cc-content" data-ios-cc-content>
+      <div class="ios27-cc-grid">
+        <section class="ios27-cc-module ios27-cc-connectivity ${glass}" data-glass-preset="ios-control" data-glass-live="true">
+          ${iosButton({label:icon.airplane(),className:'ios27-cc-round',preset:'ios-clear-control',attrs:'data-ios-cc-tile="airplane"',ariaLabel:'飞行模式'})}
+          ${iosButton({label:icon.wifi(20),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="wifi"',ariaLabel:'Wi-Fi'})}
+          ${iosButton({label:icon.bluetooth(),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="bluetooth"',ariaLabel:'蓝牙'})}
+          ${iosButton({label:icon.signal(19),className:'ios27-cc-round is-active',preset:'ios-clear-control',attrs:'data-ios-cc-tile="cell"',ariaLabel:'蜂窝网络'})}
+          <small>连接</small>
+        </section>
+        <section class="ios27-cc-module ios27-cc-nowplaying ${glass}" data-glass-preset="ios-control" data-glass-live="true">
+          <span class="ios27-cc-art">V</span><div><b>夜航星</b><small>Viudira Mix</small></div>
+          ${iosButton({label:icon.pause(),className:'ios27-cc-media-play',preset:'ios-clear-control',attrs:'data-ios-music-play',ariaLabel:'播放或暂停'})}
+          <div class="ios27-cc-media-progress" aria-hidden="true"><i></i></div>
+        </section>
+        ${iosButton({label:`<b>${icon.moon(21)}</b><span>专注模式</span>`,className:'ios27-cc-wide ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-cc-tile="focus"'})}
+        ${iosButton({label:`<b>${icon.mirror(21)}</b><span>屏幕镜像</span>`,className:'ios27-cc-wide ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-toast="屏幕镜像"'})}
+        <section class="ios27-cc-module ios27-cc-vertical-slider ios27-cc-brightness ${glass}" data-glass-preset="ios-control" data-glass-live="true"><span>${icon.sun(19)}</span><div>${iosSlider({value:72,ariaLabel:'亮度',setting:'iosBrightness'})}</div></section>
+        <section class="ios27-cc-module ios27-cc-vertical-slider ios27-cc-volume ${glass}" data-glass-preset="ios-control" data-glass-live="true"><span>${icon.speaker(19)}</span><div>${iosSlider({value:44,ariaLabel:'音量',setting:'iosVolume'})}</div></section>
+        ${iosButton({label:`<b>${icon.rotation(20)}</b><span>方向锁定</span>`,className:'ios27-cc-utility ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-cc-tile="rotation"'})}
+        ${iosButton({label:`<b>${icon.torch(20)}</b><span>手电筒</span>`,className:'ios27-cc-utility ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-toast="手电筒"'})}
+        ${iosButton({label:`<b>${icon.camera(20)}</b><span>相机</span>`,className:'ios27-cc-utility ios27-cc-small-shared',preset:'ios-clear-control',attrs:'data-ios-app-open="camera"'})}
+      </div>
+    </div>
+    <nav class="ios27-cc-page-rail" data-ios-cc-rail aria-label="控制中心页面"><i class="is-active"></i><i></i><i></i></nav>
   </aside>`;
 }
 
@@ -251,6 +276,12 @@ function promoteIosSystemGlass(root) {
     element.classList.add('liquid-glass', 'ios27-glass-primary');
     element.dataset.glassLive = 'true';
     if (!element.dataset.glassPreset) element.dataset.glassPreset = 'ios-control';
+    // Navigation bars/widgets are visually glass but do not each need their own
+    // live backdrop lens. Large popovers/Dock retain real refraction; compact
+    // chrome shares the same material paint as a surface-only layer.
+    if (element.dataset.glassPreset === 'ios-control' || element.classList.contains('ios27-control-center')) {
+      element.dataset.glassSurfaceOnly = 'true';
+    }
   });
 }
 
@@ -289,7 +320,8 @@ function bindDirectGesture(zone, { onStart, onMove, onEnd }) {
   const onDown=(e)=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
     active=true; id=e.pointerId; sx=lx=e.clientX; sy=ly=e.clientY; lastT=performance.now(); velocityX=velocityY=0; pendingMove=null;
-    zone.setPointerCapture?.(id); onStart?.(e);
+    if(onStart?.(e)===false){active=false;id=null;return;}
+    zone.setPointerCapture?.(id);
   };
   const onPointerMove=(e)=>{
     if(!active||e.pointerId!==id)return;
@@ -329,6 +361,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     if(!inInactiveApp && !inHiddenOverlay){const r=el.getBoundingClientRect();if(r.width>.5&&r.height>.5)activateLiquidGlassElement(el);}
   });
   bindSystemControls(root);
+  bindSystemGlassDynamics(root, { platform: 'ios' });
 
   const status=root.querySelector('[data-ios-statusbar]');
   const home=root.querySelector('[data-ios-home]');
@@ -339,6 +372,9 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   const spotlight=root.querySelector('[data-ios-spotlight]');
   const contextMenu=root.querySelector('[data-ios-context-menu]');
   const dim=root.querySelector('[data-ios-scene-dim]');
+  const ccContent=cc.querySelector('[data-ios-cc-content]');
+  const ccChrome=cc.querySelector('[data-ios-cc-chrome]');
+  const ccRail=cc.querySelector('[data-ios-cc-rail]');
   const homePages=root.querySelector('[data-ios-home-pages]');
   const pageDots=[...root.querySelectorAll('.ios27-page-dots i')];
   let unlocked=false, activeApp='', sourceRect=null, page=0;
@@ -395,10 +431,20 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   };
   const appMotion=makeSpring(0,renderApp,{dampingRatio:.86,stiffness:430});
 
-  const renderCC=(p)=>{ root.style.setProperty('--ios-cc',p.toFixed(4)); cc.style.transform=`translate3d(0,${(-104*(1-p)).toFixed(3)}%,0)`; cc.style.opacity=clamp(p*1.6).toFixed(4); cc.style.pointerEvents=p>.04?'auto':'none'; cc.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(ccSystemGlass,false); dim.style.opacity=(.34*p).toFixed(3); };
-  const ccMotion=makeSpring(0,renderCC,{dampingRatio:.9,stiffness:430});
-  const renderNC=(p)=>{ notifications.style.transform=`translate3d(0,${(-103*(1-p)).toFixed(3)}%,0)`; notifications.style.opacity=clamp(p*1.6).toFixed(4); notifications.style.pointerEvents=p>.04?'auto':'none'; notifications.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(notificationSystemGlass,false); dim.style.opacity=(Math.max(ccMotion.value,p)*.34).toFixed(3); };
-  const ncMotion=makeSpring(0,renderNC,{dampingRatio:.9,stiffness:430});
+  const renderCC=(p)=>{
+    const q=p*p*(3-2*p);
+    root.style.setProperty('--ios-cc',p.toFixed(4));
+    cc.style.transform=`translate3d(0,${(-101*(1-p)).toFixed(3)}%,0)`;
+    cc.style.opacity=clamp(p*1.45).toFixed(4); cc.style.pointerEvents=p>.04?'auto':'none'; cc.setAttribute('aria-hidden',String(p<.02));
+    if(ccContent){ccContent.style.transform=`translate3d(0,${mix(-18,0,q).toFixed(2)}px,0) scale(${mix(.965,1,q).toFixed(4)})`;ccContent.style.opacity=clamp((p-.06)/.78).toFixed(4);}
+    if(ccChrome){ccChrome.style.transform=`translate3d(0,${mix(-10,0,q).toFixed(2)}px,0)`;ccChrome.style.opacity=clamp((p-.02)/.55).toFixed(4);}
+    if(ccRail){ccRail.style.transform=`translate3d(${mix(8,0,q).toFixed(2)}px,-50%,0)`;ccRail.style.opacity=clamp((p-.18)/.64).toFixed(4);}
+    cc.classList.toggle('is-settled',p>.985);
+    if(p<.015)setGlassGroupActive(ccSystemGlass,false); dim.style.opacity=(.27*p).toFixed(3);
+  };
+  const ccMotion=makeSpring(0,renderCC,{dampingRatio:.84,stiffness:315});
+  const renderNC=(p)=>{ notifications.style.transform=`translate3d(0,${(-101*(1-p)).toFixed(3)}%,0)`; notifications.style.opacity=clamp(p*1.45).toFixed(4); notifications.style.pointerEvents=p>.04?'auto':'none'; notifications.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(notificationSystemGlass,false); dim.style.opacity=(Math.max(ccMotion.value,p)*.27).toFixed(3); };
+  const ncMotion=makeSpring(0,renderNC,{dampingRatio:.86,stiffness:325});
   const renderSpot=(p)=>{ spotlight.style.opacity=p.toFixed(4); spotlight.style.transform=`translate3d(0,${mix(28,0,p).toFixed(2)}px,0) scale(${mix(.97,1,p).toFixed(4)})`; spotlight.style.pointerEvents=p>.04?'auto':'none'; spotlight.setAttribute('aria-hidden',String(p<.02)); if(p<.015)setGlassGroupActive(spotlightSystemGlass,false); dim.style.opacity=(Math.max(ccMotion.value,ncMotion.value,p*.75)*.34).toFixed(3); };
   const spotMotion=makeSpring(0,renderSpot,{dampingRatio:.92,stiffness:460});
   const renderPage=(p)=>{page=clamp(p);homePages.style.transform=`translate3d(${(-50*page).toFixed(3)}%,0,0)`;pageDots.forEach((dot,i)=>dot.classList.toggle('is-active',i===Math.round(page)));};
@@ -496,8 +542,8 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   });
   // Panels themselves can be pushed back before their spring finishes opening.
   let ccPanelStart=0,ncPanelStart=0;
-  bindDirectGesture(cc,{onStart(){setGlassGroupActive(ccSystemGlass,true);ccPanelStart=ccMotion.value;ccMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ccMotion.direct(ccPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ccMotion.to(ccMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
-  bindDirectGesture(notifications,{onStart(){setGlassGroupActive(notificationSystemGlass,true);ncPanelStart=ncMotion.value;ncMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ncMotion.direct(ncPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ncMotion.to(ncMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
+  bindDirectGesture(cc,{onStart(e){if(e.target.closest('button,input,[data-liquid-slider]'))return false;setGlassGroupActive(ccSystemGlass,true);ccPanelStart=ccMotion.value;ccMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ccMotion.direct(ccPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ccMotion.to(ccMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
+  bindDirectGesture(notifications,{onStart(e){if(e.target.closest('button,input'))return false;setGlassGroupActive(notificationSystemGlass,true);ncPanelStart=ncMotion.value;ncMotion.interrupt();},onMove({dy,velocityY}){const d=Math.max(simHeight*.5,1);ncMotion.direct(ncPanelStart+dy/d,velocityY*1000/d);},onEnd({dy,velocityY}){ncMotion.to(ncMotion.value>.58 && !(dy<-55||velocityY<-.45)?1:0);}});
 
   // Horizontal Home/App Library paging: fully interruptible spring + direct drag.
   let pageStart=0;
@@ -537,7 +583,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     const t=Number(e.detail?.value??58)/100; root.style.setProperty('--ios-glass-level',t.toFixed(3));
     root.style.setProperty('--ios-material-alpha',mix(.075,.34,t).toFixed(3));
     root.style.setProperty('--ios-material-blur',`${mix(6,14,t).toFixed(1)}px`);
-    root.querySelectorAll('.ios27-glass-primary').forEach(el=>setLiquidGlassState(el,{surfaceAlpha:mix(.055,.30,t),blur:mix(1.2,7.5,t),intensity:mix(1.28,1.00,t),highlightAlpha:1}));
+    root.querySelectorAll('.ios27-glass-primary').forEach(el=>setLiquidGlassState(el,{surfaceAlpha:mix(.025,.20,t),blur:mix(.35,4.8,t),intensity:mix(1.40,1.10,t),highlightAlpha:1}));
   });
   root.querySelector('[data-setting-toggle="iosReduceTransparency"]')?.addEventListener('liquidtoggle:change',(e)=>root.classList.toggle('reduce-transparency',Boolean(e.detail?.checked)));
   root.querySelector('[data-setting-toggle="iosReduceMotion"]')?.addEventListener('liquidtoggle:change',(e)=>root.classList.toggle('reduce-motion',Boolean(e.detail?.checked)));

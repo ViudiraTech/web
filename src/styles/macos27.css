@@ -228,3 +228,74 @@ html[data-glass="svg"] .macos27-sim .macos27-spotlight.liquid-live{
 
 @media(max-width:1100px){.macos27-desktop-widgets{display:none}.macos27-mission-grid{grid-template-columns:repeat(3,minmax(140px,1fr));gap:20px}}
 @media(max-width:780px){.macos27-mission-control{padding:44px 12px 76px}.macos27-mission-spaces{height:74px}.macos27-mission-spaces button:nth-child(2){display:none}.macos27-mission-grid{grid-template-columns:repeat(2,minmax(120px,1fr));gap:15px}.macos27-mission-hint{bottom:68px}.macos27-quicklook{width:calc(100vw - 24px);height:calc(100dvh - 138px)}}
+
+/* Performance correction: system glass already has a shared highlight layer.
+   Avoid plus-lighter isolation on every toolbar/sidebar while windows move. */
+html[data-glass="svg"] .macos27-sim .liquid-glass.liquid-live::before,
+.macos27-system-glass::after{mix-blend-mode:normal!important}
+
+/* Avoid full-screen backdrop blur during Launchpad / Mission Control animation.
+   The wallpaper tint and transformed window previews provide depth without a
+   continuously re-rasterized viewport filter. */
+.macos27-launchpad,
+.macos27-mission-control{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+
+/* macOS 27 Control Center refinement ------------------------------------------ */
+.macos27-control-center{
+  top:38px;right:9px;width:min(354px,calc(100vw - 18px));padding:10px!important;border-radius:26px!important;
+  transform-origin:calc(100% - 24px) -8px!important;
+  transform:translate3d(0,-9px,0) scale(.945)!important;
+  opacity:0;visibility:hidden;
+  transition:opacity .14s ease,transform .30s cubic-bezier(.16,1,.3,1),visibility 0s linear .30s!important;
+  box-shadow:0 30px 86px rgba(10,24,38,.31),inset 0 1px rgba(255,255,255,.55)!important;
+}
+.macos27-control-center.is-open{
+  opacity:1;visibility:visible;transform:translate3d(0,0,0) scale(1)!important;
+  transition:opacity .15s ease,transform .30s cubic-bezier(.16,1,.3,1),visibility 0s!important;
+}
+.macos27-control-center>*{opacity:0;transform:translate3d(0,-5px,0) scale(.988);transition:opacity .14s ease,transform .28s cubic-bezier(.16,1,.3,1)}
+.macos27-control-center.is-open>*{opacity:1;transform:none}
+.macos27-control-center.is-open>.macos27-cc-now-playing{transition-delay:.018s}.macos27-control-center.is-open>.macos27-cc-slider:nth-of-type(3){transition-delay:.035s}.macos27-control-center.is-open>.macos27-cc-slider:nth-of-type(4){transition-delay:.052s}
+.macos27-cc-primary{display:grid;grid-template-columns:minmax(0,1.34fr) minmax(112px,.82fr);gap:8px}
+.macos27-cc-network{
+  border-radius:18px;padding:5px;display:grid;gap:1px;
+  background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px rgba(255,255,255,.38)
+}
+.macos27-sim[data-appearance="dark"] .macos27-cc-network{background:rgba(20,25,30,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),inset 0 1px rgba(255,255,255,.12)}
+.macos27-cc-network .macos27-cc-connect{display:grid!important;grid-template-columns:34px 1fr 14px!important;align-items:center!important;gap:8px!important}
+.macos27-cc-network .macos27-cc-connect>i{display:grid;place-items:center;opacity:.35}
+.macos27-cc-secondary{display:grid;grid-template-rows:1fr 1fr;gap:8px}
+.macos27-cc-square{display:grid!important;grid-template-columns:32px 1fr!important;grid-template-rows:auto 1fr!important;gap:7px!important}
+.macos27-cc-square .macos27-cc-icon{grid-row:1/-1;align-self:start}.macos27-cc-square p{align-self:center}
+.macos27-cc-connect .macos27-cc-icon{width:32px;height:32px;border-radius:50%;transition:transform .18s cubic-bezier(.2,.8,.2,1),background .16s ease,color .16s ease}
+.macos27-cc-connect:active .macos27-cc-icon{transform:scale(.91)}
+.macos27-cc-now-playing{
+  margin-top:8px;padding:9px 10px;border-radius:18px;
+  background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.29),inset 0 1px rgba(255,255,255,.34)
+}
+.macos27-sim[data-appearance="dark"] .macos27-cc-now-playing,.macos27-sim[data-appearance="dark"] .macos27-cc-slider{background:rgba(20,25,30,.24);box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+.macos27-cc-slider{margin-top:8px;padding:9px 11px 11px;border-radius:18px;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.29),inset 0 1px rgba(255,255,255,.34)}
+.macos27-cc-slider>span{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}.macos27-cc-slider>span b{font-size:10.5px}.macos27-cc-slider>span small{font-size:9px;font-weight:560;color:var(--macos27-muted)}
+
+/* Browser scrollbars do not belong in either Notification Center or Messages. */
+.macos27-notifications,.macos27-messages-body>aside,.macos27-chat{
+  scrollbar-width:none!important;-ms-overflow-style:none;overscroll-behavior:contain;
+}
+.macos27-notifications::-webkit-scrollbar,.macos27-messages-body>aside::-webkit-scrollbar,.macos27-chat::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+.macos27-notifications{
+  overflow-y:auto!important;overflow-x:hidden!important;padding:0 2px 10px 0;
+  transform:translate3d(15px,-3px,0) scale(.985);transform-origin:100% 0;
+  transition:opacity .16s ease,transform .28s cubic-bezier(.16,1,.3,1)!important;
+}
+.macos27-notifications.is-open{transform:translate3d(0,0,0) scale(1)}
+.macos27-notifications>*{transition:transform .26s cubic-bezier(.16,1,.3,1),opacity .16s ease}
+.macos27-notifications:not(.is-open)>*{transform:translateY(-5px) scale(.99);opacity:.75}
+
+@media(max-width:560px){
+  .macos27-control-center{top:36px;right:6px;width:calc(100vw - 12px);max-height:calc(100dvh - 48px);overflow-y:auto;scrollbar-width:none}
+  .macos27-control-center::-webkit-scrollbar{display:none}
+  .macos27-cc-primary{grid-template-columns:1.2fr .8fr}
+}

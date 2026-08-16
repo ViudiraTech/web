@@ -8,7 +8,7 @@ const required = [
   'index.html', ...legacyPages, 'vite.config.js', 'src/main.js', 'src/router/routes.js',
   'src/styles/tokens.css', 'src/styles/components.css', 'src/styles/responsive.css', 'src/styles/system-controls.css',
   'src/github/api.js', 'src/github/repositories.js', 'src/glass/liquid-glass.js',
-  'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/liquid-system-controls.js', 'src/components/liquid-dialog.js', 'src/components/settings.js',
+  'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/liquid-system-controls.js', 'src/components/system-glass-dynamics.js', 'src/components/liquid-dialog.js', 'src/components/settings.js',
   'src/animation/catalog-motion.js', 'src/glass/site-preferences.js', 'src/glass/readability-glass.js', 'public/assets/logo-mark.svg', '.github/workflows/deploy-pages.yml',
 ];
 const missing = required.filter((f) => !fs.existsSync(path.join(root, f)));
@@ -83,6 +83,35 @@ for (const marker of ['feDisplacementMap', 'backdropFilter', 'sdRoundedRect', 'u
 }
 if (glass.includes('@ybouane/liquidglass') || glass.includes('liquidGL')) {
   console.error('Legacy snapshot Liquid Glass implementation still referenced');
+  process.exit(1);
+}
+
+
+const systemGlassDynamics = fs.readFileSync(path.join(root, 'src/components/system-glass-dynamics.js'), 'utf8');
+for (const marker of ['bindSystemGlassDynamics', 'materializeGlass', 'system-glass-dynamics', 'Only a real hidden -> visible transition', 'MutationObserver']) {
+  if (!systemGlassDynamics.includes(marker)) {
+    console.error(`System Liquid Glass dynamics regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+if (systemGlassDynamics.includes('setLiquidGlassState(') || systemGlassDynamics.includes('void element.offsetWidth')) {
+  console.error('System Liquid Glass performance regression: dynamics must not animate SVG filter state or force layout');
+  process.exit(1);
+}
+const systemControlsSource = fs.readFileSync(path.join(root, 'src/components/liquid-system-controls.js'), 'utf8');
+if (!systemControlsSource.includes('data-glass-surface-only')) {
+  console.error('System control performance regression: shared buttons must stay surface-only');
+  process.exit(1);
+}
+for (const simulator of ['ios27-sim.js', 'macos27-sim.js']) {
+  const source = fs.readFileSync(path.join(root, 'src/components', simulator), 'utf8');
+  if (!source.includes('bindSystemGlassDynamics(root')) {
+    console.error(`System Liquid Glass dynamics is not wired into ${simulator}`);
+    process.exit(1);
+  }
+}
+if (!glass.includes('aberrationStrength') || !glass.includes('opticalIntensity') || !glass.includes("hover: 0")) {
+  console.error('Shared Liquid Glass optical interaction layers regressed');
   process.exit(1);
 }
 

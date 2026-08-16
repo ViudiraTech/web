@@ -217,3 +217,54 @@
   .macos27-status-button.catalog-button{width:23px;min-width:23px}
   .macos27-cc-connect-shared.catalog-button{min-height:58px;--catalog-button-padding:8px}
 }
+
+/* OS 27 system-control placements: geometry only; LiquidButton remains the painter. */
+.ios27-cc-chrome-button.catalog-button{
+  width:42px;min-width:42px;
+  --catalog-button-height:42px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:50%;
+  --catalog-button-color:#fff;
+}
+.ios27-cc-media-play.catalog-button{
+  width:36px;min-width:36px;
+  --catalog-button-height:36px;
+  --catalog-button-padding:0;
+  --catalog-button-radius:50%;
+  --catalog-button-color:#fff;
+}
+.ios27-cc-wide.catalog-button{
+  --catalog-button-height:64px;
+  --catalog-button-padding:10px 13px;
+  --catalog-button-radius:22px;
+  flex-direction:row;align-items:center;gap:9px;
+}
+.ios27-cc-wide.catalog-button>b{display:grid;place-items:center;margin:0;flex:none}
+.ios27-cc-wide.catalog-button span{align-self:auto;margin:0;font-size:11px;font-weight:650}
+.ios27-cc-utility.catalog-button{
+  --catalog-button-height:64px;
+  --catalog-button-padding:9px 8px;
+  --catalog-button-radius:21px;
+  align-items:center;justify-content:center;text-align:center;
+}
+.ios27-cc-utility.catalog-button>b{display:grid;place-items:center;margin:auto 0 3px}
+.ios27-cc-utility.catalog-button span{align-self:center;margin:0;font-size:8px;white-space:normal}
+
+.macos27-cc-network .macos27-cc-connect-shared.catalog-button{
+  min-height:44px;
+  --catalog-button-padding:6px 8px;
+  --catalog-button-radius:11px;
+}
+.macos27-cc-square.macos27-cc-connect-shared.catalog-button{
+  min-height:74px;
+  --catalog-button-padding:9px;
+  --catalog-button-radius:16px;
+  align-items:flex-start;
+}
+
+@media(max-width:390px){
+  .ios27-cc-wide.catalog-button,.ios27-cc-utility.catalog-button{--catalog-button-height:60px}
+}
+@media(max-height:700px){
+  .ios27-cc-wide.catalog-button,.ios27-cc-utility.catalog-button{--catalog-button-height:56px}
+}

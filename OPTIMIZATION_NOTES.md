@@ -78,3 +78,47 @@ of the Liquid controls.
 - `npm run check` now fails if iOS/macOS bypass the shared system adapter, redraw
   `.catalog-button` in platform CSS, or load the shared token stylesheet in the
   wrong order.
+
+## 2026-08-16 — iOS/macOS system Liquid Glass dynamics pass
+
+- Added one shared `system-glass-dynamics.js` adapter used by both simulators.
+- System glass now tracks an ambient pointer light and local specular position without forking control DOM/CSS.
+- Shared SVG lens strength now reacts to hover/press; pressing changes real displacement intensity and blur instead of only drawing a white overlay.
+- Added spring-driven optical materialization for newly revealed popovers, Control Center, Spotlight, Quick Look, etc.
+- Added subtle bounded chromatic dispersion only to Clear controls.
+- Rebalanced iOS/macOS presets away from milky blur toward clearer lensing, bevel depth, edge highlights, richer shadows and ambient color spill.
+- Rebalanced the iOS/macOS glass-level sliders so higher tint does not destroy refraction.
+- All optical paint stays in the shared `components.css`; `system-controls.css` remains layout/token-only.
+- Added regression checks for shared system-glass dynamics wiring and optical interaction state.
+
+## 2026-08-16 — OS 27 performance correction
+
+- Fixed a self-retriggering glass materialization path: the visibility
+  `MutationObserver` watched `class`, while the materialization animation itself
+  changed `class`. Visibility is now edge-triggered (`hidden -> visible`) and
+  internal animation classes cannot recursively restart the effect.
+- Removed per-frame SVG displacement/blur animation from system hover and
+  materialization. Pointer light is local to the hovered control and touches CSS
+  variables only.
+- Shared iOS/macOS LiquidButton controls are surface-only. They keep the exact
+  shared geometry, spring, highlight and material tokens, while parent Dock /
+  toolbar / popover glass owns the expensive live refraction.
+- iOS compact `ios-control` chrome is surface-only. Dock and large popovers keep
+  live lensing.
+- macOS sidebars, status strips, tab strips and message composers are
+  surface-only. Menu bar, Dock, main window toolbar and transient popovers keep
+  live lensing.
+- Reduced system displacement-map raster resolution; optical displacement scale
+  is unchanged, so the refraction remains visible while map generation and GPU
+  sampling are cheaper.
+- Removed `plus-lighter` from moving system highlights to avoid unnecessary
+  offscreen compositing.
+
+## 2026-08-16 Control Center / Notification Center polish
+
+- Reworked iOS 27 Control Center into a modular, paged system layout: top add/power affordances, connectivity group, Now Playing, Focus/Mirroring, portrait brightness/volume controls, utilities and page rail.
+- Removed the fake “控制中心 / 完成” web-panel header.
+- Softened the iOS Control Center and Notification Center springs and separated panel travel from inner-content materialization for a less rigid pull-down.
+- Interactive controls no longer accidentally start the panel-close drag gesture.
+- Reworked macOS 27 Control Center into a network group + Focus/Mirroring + Now Playing + display/sound hierarchy, with top-right-origin popover motion and subtle child settling.
+- Hid browser-native scrollbars in iOS/macOS Notification Center and the macOS Messages sidebar/chat while keeping wheel/touch scrolling.

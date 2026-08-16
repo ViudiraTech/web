@@ -187,6 +187,7 @@ function presetFor(element, profile) {
     vibrancy: 1.06,
     brightness: 1.01,
     chromaticAberration: false,
+    aberrationStrength: 0,
     depthEffect: 0,
     surfaceRgb: '255 255 255',
     surfaceAlpha: 0,
@@ -205,21 +206,21 @@ function presetFor(element, profile) {
     // macOS 27 simulator materials. These stay on the control/navigation layer:
     // window content uses standard material while toolbars, menus, Dock and
     // transient controls use higher-contrast live backdrop refraction.
-    'macos-menubar': { lensHeight: 9, lensAmount: 20, blur: 7, vibrancy: 1.20, brightness: 1.05, depthEffect: 0.11, surfaceRgb: '248 250 252', surfaceAlpha: 0.16, highlightAlpha: 0.86, innerShadowAlpha: 0.035, outerShadowAlpha: 0.05, mapResolution: Math.max(profile.mapResolution, 0.82) },
-    'macos-toolbar': { lensHeight: 12, lensAmount: 25, blur: 6, vibrancy: 1.24, brightness: 1.06, depthEffect: 0.14, surfaceRgb: '248 250 252', surfaceAlpha: 0.22, highlightAlpha: 0.92, innerShadowAlpha: 0.045, outerShadowAlpha: 0.065, mapResolution: Math.max(profile.mapResolution, 0.82) },
-    'macos-control': { lensHeight: 11, lensAmount: 26, blur: 3.5, vibrancy: 1.20, brightness: 1.05, depthEffect: 0.17, surfaceRgb: '250 251 252', surfaceAlpha: 0.20, highlightAlpha: 1, innerShadowAlpha: 0.05, outerShadowAlpha: 0.075, mapResolution: Math.max(profile.mapResolution, 0.80) },
-    'macos-clear-control': { lensHeight: 12, lensAmount: 30, blur: 1.4, vibrancy: 1.18, brightness: 1.05, depthEffect: 0.20, surfaceRgb: '250 251 252', surfaceAlpha: 0.07, highlightAlpha: 1, innerShadowAlpha: 0.05, outerShadowAlpha: 0.09, mapResolution: Math.max(profile.mapResolution, 0.80) },
-    'macos-dock': { lensHeight: 20, lensAmount: 38, blur: 9, vibrancy: 1.28, brightness: 1.07, depthEffect: 0.18, surfaceRgb: '247 250 252', surfaceAlpha: 0.22, highlightAlpha: 1, innerShadowAlpha: 0.045, outerShadowAlpha: 0.12, mapResolution: Math.max(profile.mapResolution, 0.84) },
-    'macos-popover': { lensHeight: 22, lensAmount: 44, blur: 12, vibrancy: 1.34, brightness: 1.08, depthEffect: 0.22, surfaceRgb: '247 249 251', surfaceAlpha: 0.40, highlightAlpha: 1, innerShadowAlpha: 0.055, outerShadowAlpha: 0.15, mapResolution: Math.max(profile.mapResolution, 0.86) },
+    'macos-menubar': { lensHeight: 10, lensAmount: 26, blur: 2.6, vibrancy: 1.23, brightness: 1.055, depthEffect: 0.16, surfaceRgb: '248 250 252', surfaceAlpha: 0.105, highlightAlpha: 1, innerShadowAlpha: 0.045, outerShadowAlpha: 0.06, mapResolution: Math.min(profile.mapResolution, 0.66) },
+    'macos-toolbar': { lensHeight: 13, lensAmount: 31, blur: 3.4, vibrancy: 1.27, brightness: 1.065, depthEffect: 0.19, surfaceRgb: '248 250 252', surfaceAlpha: 0.14, highlightAlpha: 1, innerShadowAlpha: 0.052, outerShadowAlpha: 0.078, mapResolution: Math.min(profile.mapResolution, 0.68) },
+    'macos-control': { lensHeight: 12, lensAmount: 34, blur: 1.8, vibrancy: 1.24, brightness: 1.06, depthEffect: 0.23, surfaceRgb: '250 251 252', surfaceAlpha: 0.105, highlightAlpha: 1, innerShadowAlpha: 0.058, outerShadowAlpha: 0.092, mapResolution: Math.min(profile.mapResolution, 0.66) },
+    'macos-clear-control': { lensHeight: 13, lensAmount: 39, blur: 0.55, vibrancy: 1.22, brightness: 1.065, depthEffect: 0.27, chromaticAberration: true, aberrationStrength: 0.045, surfaceRgb: '250 251 252', surfaceAlpha: 0.035, highlightAlpha: 1, innerShadowAlpha: 0.06, outerShadowAlpha: 0.105, mapResolution: Math.min(profile.mapResolution, 0.66) },
+    'macos-dock': { lensHeight: 22, lensAmount: 48, blur: 5.4, vibrancy: 1.31, brightness: 1.075, depthEffect: 0.26, surfaceRgb: '247 250 252', surfaceAlpha: 0.145, highlightAlpha: 1, innerShadowAlpha: 0.052, outerShadowAlpha: 0.15, mapResolution: Math.min(profile.mapResolution, 0.70) },
+    'macos-popover': { lensHeight: 24, lensAmount: 54, blur: 6.2, vibrancy: 1.36, brightness: 1.085, depthEffect: 0.31, surfaceRgb: '247 249 251', surfaceAlpha: 0.255, highlightAlpha: 1, innerShadowAlpha: 0.065, outerShadowAlpha: 0.19, mapResolution: Math.min(profile.mapResolution, 0.72) },
 
     // iOS 27 touch-first materials. The 27 refresh diffuses complex content more
     // evenly, adds a darker edge and brighter specular highlight, and lets direct
     // touch produce a more pronounced fluid response than pointer interaction.
     'ios-island': { lensHeight: 8, lensAmount: 18, blur: 2, vibrancy: 1.16, brightness: 1.02, depthEffect: 0.10, surfaceRgb: '8 10 12', surfaceAlpha: 0.90, highlightAlpha: 0.42, innerShadowAlpha: 0.12, outerShadowAlpha: 0.14, mapResolution: profile.mapResolution },
-    'ios-control': { lensHeight: 14, lensAmount: 38, blur: 2.2, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.24, surfaceRgb: '246 249 251', surfaceAlpha: 0.11, highlightAlpha: 1, innerShadowAlpha: 0.08, outerShadowAlpha: 0.12, mapResolution: profile.mapResolution },
-    'ios-clear-control': { lensHeight: 16, lensAmount: 44, blur: 0.8, vibrancy: 1.30, brightness: 1.07, depthEffect: 0.28, surfaceRgb: '249 251 252', surfaceAlpha: 0.045, highlightAlpha: 1, innerShadowAlpha: 0.08, outerShadowAlpha: 0.13, mapResolution: profile.mapResolution },
-    'ios-dock': { lensHeight: 21, lensAmount: 48, blur: 4.5, vibrancy: 1.36, brightness: 1.09, depthEffect: 0.28, surfaceRgb: '246 249 251', surfaceAlpha: 0.13, highlightAlpha: 1, innerShadowAlpha: 0.075, outerShadowAlpha: 0.16, mapResolution: profile.mapResolution },
-    'ios-popover': { lensHeight: 22, lensAmount: 52, blur: 6.5, vibrancy: 1.40, brightness: 1.10, depthEffect: 0.30, surfaceRgb: '244 248 251', surfaceAlpha: 0.20, highlightAlpha: 1, innerShadowAlpha: 0.08, outerShadowAlpha: 0.18, mapResolution: profile.mapResolution },
+    'ios-control': { lensHeight: 15, lensAmount: 44, blur: 1.35, vibrancy: 1.34, brightness: 1.085, depthEffect: 0.30, surfaceRgb: '246 249 251', surfaceAlpha: 0.075, highlightAlpha: 1, innerShadowAlpha: 0.085, outerShadowAlpha: 0.145, mapResolution: Math.min(profile.mapResolution, 0.56) },
+    'ios-clear-control': { lensHeight: 17, lensAmount: 52, blur: 0.35, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.35, chromaticAberration: true, aberrationStrength: 0.04, surfaceRgb: '249 251 252', surfaceAlpha: 0.022, highlightAlpha: 1, innerShadowAlpha: 0.09, outerShadowAlpha: 0.16, mapResolution: Math.min(profile.mapResolution, 0.56) },
+    'ios-dock': { lensHeight: 23, lensAmount: 58, blur: 2.8, vibrancy: 1.39, brightness: 1.095, depthEffect: 0.36, surfaceRgb: '246 249 251', surfaceAlpha: 0.085, highlightAlpha: 1, innerShadowAlpha: 0.08, outerShadowAlpha: 0.19, mapResolution: Math.min(profile.mapResolution, 0.62) },
+    'ios-popover': { lensHeight: 24, lensAmount: 62, blur: 4.2, vibrancy: 1.43, brightness: 1.105, depthEffect: 0.39, surfaceRgb: '244 248 251', surfaceAlpha: 0.135, highlightAlpha: 1, innerShadowAlpha: 0.09, outerShadowAlpha: 0.22, mapResolution: Math.min(profile.mapResolution, 0.64) },
 
     'catalog-button': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0, highlightAlpha: 1, outerShadowAlpha: 0.08, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-button-surface': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0.3, highlightAlpha: 1, mapResolution: Math.max(profile.mapResolution, 0.82) },
@@ -355,7 +356,7 @@ function createFilter(id, chromatic) {
 
 function mapsFor(width, height, radius, config) {
   const res = clamp(config.mapResolution, 0.42, 1);
-  const key = [width, height, Math.round(radius * 10), config.lensHeight, config.lensAmount, Math.round((config.depthEffect || 0) * 1000), config.chromaticAberration ? 1 : 0, Math.round(res * 100)].join(':');
+  const key = [width, height, Math.round(radius * 10), config.lensHeight, config.lensAmount, Math.round((config.depthEffect || 0) * 1000), config.chromaticAberration ? 1 : 0, Math.round((config.aberrationStrength || 0) * 1000), Math.round(res * 100)].join(':');
   if (mapCache.has(key)) return mapCache.get(key);
 
   const w = clamp(Math.round(width * res), 40, 1400);
@@ -425,9 +426,13 @@ function mapsFor(width, height, radius, config) {
       if (!config.chromaticAberration) {
         write(stores.base, index, dx, dy);
       } else {
-        write(stores.red, index, dx * (1 + dispersion), dy * (1 + dispersion));
+        // Real glass can split the strongest bevel rays slightly, but a full
+        // red/blue offset looks synthetic. Keep dispersion subtle and limited to
+        // the authored aberration strength for Clear controls.
+        const spectral = dispersion * clamp(config.aberrationStrength || 0.04, 0, 0.18);
+        write(stores.red, index, dx * (1 + spectral), dy * (1 + spectral));
         write(stores.green, index, dx, dy);
-        write(stores.blue, index, dx * (1 - dispersion), dy * (1 - dispersion));
+        write(stores.blue, index, dx * (1 - spectral), dy * (1 - spectral));
       }
       index += 4;
     }
@@ -483,6 +488,7 @@ class LiquidBackdrop {
       innerShadowAlpha: this.config.innerShadowAlpha,
       outerShadowAlpha: this.config.outerShadowAlpha,
       press: 0,
+      hover: 0,
       pointerX: 50,
       pointerY: 50,
     };
@@ -691,15 +697,20 @@ class LiquidBackdrop {
     const effectiveBlur = this.effectiveBlur(s.blur);
     this.setCssVar('--lg-surface-alpha', String(effectiveSurfaceAlpha));
     this.setCssVar('--lg-tint-alpha', String(clamp(s.tintAlpha, 0, 1)));
+    const press = clamp(s.press, 0, 1);
+    const hover = clamp(s.hover || 0, 0, 1);
+    const interactionEnergy = clamp(press * 0.82 + hover * 0.28, 0, 1);
     this.setCssVar('--lg-highlight-alpha', String(clamp(s.highlightAlpha, 0, 1)));
-    this.setCssVar('--lg-inner-shadow-alpha', String(clamp(s.innerShadowAlpha, 0, 1)));
-    this.setCssVar('--lg-outer-shadow-alpha', String(clamp(s.outerShadowAlpha, 0, 1)));
+    this.setCssVar('--lg-inner-shadow-alpha', String(clamp(s.innerShadowAlpha * (1 + interactionEnergy * 0.24), 0, 1)));
+    this.setCssVar('--lg-outer-shadow-alpha', String(clamp(s.outerShadowAlpha * (1 + hover * 0.32 + press * 0.58), 0, 1)));
+    this.setCssVar('--lg-specular-alpha', String((0.075 + hover * 0.13 + press * 0.19).toFixed(4)));
+    this.setCssVar('--lg-specular-bloom', String((0.04 + hover * 0.07 + press * 0.10).toFixed(4)));
+    this.setCssVar('--lg-edge-energy', String((0.72 + hover * 0.18 + press * 0.26).toFixed(4)));
     if (this.localSample) {
       if (this.tintLayer) this.tintLayer.style.background = `rgb(${this.config.tintRgb} / ${clamp(s.tintAlpha, 0, 1)})`;
       if (this.surfaceLayer) this.surfaceLayer.style.background = `rgb(${this.config.surfaceRgb} / ${effectiveSurfaceAlpha})`;
     }
 
-    const press = clamp(s.press, 0, 1);
     this.setCssVar('--lg-press', String(press));
     this.setCssVar('--lg-press-alpha', String(0.15 * press));
     this.setCssVar('--lg-press-soft-alpha', String(0.08 * press));
@@ -707,7 +718,10 @@ class LiquidBackdrop {
     this.setCssVar('--lg-pointer-y', `${clamp(s.pointerY, 0, 100).toFixed(2)}%`);
 
     if (!this.surfaceOnly && this.filter) {
-      const scale = this.vectorScale * clamp(s.intensity, 0, 1.35);
+      // Interaction energizes the lens itself, not just an overlay. This is the
+      // key difference between a glass-looking button and a living glass control.
+      const opticalIntensity = clamp(s.intensity * (1 + hover * 0.08 + press * 0.24), 0, 1.62);
+      const scale = this.vectorScale * opticalIntensity;
       if (!Number.isFinite(this.lastDisplacementScale) || Math.abs(scale - this.lastDisplacementScale) > 0.012) {
         this.lastDisplacementScale = scale;
         const scaleText = scale.toFixed(3);
@@ -717,7 +731,7 @@ class LiquidBackdrop {
       // Blur lives inside the SVG pipeline while the lens is active. Updating a
       // primitive attribute is materially cheaper than replacing backdrop-filter
       // strings every spring frame.
-      const blur = effectiveBlur;
+      const blur = effectiveBlur * (1 - hover * 0.045 - press * 0.16);
       if (!Number.isFinite(this.lastBlur) || Math.abs(blur - this.lastBlur) > 0.02) {
         this.lastBlur = blur;
         this.filter.gaussian.setAttribute('stdDeviation', (blur * 0.5).toFixed(3));

@@ -1,4 +1,5 @@
 import { systemButton, systemToggle, systemSlider, bindSystemControls } from './liquid-system-controls.js';
+import { bindSystemGlassDynamics } from './system-glass-dynamics.js';
 import { activateLiquidGlassElement, deactivateLiquidGlassElement, suspendLiquidGlassElement, setLiquidGlassState } from '../glass/liquid-glass.js';
 
 function svg(body, size = 18, viewBox = '0 0 24 24') {
@@ -27,6 +28,8 @@ const icon = {
   sidebar: (s = 18) => svg('<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/>', s),
   bell: (s = 18) => svg('<path d="M6 10a6 6 0 0 1 12 0v4l2 2H4l2-2Z"/><path d="M10 19h4"/>', s),
   moon: (s = 18) => svg('<path d="M19 15.5A7.5 7.5 0 0 1 8.5 5 7.5 7.5 0 1 0 19 15.5Z"/>', s),
+  bluetooth: (s = 18) => svg('<path d="m12 3 5 5-10 8 5 5V3Zm0 0v18M7 8l10 8"/>', s),
+  mirror: (s = 18) => svg('<rect x="3" y="5" width="13" height="10" rx="2"/><rect x="8" y="9" width="13" height="10" rx="2"/>', s),
   chevron: (s = 14) => svg('<path d="m9 6 6 6-6 6"/>', s),
 };
 
@@ -267,16 +270,20 @@ function settingsWindow() {
 
 function controlCenter() {
   return `<aside class="macos27-control-center liquid-glass" data-macos-control-center data-glass-preset="macos-popover" data-glass-live="true" data-glass-keep-active="true" aria-hidden="true">
-    <div class="macos27-cc-grid">
-      ${macButton({label:`<span class="macos27-cc-icon">${icon.wifi(18)}</span><p><b>Wi‑Fi</b><small>Viudira 5G</small></p>`,className:'macos27-cc-connect macos27-cc-connect-shared is-active',preset:'macos-clear-control',attributes:'data-cc-tile="wifi"'})}
-      ${macButton({label:'<span class="macos27-cc-icon">B</span><p><b>蓝牙</b><small>开启</small></p>',className:'macos27-cc-connect macos27-cc-connect-shared is-active',preset:'macos-clear-control',attributes:'data-cc-tile="bluetooth"'})}
-      ${macButton({label:'<span class="macos27-cc-icon">◌</span><p><b>AirDrop</b><small>仅限联系人</small></p>',className:'macos27-cc-connect macos27-cc-connect-shared',preset:'macos-clear-control',attributes:'data-cc-tile="airdrop"'})}
-      ${macButton({label:`<span class="macos27-cc-icon">${icon.moon(17)}</span><p><b>专注模式</b><small>关闭</small></p>`,className:'macos27-cc-connect macos27-cc-connect-shared',preset:'macos-clear-control',attributes:'data-cc-tile="focus"'})}
+    <div class="macos27-cc-primary">
+      <section class="macos27-cc-network">
+        ${macButton({label:`<span class="macos27-cc-icon">${icon.wifi(18)}</span><p><b>Wi‑Fi</b><small>Viudira 5G</small></p><i>${icon.chevron(12)}</i>`,className:'macos27-cc-connect macos27-cc-connect-shared is-active',preset:'macos-clear-control',attributes:'data-cc-tile="wifi"'})}
+        ${macButton({label:`<span class="macos27-cc-icon">${icon.bluetooth(17)}</span><p><b>蓝牙</b><small>开启</small></p><i>${icon.chevron(12)}</i>`,className:'macos27-cc-connect macos27-cc-connect-shared is-active',preset:'macos-clear-control',attributes:'data-cc-tile="bluetooth"'})}
+        ${macButton({label:`<span class="macos27-cc-icon">◌</span><p><b>AirDrop</b><small>仅限联系人</small></p><i>${icon.chevron(12)}</i>`,className:'macos27-cc-connect macos27-cc-connect-shared',preset:'macos-clear-control',attributes:'data-cc-tile="airdrop"'})}
+      </section>
+      <div class="macos27-cc-secondary">
+        ${macButton({label:`<span class="macos27-cc-icon">${icon.moon(17)}</span><p><b>专注模式</b><small>关闭</small></p>`,className:'macos27-cc-connect macos27-cc-connect-shared macos27-cc-square',preset:'macos-clear-control',attributes:'data-cc-tile="focus"'})}
+        ${macButton({label:`<span class="macos27-cc-icon">${icon.mirror(17)}</span><p><b>屏幕镜像</b><small>关闭</small></p>`,className:'macos27-cc-connect macos27-cc-connect-shared macos27-cc-square',preset:'macos-clear-control',attributes:'data-toast="屏幕镜像"'})}
+      </div>
     </div>
     <div class="macos27-cc-now-playing"><span class="macos27-now-art">V</span><div><b>Night Flight</b><small>Viudira Mix</small></div>${macButton({label:'▶',className:'macos27-toolbar-button',preset:'macos-clear-control',ariaLabel:'播放'})}</div>
-    <div class="macos27-cc-slider"><span>显示器</span>${macSlider({ value: 72, ariaLabel: '显示器亮度', setting: 'ccBrightness' })}</div>
-    <div class="macos27-cc-slider"><span>声音</span>${macSlider({ value: 42, ariaLabel: '声音', setting: 'ccVolume' })}</div>
-    <div class="macos27-cc-actions">${macButton({ label: '系统设置', className: 'macos27-cc-button', attributes: 'data-macos-open-settings' })}${macButton({ label: '退出模拟器', className: 'macos27-cc-button', attributes: 'data-macos-exit' })}</div>
+    <div class="macos27-cc-slider"><span><b>显示器</b><small>72%</small></span>${macSlider({ value: 72, ariaLabel: '显示器亮度', setting: 'ccBrightness' })}</div>
+    <div class="macos27-cc-slider"><span><b>声音</b><small>42%</small></span>${macSlider({ value: 42, ariaLabel: '声音', setting: 'ccVolume' })}</div>
   </aside>`;
 }
 
@@ -347,22 +354,26 @@ function quickLook() {
 
 function promoteMacSystemGlass(root) {
   const rules = [
-    ['.macos27-window-toolbar:not(.macos27-terminal-toolbar)', 'macos-toolbar'],
-    ['.macos27-finder-sidebar', 'macos-toolbar'],
-    ['.macos27-finder-status', 'macos-clear-control'],
-    ['.macos27-safari-tabs', 'macos-clear-control'],
-    ['.macos27-notes-list', 'macos-toolbar'],
-    ['.macos27-messages-body>aside', 'macos-toolbar'],
-    ['.macos27-calendar-body>aside', 'macos-toolbar'],
-    ['.macos27-settings-sidebar', 'macos-toolbar'],
-    ['.macos27-message-composer', 'macos-control'],
-    ['.macos27-launchpad-search', 'macos-toolbar'],
+    // Only the main window toolbar owns a live lens. Sidebars/status/composers
+    // sit on the same glass visual system but use a surface-only material,
+    // avoiding 4-6 simultaneous backdrop SVG filters per open window.
+    ['.macos27-window-toolbar:not(.macos27-terminal-toolbar)', 'macos-toolbar', true],
+    ['.macos27-finder-sidebar', 'macos-toolbar', false],
+    ['.macos27-finder-status', 'macos-clear-control', false],
+    ['.macos27-safari-tabs', 'macos-clear-control', false],
+    ['.macos27-notes-list', 'macos-toolbar', false],
+    ['.macos27-messages-body>aside', 'macos-toolbar', false],
+    ['.macos27-calendar-body>aside', 'macos-toolbar', false],
+    ['.macos27-settings-sidebar', 'macos-toolbar', false],
+    ['.macos27-message-composer', 'macos-control', false],
+    ['.macos27-launchpad-search', 'macos-toolbar', false],
   ];
-  for (const [selector, preset] of rules) {
+  for (const [selector, preset, liveLens] of rules) {
     root.querySelectorAll(selector).forEach((element) => {
       element.classList.add('liquid-glass', 'macos27-system-glass');
       element.dataset.glassPreset = preset;
       element.dataset.glassLive = 'true';
+      if (!liveLens) element.dataset.glassSurfaceOnly = 'true';
       if (!element.closest('[data-macos-window].is-hidden')) activateLiquidGlassElement(element);
     });
   }
@@ -741,6 +752,7 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
   // itself stays readable standard material, matching Apple's control/content split.
   promoteMacSystemGlass(root);
   bindSystemControls(root);
+  bindSystemGlassDynamics(root, { platform: 'macos' });
   root.querySelectorAll('[data-macos-window]').forEach((windowEl) => bindWindowDrag(root, windowEl));
   bindAppLaunchers(root); bindFinder(root); bindSafari(root); bindNotes(root); bindTerminal(root); bindSettings(root); bindSpotlight(root); bindMenuBar(root);
 
@@ -793,13 +805,16 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
   const updateMacGlassLevel = (value) => {
     const t = Math.max(0, Math.min(1, Number(value ?? 52) / 100));
     root.style.setProperty('--macos27-glass-level', t.toFixed(3));
+    // Tint controls the perceived thickness without collapsing the material
+    // into milky blur. Keep the low end optically clear and let larger popovers
+    // gain more scatter/shadow than compact controls.
     const ranges = {
-      'macos-menubar': [0.07, 0.34, 2.5, 10],
-      'macos-toolbar': [0.09, 0.40, 2, 10],
-      'macos-control': [0.05, 0.34, 0.8, 6],
-      'macos-clear-control': [0.025, 0.20, 0.4, 3.5],
-      'macos-dock': [0.07, 0.38, 3, 13],
-      'macos-popover': [0.18, 0.66, 6, 18],
+      'macos-menubar': [0.045, 0.19, 0.7, 4.1],
+      'macos-toolbar': [0.055, 0.23, 0.6, 4.6],
+      'macos-control': [0.025, 0.16, 0.25, 2.7],
+      'macos-clear-control': [0.012, 0.085, 0.08, 1.15],
+      'macos-dock': [0.04, 0.23, 1.2, 6.2],
+      'macos-popover': [0.095, 0.39, 2.2, 8.4],
     };
     root.querySelectorAll('.liquid-glass[data-glass-preset^="macos-"]').forEach((element) => {
       const range = ranges[element.dataset.glassPreset];
@@ -808,7 +823,7 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
       setLiquidGlassState(element, {
         surfaceAlpha: a0 + (a1 - a0) * t,
         blur: b0 + (b1 - b0) * t,
-        intensity: 1.22 - t * 0.22,
+        intensity: 1.34 - t * 0.20,
       });
     });
   };
