@@ -1191,3 +1191,9 @@ html[data-glass="svg"] .liquid-button-proxy.liquid-dialog__action--confirm:hover
   z-index:6;
   flex:0 0 48px;
 }
+
+/* Hidden macOS 27 easter-egg trigger: visually remains a normal heading. */
+[data-macos-easter-trigger]{cursor:default;user-select:none;outline:none;transform-origin:left center}
+[data-macos-easter-trigger].is-easter-tapped{animation:macos-easter-tap .18s cubic-bezier(.2,.8,.2,1)}
+[data-macos-easter-trigger]:focus-visible{outline:2px solid rgba(0,136,255,.55);outline-offset:5px;border-radius:6px}
+@keyframes macos-easter-tap{0%{transform:scale(1)}45%{transform:scale(.975)}100%{transform:scale(1)}}

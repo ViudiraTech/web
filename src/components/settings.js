@@ -62,7 +62,7 @@ export function settingsPage() {
         <div class="settings-panel__head">
           <div>
             <span class="eyebrow">Material</span>
-            <h2>透明与模糊</h2>
+            <h2 data-macos-easter-trigger tabindex="0" aria-label="透明与模糊">透明与模糊</h2>
           </div>
           ${liquidButton({
             label: '恢复默认',
@@ -211,6 +211,46 @@ export function bindSettingsPage(root = document.querySelector('#main') || docum
       refreshSiteGlassPreferences();
       controller?.setChecked(true, { animate: true, emit: false, source: 'dialog-confirm' });
       updateOutputs(root, settings);
+    });
+  }
+
+  const easterTrigger = root.querySelector('[data-macos-easter-trigger]');
+  if (easterTrigger && easterTrigger.dataset.easterBound !== '1') {
+    easterTrigger.dataset.easterBound = '1';
+    let taps = 0;
+    let lastTapAt = 0;
+    let easterPending = false;
+
+    const attemptEasterEgg = async () => {
+      const now = performance.now();
+      if (now - lastTapAt > 1200) taps = 0;
+      lastTapAt = now;
+      taps += 1;
+      easterTrigger.classList.remove('is-easter-tapped');
+      requestAnimationFrame(() => easterTrigger.classList.add('is-easter-tapped'));
+      if (taps < 3 || easterPending) return;
+      taps = 0;
+      easterPending = true;
+      let enter = false;
+      try {
+        enter = await showLiquidDialog({
+          title: '进入模拟 macOS 27？',
+          message: '你发现了 ViudiraTech 设置里的隐藏入口。',
+          detail: '进入后会打开一个全屏 macOS 27 Golden Gate 风格桌面模拟器。Finder、系统设置、控制中心、Dock 以及 Liquid Glass 控件都可以交互。',
+          cancelLabel: '留在设置',
+          confirmLabel: '进入桌面',
+        });
+      } finally {
+        easterPending = false;
+      }
+      if (enter) location.hash = '#/macos27';
+    };
+
+    easterTrigger.addEventListener('click', attemptEasterEgg);
+    easterTrigger.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      attemptEasterEgg();
     });
   }
 

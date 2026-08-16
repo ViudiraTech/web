@@ -7,6 +7,7 @@ export const ROUTES = Object.freeze({
   about: '#/about',
   settings: '#/settings',
   'glass-test': '#/glass-test',
+  macos27: '#/macos27',
 });
 
 const HASH_TO_PAGE = new Map(Object.entries(ROUTES).map(([page, hash]) => [hash, page]));
