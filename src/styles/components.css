@@ -174,6 +174,27 @@ html[data-glass="svg"] .liquid-glass.liquid-live{
 html[data-glass="svg"] .liquid-glass.liquid-live::after{content:none}
 
 
+/* Native root-scroll scene sampler --------------------------------------------------
+   Full readability/Dialog glass avoids `background-attachment: fixed` entirely.
+   A viewport-sized scene is translated by the browser's root ScrollTimeline, so
+   async scrolling and optical sampling use the same native scroll progress. */
+@keyframes liquid-scene-root-scroll{
+  from{transform:translate3d(var(--lg-scene-x,0px),var(--lg-scene-y-start,0px),0)}
+  to{transform:translate3d(var(--lg-scene-x,0px),var(--lg-scene-y-end,0px),0)}
+}
+html[data-glass="svg"] .liquid-optic-scene{
+  position:absolute;
+  left:0;
+  top:0;
+  display:block;
+  pointer-events:none;
+  max-width:none;
+  animation:liquid-scene-root-scroll 1s linear both;
+  animation-timeline:scroll(root block);
+  transform-origin:0 0;
+  backface-visibility:hidden;
+}
+
 /* Catalog local-sample renderer -----------------------------------------------------
    Static Catalog surfaces sample their parent canvas into a cached foreground layer
    and use CSS filter (not backdrop-filter). This keeps the same SDF displacement map
@@ -809,4 +830,113 @@ html[data-glass="svg"] .drawer-close-floating.liquid-live{overflow:visible!impor
   background:rgba(248,251,250,.56);
   -webkit-backdrop-filter:blur(7px) saturate(1.05);
   backdrop-filter:blur(7px) saturate(1.05);
+}
+
+/* Readability material mode -------------------------------------------------------
+   Default readability plates remain CSS-only frosted glass. When the user opts
+   into full Liquid Glass, the same DOM surfaces are promoted to the complete
+   foreground SVG lens pipeline instead of stacking SVG refraction on top of the
+   old CSS backdrop blur. The wallpaper sample is viewport-aligned by a native root scroll timeline. */
+html[data-readability-glass="liquid"] .readability-liquid{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  isolation:isolate;
+  overflow:visible;
+}
+/* Foreground-sampled Liquid Glass uses an optical layer, so native
+   backdrop-filter stays disabled. Full readability uses a native root-scroll scene
+   to avoid Backdrop Root clipping, fixed-background/filter ambiguity, and per-scroll JS. */
+html[data-readability-glass="liquid"] .readability-liquid.liquid-local-sample{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+html[data-readability-glass="liquid"] .readability-liquid.liquid-local-sample::before{
+  z-index:3;
+}
+
+/* Shared Backdrop Catalog dialog -------------------------------------------------
+   Light-theme DialogContent.kt: #29293A @ 23% dim, 48dp rounded container,
+   #FAFAFA @ 60% surface, 16dp blur and 24/48 depth lens. Optical parameters are
+   supplied by the shared `catalog-dialog` glass preset; layout remains reusable. */
+.liquid-dialog-layer{
+  position:fixed;
+  inset:0;
+  z-index:240;
+  display:grid;
+  place-items:center;
+  padding:40px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 160ms ease;
+}
+.liquid-dialog-layer.is-open{opacity:1;pointer-events:auto}
+.liquid-dialog-layer.is-closing{opacity:0;pointer-events:none}
+.liquid-dialog-dim{
+  position:absolute;
+  inset:0;
+  background:rgb(41 41 58/.23);
+}
+.liquid-dialog{
+  position:relative;
+  z-index:1;
+  width:min(620px,calc(100vw - 80px));
+  border-radius:48px;
+  overflow:visible;
+  color:#101010;
+  transform:translateY(10px) scale(.975);
+  opacity:0;
+  transition:transform 220ms cubic-bezier(.2,.8,.2,1),opacity 160ms ease;
+  isolation:isolate;
+}
+.liquid-dialog-layer.is-open .liquid-dialog{transform:none;opacity:1}
+.liquid-dialog-layer.is-closing .liquid-dialog{transform:translateY(6px) scale(.985);opacity:0}
+.liquid-dialog__content{padding:24px 28px 12px;display:grid;gap:10px}
+.liquid-dialog__content h2{font-size:24px;line-height:1.16;font-weight:600;letter-spacing:-.025em}
+.liquid-dialog__content p{font-size:15px;line-height:1.55;color:rgb(16 16 16/.68)}
+.liquid-dialog__content .liquid-dialog__detail{font-size:13px;color:rgb(16 16 16/.54)}
+.liquid-dialog__actions{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:12px 24px 24px}
+.liquid-dialog__action{
+  height:48px;
+  padding:0 16px;
+  border:0;
+  border-radius:999px;
+  background:rgb(250 250 250/.20);
+  color:#101010;
+  font:500 16px/1 system-ui,-apple-system,"Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:transform 130ms ease,background 130ms ease;
+}
+.liquid-dialog__action:hover{background:rgb(250 250 250/.34)}
+.liquid-dialog__action:active{transform:scale(.975)}
+.liquid-dialog__action--confirm{background:#0088ff;color:white}
+.liquid-dialog__action--confirm:hover{background:#007eea}
+.liquid-dialog__action:focus-visible{outline:2px solid #0088ff;outline-offset:3px}
+.liquid-dialog__action--confirm:focus-visible{outline-color:white;box-shadow:0 0 0 4px #0088ff}
+
+.settings-control--toggle{align-items:center}
+.settings-control__toggle-wrap{display:flex;align-items:center;justify-content:flex-end;padding-right:4px}
+.settings-control__toggle{flex:0 0 auto}
+
+@media(max-width:640px){
+  .liquid-dialog-layer{padding:18px}
+  .liquid-dialog{width:min(100%,560px);border-radius:34px}
+  .liquid-dialog__content{padding:22px 20px 10px}
+  .liquid-dialog__actions{gap:10px;padding:10px 18px 18px}
+  .liquid-dialog__action{font-size:14px;padding-inline:10px}
+  .settings-control__toggle-wrap{justify-content:flex-start;padding-right:0}
+}
+
+/* Dialog fallback when SVG filtering is unavailable. The active local-sample
+   renderer clears this coat and replaces it with the real Catalog lens layers. */
+.liquid-dialog{
+  background:rgb(250 250 250/.60);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5) brightness(1.2);
+  backdrop-filter:blur(16px) saturate(1.5) brightness(1.2);
+  box-shadow:0 18px 58px rgb(18 30 29/.18),inset 0 1px 0 rgb(255 255 255/.7);
+}
+html[data-glass="svg"] .liquid-dialog.liquid-local-sample{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
 }

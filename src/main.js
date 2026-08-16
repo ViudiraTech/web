@@ -16,6 +16,7 @@ import { aboutCopy } from './components/about-copy.js';
 import { glassTest } from './components/glass-test.js';
 import { glassControlsLab, bindGlassControls } from './components/glass-controls.js';
 import { settingsPage, bindSettingsPage } from './components/settings.js';
+import { prepareReadabilityGlass } from './glass/readability-glass.js';
 import { bindLiquidButtons } from './components/liquid-button.js';
 import { fetchRepositories, fetchOrgActivity, fetchLanguages, fetchReadme, decodeBase64Utf8 } from './github/api.js';
 import { CATEGORIES, normalizeRepository, sortRepositories } from './github/repositories.js';
@@ -55,7 +56,7 @@ const routeMeta = {
 };
 
 function ambientLayer() {
-  return `<div id="ambient" class="ambient" aria-hidden="true">
+  return `<div id="ambient" class="ambient" data-glass-backdrop-mode="fixed-cover" data-glass-backdrop-width="2560" data-glass-backdrop-height="1440" aria-hidden="true">
     <div class="ambient__mesh ambient__mesh--a"></div>
     <div class="ambient__mesh ambient__mesh--b"></div>
     <div class="ambient__noise"></div>
@@ -284,6 +285,7 @@ function closeDrawer() {
 async function hydrateCurrentView(serial = routeSerial) {
   const main = document.querySelector('#main');
   if (!main || serial !== routeSerial) return;
+  prepareReadabilityGlass(main);
   await hydrateLiquidGlass(main);
   if (serial !== routeSerial) return;
   if (page === 'glass-ui') bindGlassControls();
@@ -390,6 +392,7 @@ async function boot() {
   if (!location.hash) history.replaceState({ page }, '', routeHref(page));
   mountShell();
   preloadLiquidGlass().catch(() => {});
+  prepareReadabilityGlass(document);
   await initLiquidGlass();
   if (page === 'glass-ui') bindGlassControls();
   if (page === 'settings') bindSettingsPage(document.querySelector('#main'));

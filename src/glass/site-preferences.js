@@ -2,6 +2,7 @@ const STORAGE_KEY = 'viudiratech:glass-settings:v1';
 export const DEFAULT_SITE_GLASS_PREFERENCES = Object.freeze({
   transparency: 50,
   blur: 50,
+  readabilityLiquid: false,
 });
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -14,12 +15,14 @@ function syncCssPreferences(values) {
   const drawerBlur = Math.max(0, 12 * (values.blur / 50));
   document.documentElement.style.setProperty('--site-drawer-frost-alpha', drawerAlpha.toFixed(3));
   document.documentElement.style.setProperty('--site-drawer-frost-blur', `${drawerBlur.toFixed(2)}px`);
+  document.documentElement.dataset.readabilityGlass = values.readabilityLiquid ? 'liquid' : 'frosted';
 }
 
 function normalize(input = {}) {
   return {
     transparency: clamp(Number(input.transparency ?? DEFAULT_SITE_GLASS_PREFERENCES.transparency) || 0, 0, 100),
     blur: clamp(Number(input.blur ?? DEFAULT_SITE_GLASS_PREFERENCES.blur) || 0, 0, 100),
+    readabilityLiquid: input.readabilityLiquid === true || input.readabilityLiquid === 'true',
   };
 }
 

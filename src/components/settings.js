@@ -1,5 +1,7 @@
 import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
 import { liquidButton, bindLiquidButtons } from './liquid-button.js';
+import { liquidToggle, bindLiquidToggles } from './liquid-toggle.js';
+import { showLiquidDialog } from './liquid-dialog.js';
 import {
   DEFAULT_SITE_GLASS_PREFERENCES,
   getSiteGlassPreferences,
@@ -7,6 +9,7 @@ import {
   resetSiteGlassPreferences,
 } from '../glass/site-preferences.js';
 import { refreshSiteGlassPreferences } from '../glass/liquid-glass.js';
+import { applyReadabilityGlassMode } from '../glass/readability-glass.js';
 
 function settingRow({ key, title, description, value }) {
   return `<div class="settings-control" data-setting-row="${key}">
@@ -23,6 +26,23 @@ function settingRow({ key, title, description, value }) {
       setting: key,
       className: 'settings-control__slider',
     })}
+  </div>`;
+}
+
+function liquidReadabilityRow(enabled) {
+  return `<div class="settings-control settings-control--toggle" data-setting-row="readabilityLiquid">
+    <div class="settings-control__copy">
+      <div class="settings-control__title"><strong>易读背景使用完整 Liquid Glass</strong><output data-setting-output="readabilityLiquid">${enabled ? '开启' : '关闭'}</output></div>
+      <p>关闭时，正文后的易读底使用性能友好的 CSS 毛玻璃；开启后，这些阅读底会切换为完整 SVG lens、blur、depth、highlight 与阴影管线。</p>
+    </div>
+    <div class="settings-control__toggle-wrap">
+      ${liquidToggle({
+        checked: enabled,
+        ariaLabel: '易读背景使用完整 Liquid Glass',
+        setting: 'readabilityLiquid',
+        className: 'settings-control__toggle',
+      })}
+    </div>
   </div>`;
 }
 
@@ -63,6 +83,7 @@ export function settingsPage() {
           description: '调整站点玻璃的背景模糊强度。50% 保持设计默认；不会改变折射位移图分辨率。',
           value: settings.blur,
         })}
+        ${liquidReadabilityRow(settings.readabilityLiquid)}
         <div class="settings-isolation-note">
           <span>LAB ISOLATION</span>
           <p><strong>控件测试页被隔离。</strong> Buttons、Toggle、Liquid Slider、Bottom Tabs 仍使用 Backdrop Catalog 的固定 blur / surface 参数，因此这里怎么调都不会把测试数据改掉。</p>
@@ -91,12 +112,25 @@ function updateOutputs(root, settings) {
     const input = root.querySelector(`[data-setting-slider="${key}"] input[type="range"]`);
     if (input) input.setAttribute('aria-label', `${key === 'transparency' ? '透明度' : '模糊度'} ${Math.round(settings[key])}%`);
   }
+  const readability = root.querySelector('[data-setting-output="readabilityLiquid"]');
+  if (readability) readability.textContent = settings.readabilityLiquid ? '开启' : '关闭';
+}
+
+function syncControlsToSettings(root, settings, { animate = true } = {}) {
+  root.querySelectorAll('[data-setting-slider]').forEach((slider) => {
+    const key = slider.dataset.settingSlider;
+    slider._liquidSliderController?.setValue(settings[key] ?? DEFAULT_SITE_GLASS_PREFERENCES[key], { animate });
+  });
+  const toggle = root.querySelector('[data-setting-toggle="readabilityLiquid"]');
+  toggle?._liquidToggleController?.setChecked(settings.readabilityLiquid, { animate, emit: false, source: 'settings-sync' });
+  updateOutputs(root, settings);
 }
 
 export function bindSettingsPage(root = document.querySelector('#main') || document) {
   if (!root) return;
   bindLiquidSliders(root);
   bindLiquidButtons(root);
+  bindLiquidToggles(root);
   updateOutputs(root, getSiteGlassPreferences());
 
   root.querySelectorAll('[data-setting-slider]').forEach((slider) => {
@@ -111,18 +145,51 @@ export function bindSettingsPage(root = document.querySelector('#main') || docum
     });
   });
 
+  const readabilityToggle = root.querySelector('[data-setting-toggle="readabilityLiquid"]');
+  if (readabilityToggle && readabilityToggle.dataset.settingBound !== '1') {
+    readabilityToggle.dataset.settingBound = '1';
+    readabilityToggle.addEventListener('liquidtoggle:change', async (event) => {
+      const wantsEnabled = Boolean(event.detail?.checked);
+      const controller = readabilityToggle._liquidToggleController;
+
+      if (!wantsEnabled) {
+        const settings = setSiteGlassPreferences({ readabilityLiquid: false });
+        applyReadabilityGlassMode(document);
+        refreshSiteGlassPreferences();
+        updateOutputs(root, settings);
+        return;
+      }
+
+      const approved = await showLiquidDialog({
+        title: '开启完整 Liquid Glass？',
+        message: '用于提升文字可读性的毛玻璃阅读底将切换为完整的折射材质。',
+        detail: '会启用 SVG lens、blur、depth、highlight 与阴影，并增加 GPU 合成开销；Liquid UI Lab 的测试控件参数仍保持隔离。',
+        cancelLabel: '保持毛玻璃',
+        confirmLabel: '开启',
+      });
+
+      if (!approved) {
+        controller?.setChecked(false, { animate: true, emit: false, source: 'dialog-cancel' });
+        updateOutputs(root, getSiteGlassPreferences());
+        return;
+      }
+
+      const settings = setSiteGlassPreferences({ readabilityLiquid: true });
+      applyReadabilityGlassMode(document);
+      refreshSiteGlassPreferences();
+      controller?.setChecked(true, { animate: true, emit: false, source: 'dialog-confirm' });
+      updateOutputs(root, settings);
+    });
+  }
+
   const reset = root.querySelector('[data-settings-reset]');
   if (reset && reset.dataset.settingBound !== '1') {
     reset.dataset.settingBound = '1';
     reset.addEventListener('click', () => {
       const settings = resetSiteGlassPreferences();
-      root.querySelectorAll('[data-setting-slider]').forEach((slider) => {
-        const key = slider.dataset.settingSlider;
-        const controller = slider._liquidSliderController;
-        controller?.setValue(settings[key] ?? DEFAULT_SITE_GLASS_PREFERENCES[key], { animate: true });
-      });
+      syncControlsToSettings(root, settings, { animate: true });
+      applyReadabilityGlassMode(document);
       refreshSiteGlassPreferences();
-      updateOutputs(root, settings);
     });
   }
 }

@@ -1,137 +1,10 @@
-import { setLiquidGlassState } from '../glass/liquid-glass.js';
-import { SpringValue, queueCatalogRender as queueRender, SPRING_INTERACTIVE, SPRING_VALUE, SPRING_PRESS, SPRING_SCALE_X, SPRING_SCALE_Y } from '../animation/catalog-motion.js';
 import { liquidBottomTabs, bindLiquidBottomTabs } from './liquid-bottom-tabs.js';
 import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
 import { liquidButton, bindLiquidButtons } from './liquid-button.js';
+import { liquidToggle, bindLiquidToggles } from './liquid-toggle.js';
 
 const svg = (body, size = 22) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
 const planeIcon = svg('<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2.5 1.5V22L11.5 21l4 1v-1.5L13 19v-5.5L21 16Z"/>', 27);
-
-const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-function pointPercent(clientX, clientY, left, top, width, height) {
-  return {
-    x: clamp(((clientX - left) / Math.max(width, 1)) * 100, 0, 100),
-    y: clamp(((clientY - top) / Math.max(height, 1)) * 100, 0, 100),
-  };
-}
-
-function bindCatalogToggle(root) {
-  if (root.dataset.catalogBound === '1') return;
-  root.dataset.catalogBound = '1';
-  const thumb = root.querySelector('.catalog-toggle__thumb');
-  if (!thumb) return;
-
-  let rootWidth = root.offsetWidth || 64;
-  let rootHeight = root.offsetHeight || 28;
-  let thumbWidth = thumb.offsetWidth || 40;
-  let thumbHeight = thumb.offsetHeight || 24;
-  let travel = Math.max(rootWidth - thumbWidth - 4, 1);
-  let dragRect = null;
-  let pointerClientX = 0;
-  let pointerClientY = 0;
-  let targetFraction = root.getAttribute('aria-checked') === 'true' ? 1 : 0;
-  let visualFraction = targetFraction;
-  let press = 0;
-  let scaleX = 1;
-  let scaleY = 1;
-  let dragging = false;
-  let moved = false;
-  let downX = 0;
-
-  const render = () => {
-    const f = clamp(visualFraction, 0, 1);
-    root.style.setProperty('--toggle-fraction', f.toFixed(4));
-    const velocity = fractionSpring.velocity / 50;
-    const velocityX = clamp(velocity * 0.75, -0.2, 0.2);
-    const velocityY = clamp(velocity * 0.25, -0.2, 0.2);
-    const sx = scaleX / (1 - velocityX);
-    const sy = scaleY * (1 - velocityY);
-    const x = 2 + travel * f;
-    thumb.style.transform = `translate3d(${x.toFixed(3)}px,2px,0) scale(${sx.toFixed(5)},${sy.toFixed(5)})`;
-    let pointerX = 50;
-    let pointerY = 50;
-    if (dragRect && dragging) {
-      ({ x: pointerX, y: pointerY } = pointPercent(pointerClientX, pointerClientY, dragRect.left + x, dragRect.top + 2, thumbWidth, thumbHeight));
-    }
-    setLiquidGlassState(thumb, {
-      intensity: press,
-      blur: 8 * (1 - press),
-      surfaceAlpha: 1 - press,
-      highlightAlpha: press,
-      innerShadowAlpha: 0.15 * press,
-      outerShadowAlpha: 0.05,
-      press: 0,
-      pointerX,
-      pointerY,
-    });
-  };
-  const requestRender = () => queueRender(render);
-  const fractionSpring = new SpringValue(targetFraction, (value) => { visualFraction = value; requestRender(); });
-  const pressSpring = new SpringValue(0, (value) => { press = clamp(value, 0, 1); requestRender(); });
-  const scaleXSpring = new SpringValue(1, (value) => { scaleX = value; requestRender(); });
-  const scaleYSpring = new SpringValue(1, (value) => { scaleY = value; requestRender(); });
-
-  new ResizeObserver(() => {
-    rootWidth = root.offsetWidth || rootWidth;
-    rootHeight = root.offsetHeight || rootHeight;
-    thumbWidth = thumb.offsetWidth || thumbWidth;
-    thumbHeight = thumb.offsetHeight || thumbHeight;
-    travel = Math.max(rootWidth - thumbWidth - 4, 1);
-    requestRender();
-  }).observe(root);
-
-  const setPressed = (pressed) => {
-    pressSpring.to(pressed ? 1 : 0, SPRING_PRESS);
-    scaleXSpring.to(pressed ? 1.5 : 1, SPRING_SCALE_X);
-    scaleYSpring.to(pressed ? 1.5 : 1, SPRING_SCALE_Y);
-  };
-
-  render();
-  root.addEventListener('pointerdown', (event) => {
-    dragging = true;
-    moved = false;
-    downX = event.clientX;
-    pointerClientX = event.clientX;
-    pointerClientY = event.clientY;
-    dragRect = root.getBoundingClientRect();
-    root.setPointerCapture(event.pointerId);
-    setPressed(true);
-  });
-
-  root.addEventListener('pointermove', (event) => {
-    if (!dragging || !dragRect) return;
-    pointerClientX = event.clientX;
-    pointerClientY = event.clientY;
-    if (Math.abs(event.clientX - downX) > 2) moved = true;
-    targetFraction = clamp((event.clientX - dragRect.left - (2 + thumbWidth * 0.5)) / travel, 0, 1);
-    fractionSpring.to(targetFraction, SPRING_VALUE);
-    requestRender();
-  });
-
-  const release = () => {
-    if (!dragging) return;
-    dragging = false;
-    if (!moved) targetFraction = targetFraction >= 0.5 ? 0 : 1;
-    else targetFraction = targetFraction >= 0.5 ? 1 : 0;
-    root.setAttribute('aria-checked', String(targetFraction === 1));
-    fractionSpring.to(targetFraction, SPRING_VALUE);
-    setPressed(false);
-    dragRect = null;
-  };
-  root.addEventListener('pointerup', release);
-  root.addEventListener('pointercancel', release);
-  root.addEventListener('lostpointercapture', release);
-  root.addEventListener('keydown', (event) => {
-    if (![' ', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-    event.preventDefault();
-    if (event.key === 'ArrowLeft') targetFraction = 0;
-    else if (event.key === 'ArrowRight') targetFraction = 1;
-    else targetFraction = targetFraction >= 0.5 ? 0 : 1;
-    root.setAttribute('aria-checked', String(targetFraction === 1));
-    fractionSpring.to(targetFraction, SPRING_VALUE);
-  });
-}
-
 
 export function glassControlsLab() {
   return `
@@ -151,7 +24,7 @@ export function glassControlsLab() {
             <h2>Buttons</h2>
             <p>48px 高度、2px blur、12/24 lens。按压时整体弹性放大，并根据手指拖动方向产生轻微非均匀拉伸和局部高光。</p>
           </div>
-          <div class="catalog-canvas catalog-canvas--buttons">
+          <div data-glass-backdrop-mode="element-cover" data-glass-backdrop-width="1200" data-glass-backdrop-height="800" class="catalog-canvas catalog-canvas--buttons">
             ${liquidButton({ label: 'Transparent Liquid Button', preset: 'catalog-button' })}
             ${liquidButton({ label: 'Surface Liquid Button', preset: 'catalog-button-surface', attributes: 'data-shared-surface-button' })}
             ${liquidButton({ label: 'Tinted Liquid Button', preset: 'catalog-button-blue', className: 'catalog-button--tinted' })}
@@ -165,10 +38,8 @@ export function glassControlsLab() {
             <h2>Toggle</h2>
             <p>轨道 64×28，thumb 40×24。空闲时 thumb 是柔焦白色实体；按下/拖动时白色表面逐渐消失，切换为带色散的 5/10 lens，并放大到 1.5×。</p>
           </div>
-          <div class="catalog-canvas catalog-canvas--center">
-            <button class="catalog-toggle" data-catalog-toggle type="button" role="switch" aria-checked="false" aria-label="Liquid toggle">
-              <span class="catalog-toggle__thumb liquid-glass" data-glass-preset="catalog-toggle-thumb"></span>
-            </button>
+          <div data-glass-backdrop-mode="element-cover" data-glass-backdrop-width="1200" data-glass-backdrop-height="800" class="catalog-canvas catalog-canvas--center">
+            ${liquidToggle({ checked: false, ariaLabel: 'Liquid toggle' })}
           </div>
         </article>
 
@@ -178,7 +49,7 @@ export function glassControlsLab() {
             <h2>Slider</h2>
             <p>6px 轨道，thumb 同样为 40×24。按住时启用 10/14 lens 与 RGB dispersion，拖得越快，thumb 越明显地沿速度方向弹性变形。</p>
           </div>
-          <div class="catalog-canvas catalog-canvas--center">
+          <div data-glass-backdrop-mode="element-cover" data-glass-backdrop-width="1200" data-glass-backdrop-height="800" class="catalog-canvas catalog-canvas--center">
             ${liquidSlider({ value: 46, ariaLabel: 'Liquid slider' })}
           </div>
         </article>
@@ -189,7 +60,7 @@ export function glassControlsLab() {
             <h2>Bottom tabs</h2>
             <p>外层 64px 高、4px padding、8px blur、24/24 lens；选中胶囊 56px 高。你可以直接按住选中胶囊左右拖，它会按速度拉伸并弹回最近的 Tab。</p>
           </div>
-          <div class="catalog-canvas catalog-canvas--tabs">
+          <div data-glass-backdrop-mode="element-cover" data-glass-backdrop-width="1200" data-glass-backdrop-height="800" class="catalog-canvas catalog-canvas--tabs">
             ${liquidBottomTabs({
               items: [1, 2, 3, 4].map((n) => ({ id: `tab-${n}`, label: `Tab ${n}`, icon: planeIcon })),
               selected: 0,
@@ -213,7 +84,7 @@ export function glassControlsLab() {
 
 export function bindGlassControls() {
   bindLiquidButtons(document.querySelector('#main') || document);
-  document.querySelectorAll('[data-catalog-toggle]').forEach(bindCatalogToggle);
+  bindLiquidToggles(document.querySelector('#main') || document);
   bindLiquidSliders(document.querySelector('#main') || document);
   document.querySelectorAll('[data-liquid-bottom-tabs]').forEach(bindLiquidBottomTabs);
 }

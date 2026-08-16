@@ -29,8 +29,36 @@ let activityObserver = null;
 let currentProfile = null;
 let localSampleSyncRaf = 0;
 let localSampleSyncBound = false;
+let localSampleLayoutObserver = null;
+let rootScrollTimelineSupport = null;
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+function supportsRootScrollTimeline() {
+  if (rootScrollTimelineSupport != null) return rootScrollTimelineSupport;
+  rootScrollTimelineSupport = Boolean(
+    window.CSS?.supports?.('animation-timeline', 'scroll(root block)')
+    || window.CSS?.supports?.('animation-timeline: scroll(root block)')
+  );
+  return rootScrollTimelineSupport;
+}
+
+function refreshScrollTimelineSceneGeometry() {
+  for (const controller of controllers) {
+    if (!controller?.scrollTimelineSample || controller.suspended || !controller.element?.isConnected) continue;
+    controller.updateLocalLayers();
+  }
+}
+
+function ensureScrollTimelineLayoutSync() {
+  if (localSampleLayoutObserver || !('ResizeObserver' in window)) return;
+  localSampleLayoutObserver = new ResizeObserver(() => {
+    requestAnimationFrame(refreshScrollTimelineSceneGeometry);
+  });
+  localSampleLayoutObserver.observe(document.body);
+  window.addEventListener('resize', refreshScrollTimelineSceneGeometry, { passive: true });
+  window.visualViewport?.addEventListener('resize', refreshScrollTimelineSceneGeometry, { passive: true });
+}
 
 // Local-sampled glass is a foreground copy of another element's background.
 // Any viewport movement (page scroll, nested scrolling container, browser UI
@@ -44,6 +72,9 @@ function refreshVisibleLocalBackdropSamples() {
   const margin = 120;
   for (const controller of controllers) {
     if (!controller?.localSample || controller.suspended || !controller.element?.isConnected) continue;
+    // CSS-fixed samples are already viewport-locked by the browser; they do not
+    // need the historical JS scroll/resize background-position synchronizer.
+    if (controller.element.dataset.glassSampleMode === 'fixed-css' || controller.scrollTimelineSample) continue;
     const rect = controller.element.getBoundingClientRect();
     if (rect.bottom < -margin || rect.top > vh + margin || rect.right < -margin || rect.left > vw + margin) continue;
     controller.updateLocalLayers();
@@ -133,6 +164,10 @@ const LOCAL_STATIC_PRESETS = new Set([
   'catalog-button-blue',
   'catalog-button-orange',
   'catalog-tabs-panel',
+  // Full readability/Dialog surfaces use the same deterministic foreground SVG
+  // pipeline as LiquidButton. Their wallpaper sample is viewport-fixed in CSS.
+  'readability-full',
+  'catalog-dialog',
 ]);
 
 function makeLayer(className) {
@@ -179,6 +214,14 @@ function presetFor(element, profile) {
 
     'catalog-tabs-panel': { lensHeight: 24, lensAmount: 24, blur: 8, vibrancy: 1.08, surfaceRgb: '250 250 250', surfaceAlpha: 0.4, highlightAlpha: 1, innerShadowAlpha: 0.05, outerShadowAlpha: 0.09, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-tab-indicator': { lensHeight: 10, lensAmount: 14, blur: 0, chromaticAberration: true, surfaceRgb: '0 0 0', surfaceAlpha: 0.10, highlightAlpha: 0, innerShadowAlpha: 0, outerShadowAlpha: 0, intensity: 0, mapResolution: Math.max(profile.mapResolution, 0.82) },
+
+    // Backdrop Catalog DialogContent.kt (light theme): RoundedRectangle(48dp),
+    // colorControls(brightness=.2, saturation=1.5), blur(16), lens(24,48, depth).
+    'catalog-dialog': { lensHeight: 24, lensAmount: 48, blur: 16, vibrancy: 1.5, brightness: 1.2, depthEffect: 0.18, surfaceRgb: '250 250 250', surfaceAlpha: 0.60, highlightAlpha: 1, innerShadowAlpha: 0.05, outerShadowAlpha: 0.12, mapResolution: 1 },
+
+    // Optional full-fidelity reading material. Unlike the default readability
+    // plates this uses the complete local-sampled SVG lens pipeline.
+    'readability-full': { lensHeight: 16, lensAmount: 32, blur: 10, vibrancy: 1.12, brightness: 1.03, depthEffect: 0.14, surfaceRgb: '248 251 250', surfaceAlpha: 0.44, highlightAlpha: 1, innerShadowAlpha: 0.055, outerShadowAlpha: 0.08, mapResolution: 1 },
 
     test: { lensHeight: 24, lensAmount: 32, blur: 2, chromaticAberration: true, surfaceAlpha: 0.06, mapResolution: Math.max(profile.mapResolution, 0.86) },
   };
@@ -282,7 +325,7 @@ function createFilter(id, chromatic) {
 
 function mapsFor(width, height, radius, config) {
   const res = clamp(config.mapResolution, 0.42, 1);
-  const key = [width, height, Math.round(radius * 10), config.lensHeight, config.lensAmount, config.chromaticAberration ? 1 : 0, Math.round(res * 100)].join(':');
+  const key = [width, height, Math.round(radius * 10), config.lensHeight, config.lensAmount, Math.round((config.depthEffect || 0) * 1000), config.chromaticAberration ? 1 : 0, Math.round(res * 100)].join(':');
   if (mapCache.has(key)) return mapCache.get(key);
 
   const w = clamp(Math.round(width * res), 40, 1400);
@@ -384,6 +427,9 @@ class LiquidBackdrop {
     const explicitBackdrop = requestedBackdrop === 'ambient' ? document.querySelector('#ambient') : null;
     this.localBackdrop = localSampleEligible ? (element.closest('.catalog-canvas') || explicitBackdrop) : null;
     this.localSample = Boolean(this.localBackdrop);
+    this.scrollTimelineSample = this.localSample
+      && element.dataset.glassSampleMode === 'scroll-timeline'
+      && supportsRootScrollTimeline();
     this.id = `viudira-liquid-${Math.random().toString(36).slice(2, 10)}`;
     this.filter = this.surfaceOnly ? null : createFilter(this.id, this.config.chromaticAberration);
     this.state = {
@@ -412,6 +458,7 @@ class LiquidBackdrop {
     this.lastBlur = NaN;
     this.lastCssVars = new Map();
     this.opticLayer = null;
+    this.opticSceneLayer = null;
     this.interactiveLayer = null;
     this.hueLayer = null;
     this.tintLayer = null;
@@ -420,6 +467,10 @@ class LiquidBackdrop {
     if (this.localSample && !this.surfaceOnly) {
       element.classList.add('liquid-local-sample');
       this.opticLayer = makeLayer('liquid-optic-layer');
+      if (this.scrollTimelineSample) {
+        this.opticSceneLayer = makeLayer('liquid-optic-scene');
+        this.opticLayer.append(this.opticSceneLayer);
+      }
       this.interactiveLayer = makeLayer('liquid-interactive-layer');
       this.hueLayer = makeLayer('liquid-hue-layer');
       this.tintLayer = makeLayer('liquid-tint-layer');
@@ -489,15 +540,69 @@ class LiquidBackdrop {
     const canvasStyle = getComputedStyle(canvas);
     const canvasRect = canvas.getBoundingClientRect();
     const elementRect = this.element.getBoundingClientRect();
-    const width = Math.max(canvas.clientWidth, 1);
-    const height = Math.max(canvas.clientHeight, 1);
-    const x = elementRect.left - canvasRect.left;
-    const y = elementRect.top - canvasRect.top;
-    this.opticLayer.style.backgroundImage = canvasStyle.backgroundImage;
-    this.opticLayer.style.backgroundColor = canvasStyle.backgroundColor;
-    this.opticLayer.style.backgroundSize = `${width}px ${height}px`;
-    this.opticLayer.style.backgroundPosition = `${(-x).toFixed(2)}px ${(-y).toFixed(2)}px`;
-    this.opticLayer.style.backgroundRepeat = 'no-repeat';
+    const mode = canvas.dataset.glassBackdropMode || '';
+    const sourceWidth = Math.max(Number(canvas.dataset.glassBackdropWidth || 0), 1);
+    const sourceHeight = Math.max(Number(canvas.dataset.glassBackdropHeight || 0), 1);
+    const sampleTarget = this.scrollTimelineSample && this.opticSceneLayer
+      ? this.opticSceneLayer
+      : this.opticLayer;
+
+    sampleTarget.style.backgroundImage = canvasStyle.backgroundImage;
+    sampleTarget.style.backgroundColor = canvasStyle.backgroundColor;
+    sampleTarget.style.backgroundRepeat = 'no-repeat';
+
+    if (this.scrollTimelineSample && this.opticSceneLayer) {
+      const viewportWidth = Math.max(window.innerWidth || document.documentElement.clientWidth, 1);
+      const viewportHeight = Math.max(window.innerHeight || document.documentElement.clientHeight, 1);
+      const scrollX = window.scrollX || window.pageXOffset || 0;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const scrollingElement = document.scrollingElement || document.documentElement;
+      const scrollRange = Math.max((scrollingElement?.scrollHeight || 0) - viewportHeight, 0);
+      const documentLeft = elementRect.left + scrollX;
+      const documentTop = elementRect.top + scrollY;
+
+      this.opticLayer.style.backgroundImage = 'none';
+      this.opticLayer.style.backgroundColor = 'transparent';
+      this.opticSceneLayer.style.width = `${viewportWidth}px`;
+      this.opticSceneLayer.style.height = `${viewportHeight}px`;
+      this.opticSceneLayer.style.backgroundSize = canvasStyle.backgroundSize || 'cover';
+      this.opticSceneLayer.style.backgroundPosition = canvasStyle.backgroundPosition || 'center center';
+      this.opticSceneLayer.style.backgroundAttachment = 'scroll';
+      this.opticSceneLayer.style.setProperty('--lg-scene-x', `${(-documentLeft).toFixed(3)}px`);
+      this.opticSceneLayer.style.setProperty('--lg-scene-y-start', `${(-documentTop).toFixed(3)}px`);
+      this.opticSceneLayer.style.setProperty('--lg-scene-y-end', `${(scrollRange - documentTop).toFixed(3)}px`);
+    } else if (this.element.dataset.glassSampleMode === 'fixed-css') {
+      this.opticLayer.style.backgroundSize = canvasStyle.backgroundSize || 'cover';
+      this.opticLayer.style.backgroundPosition = canvasStyle.backgroundPosition || 'center center';
+      this.opticLayer.style.backgroundAttachment = 'fixed';
+      this.opticLayer.style.backgroundOrigin = 'border-box';
+      this.opticLayer.style.backgroundClip = 'border-box';
+    } else if ((mode === 'fixed-cover' || mode === 'element-cover') && sourceWidth > 1 && sourceHeight > 1) {
+      const fixed = mode === 'fixed-cover';
+      const frameWidth = Math.max(fixed ? (window.innerWidth || document.documentElement.clientWidth) : canvasRect.width, 1);
+      const frameHeight = Math.max(fixed ? (window.innerHeight || document.documentElement.clientHeight) : canvasRect.height, 1);
+      const frameLeft = fixed ? 0 : canvasRect.left;
+      const frameTop = fixed ? 0 : canvasRect.top;
+      const scale = Math.max(frameWidth / sourceWidth, frameHeight / sourceHeight);
+      const photoWidth = sourceWidth * scale;
+      const photoHeight = sourceHeight * scale;
+      const photoLeft = (frameWidth - photoWidth) / 2;
+      const photoTop = (frameHeight - photoHeight) / 2;
+      const localLeft = elementRect.left - frameLeft;
+      const localTop = elementRect.top - frameTop;
+
+      this.opticLayer.style.backgroundAttachment = 'scroll';
+      this.opticLayer.style.backgroundSize = `${frameWidth.toFixed(2)}px ${frameHeight.toFixed(2)}px, ${photoWidth.toFixed(2)}px ${photoHeight.toFixed(2)}px`;
+      this.opticLayer.style.backgroundPosition = `${(-localLeft).toFixed(2)}px ${(-localTop).toFixed(2)}px, ${(photoLeft - localLeft).toFixed(2)}px ${(photoTop - localTop).toFixed(2)}px`;
+    } else {
+      const width = Math.max(canvas.clientWidth, 1);
+      const height = Math.max(canvas.clientHeight, 1);
+      const x = elementRect.left - canvasRect.left;
+      const y = elementRect.top - canvasRect.top;
+      this.opticLayer.style.backgroundAttachment = 'scroll';
+      this.opticLayer.style.backgroundSize = `${width}px ${height}px`;
+      this.opticLayer.style.backgroundPosition = `${(-x).toFixed(2)}px ${(-y).toFixed(2)}px`;
+    }
 
     const tintVisible = this.config.tintAlpha > 0.001;
     this.hueLayer.style.display = tintVisible ? 'block' : 'none';
@@ -651,6 +756,7 @@ class LiquidBackdrop {
     activityObserver?.unobserve(this.element);
     this.filter?.filter?.remove();
     this.opticLayer?.remove();
+    this.opticSceneLayer = null;
     this.interactiveLayer?.remove();
     this.hueLayer?.remove();
     this.tintLayer?.remove();
@@ -686,6 +792,7 @@ function createController(element, profile) {
     ensureActivityObserver()?.observe(element);
   }
   if (controller.localSample) ensureLocalBackdropSampleSync();
+  if (controller.scrollTimelineSample) ensureScrollTimelineLayoutSync();
   return controller;
 }
 
@@ -765,6 +872,16 @@ export function activateLiquidGlassElement(element) {
 
 export function suspendLiquidGlassElement(element) {
   controllerMap.get(element)?.suspend();
+}
+
+export function deactivateLiquidGlassElement(element) {
+  if (!element) return;
+  lazyObserver?.unobserve(element);
+  const controller = controllerMap.get(element);
+  if (!controller) return;
+  controller.destroy();
+  const index = controllers.indexOf(controller);
+  if (index >= 0) controllers.splice(index, 1);
 }
 
 function glassTargetsWithin(root = document) {

@@ -44,9 +44,11 @@ Liquid UI Lab 与设置页使用同一个 `src/components/liquid-slider.js`。�
 
 ## Liquid Glass 设置
 
-`#/settings` 提供透明度与模糊度两个共享 Liquid Slider，并持久化到 `localStorage`。50% 对应网站原始材质参数；透明度向右更通透，模糊度 0–100% 对应 0–2× 各 preset 原始 blur。
+`#/settings` 提供透明度与模糊度两个共享 Liquid Slider，以及一个共享 Catalog `LiquidToggle`。50% 对应网站原始材质参数；透明度向右更通透，模糊度 0–100% 对应 0–2× 各 preset 原始 blur。设置持久化到 `localStorage`。
 
-设置采用显式 `data-glass-settings-scope="site"` 作用域，只影响 Header、Header Bottom Tabs、移动菜单、项目 Drawer 与设置实时预览。Liquid UI Lab / Glass Test 没有该 scope，因此 Catalog 的固定 blur / surface 数据不会被全局设置覆盖。
+“易读背景使用完整 Liquid Glass”默认关闭：关闭时正文阅读底使用 CSS 毛玻璃；开启时通过公共 `readability-glass.js` 把这些相同 DOM surface 切换到 `readability-full` 的完整 SVG lens / blur / depth / highlight / shadow 管线。开启前会调用公共 `liquid-dialog.js` 显示 Backdrop Catalog 风格确认 Dialog。
+
+设置采用显式 `data-glass-settings-scope="site"` 作用域；Liquid UI Lab / Glass Test 的控件本身没有该 scope，因此 Catalog 的固定 blur / surface 数据不会被全局设置覆盖。
 
 ## Liquid Glass
 
@@ -91,10 +93,6 @@ npm run preview
 
 Vite 已改为 single-entry SPA build。Hash routing 不需要 GitHub Pages 提供 history fallback。
 
-
-### Project Drawer glass
-
-Project detail drawer follows Backdrop Catalog Dialog geometry without applying a 100vh SVG displacement filter: the translucent body uses four narrow live 24/48 depth-lens perimeter strips, while the summary card keeps the Catalog-style 24/48 + 16px blur dialog material. The close control reuses the same shared LiquidButton motion used in Liquid UI Lab.
 
 
 ## Project Drawer

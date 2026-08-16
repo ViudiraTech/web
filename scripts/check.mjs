@@ -8,8 +8,8 @@ const required = [
   'index.html', ...legacyPages, 'vite.config.js', 'src/main.js', 'src/router/routes.js',
   'src/styles/tokens.css', 'src/styles/components.css', 'src/styles/responsive.css',
   'src/github/api.js', 'src/github/repositories.js', 'src/glass/liquid-glass.js',
-  'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/settings.js',
-  'src/animation/catalog-motion.js', 'src/glass/site-preferences.js', 'public/assets/logo-mark.svg', '.github/workflows/deploy-pages.yml',
+  'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/liquid-dialog.js', 'src/components/settings.js',
+  'src/animation/catalog-motion.js', 'src/glass/site-preferences.js', 'src/glass/readability-glass.js', 'public/assets/logo-mark.svg', '.github/workflows/deploy-pages.yml',
 ];
 const missing = required.filter((f) => !fs.existsSync(path.join(root, f)));
 if (missing.length) {
@@ -172,6 +172,31 @@ for (const marker of ['viudiratech:glass-settings:v1', 'transparency: 50', 'blur
     process.exit(1);
   }
 }
+const liquidDialog = fs.readFileSync(path.join(root, 'src/components/liquid-dialog.js'), 'utf8');
+const readabilityGlass = fs.readFileSync(path.join(root, 'src/glass/readability-glass.js'), 'utf8');
+for (const marker of ['showLiquidDialog', 'data-glass-preset=\"catalog-dialog\"', 'data-liquid-dialog-confirm', 'aria-modal=\"true\"']) {
+  if (!liquidDialog.includes(marker)) {
+    console.error(`Shared LiquidDialog regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+for (const marker of ['READABILITY_SURFACE_SELECTOR', 'readability-full', 'applyReadabilityGlassMode', 'deactivateLiquidGlassElement']) {
+  if (!readabilityGlass.includes(marker)) {
+    console.error(`Readability full-liquid regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+for (const marker of ['readabilityLiquid', 'liquidToggle({', 'bindLiquidToggles(root)', 'showLiquidDialog({', 'applyReadabilityGlassMode(document)']) {
+  if (!settings.includes(marker)) {
+    console.error(`Readability setting regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+if (!main.includes('prepareReadabilityGlass(main)') || !main.includes('prepareReadabilityGlass(document)')) {
+  console.error('Readability Liquid Glass is not wired into the SPA lifecycle');
+  process.exit(1);
+}
+
 if (!controls.includes('liquidSlider({ value: 46') || !controls.includes('bindLiquidSliders(')) {
   console.error('Liquid UI Lab no longer uses the shared LiquidSlider');
   process.exit(1);
