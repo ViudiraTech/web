@@ -1,23 +1,22 @@
 import { icons } from '../utils/icons.js';
 import { escapeHtml } from '../utils/html.js';
+import { liquidButton } from './liquid-button.js';
 
-const positions = [
-  [17, 22], [77, 20], [86, 54], [72, 82], [25, 81], [10, 53], [50, 10], [50, 90],
-];
+function networkProjects(repos = [], state = 'loading') {
+  if (!repos.length) {
+    const label = state === 'loading' ? '正在读取公开仓库…' : '暂无可展示的公开仓库';
+    return `<div class="network-empty">${label}</div>`;
+  }
 
-function networkNodes(repos = []) {
-  const items = repos.slice(0, positions.length);
-  const lines = items.map((_, i) => {
-    const [x, y] = positions[i];
-    return `<line class="network-line" x1="50%" y1="50%" x2="${x}%" y2="${y}%" />`;
-  }).join('');
-  const nodes = items.map((repo, i) => {
-    const [x, y] = positions[i];
-    return `<a class="network-node" href="${repo.url}" target="_blank" rel="noreferrer" style="left:${x}%;top:${y}%" aria-label="${escapeHtml(repo.name)} GitHub 仓库">
-      <strong>${escapeHtml(repo.name)}</strong><small>${escapeHtml(repo.category)}${repo.language ? ` · ${escapeHtml(repo.language)}` : ''}</small>
-    </a>`;
-  }).join('');
-  return `<svg aria-hidden="true">${lines}</svg>${nodes}`;
+  return repos.slice(0, 6).map((repo) => `
+    <a class="network-project" href="${repo.url}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(repo.name)} GitHub 仓库">
+      <span class="network-project__dot" aria-hidden="true"></span>
+      <span class="network-project__body">
+        <strong>${escapeHtml(repo.name)}</strong>
+        <small>${escapeHtml(repo.category)}${repo.language ? ` · ${escapeHtml(repo.language)}` : ''}</small>
+      </span>
+      <span class="network-project__arrow" aria-hidden="true">↗</span>
+    </a>`).join('');
 }
 
 export function hero(repos = [], state = 'loading') {
@@ -25,29 +24,48 @@ export function hero(repos = [], state = 'loading') {
   const forks = repos.reduce((sum, repo) => sum + repo.forks, 0);
   const languages = new Set(repos.map((repo) => repo.language).filter(Boolean)).size;
   const statusText = state === 'ready' ? 'GitHub 数据已同步' : state === 'stale' ? '使用缓存数据' : '正在读取 GitHub';
+  const domains = [
+    ['操作系统', 'Operating Systems'],
+    ['内核', 'Kernels'],
+    ['系统软件', 'System Software'],
+    ['开发工具', 'Developer Tools'],
+    ['开源协作', 'Open Source'],
+  ];
 
   return `
     <section class="hero" id="top">
       <div class="container hero-grid">
         <div class="hero-copy-block reveal">
-          <span class="hero-kicker">Open Source Engineering Community</span>
+          <span class="hero-kicker">开源工程社区 · Open Source Engineering</span>
           <h1>Viudira<br/>Tech</h1>
-          <p class="hero-lead">一个由开发者共同构建的开放技术社区。</p>
-          <p class="hero-copy">我们关注操作系统、内核、系统软件、开发者工具与前沿技术探索。项目与开发动态均来自公开仓库和 GitHub 活动，保持信息可验证、可追溯。</p>
+          <p class="hero-lead">由开发者共同构建的开放技术社区。</p>
+          <p class="hero-copy">关注操作系统、内核、系统软件与开发工具。项目状态和开发动态直接来自公开仓库与 GitHub 活动，便于持续了解社区正在推进的工作。</p>
           <div class="button-row">
-            <a class="button button--primary" href="#/projects">查看项目 ${icons.arrow(16)}</a>
-            <a class="button button--secondary" href="https://github.com/ViudiraTech" target="_blank" rel="noreferrer">${icons.github(17)} 探索 GitHub</a>
+            ${liquidButton({ label: `查看项目 ${icons.arrow(16)}`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action', backdrop: 'ambient', href: '#/projects', attributes: 'data-glass-settings-scope="site"' })}
+            ${liquidButton({ label: `${icons.github(17)} GitHub`, preset: 'catalog-button-surface', className: 'site-liquid-action', backdrop: 'ambient', href: 'https://github.com/ViudiraTech', target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}
           </div>
           <div class="hero-domains" aria-label="关注领域">
-            ${['Operating Systems','Kernels','System Software','Developer Tools','Open Source'].map((x) => `<span class="hero-domain">${x}</span>`).join('')}
+            ${domains.map(([label, english]) => `<span class="hero-domain"><strong>${label}</strong><small>${english}</small></span>`).join('')}
           </div>
         </div>
-        <div class="network reveal" aria-label="ViudiraTech 项目网络">
-          <div class="network-grid"></div>
-          ${networkNodes(repos)}
-          <div class="network-center"><strong>ViudiraTech</strong><small>project network</small></div>
-          <div class="network-status">${statusText}</div>
-        </div>
+        <section class="network reveal" aria-label="ViudiraTech 项目网络">
+          <div class="network-grid" aria-hidden="true"></div>
+          <header class="network-head">
+            <div>
+              <span class="network-overline">PUBLIC PROJECTS</span>
+              <h2>ViudiraTech Network</h2>
+              <p>公开项目与主要技术方向</p>
+            </div>
+            <span class="network-status">${statusText}</span>
+          </header>
+          <div class="network-projects">
+            ${networkProjects(repos, state)}
+          </div>
+          <footer class="network-foot">
+            <span>${state === 'loading' ? '—' : repos.length} 个公开仓库</span>
+            <span>${state === 'loading' ? '—' : languages} 种主要语言</span>
+          </footer>
+        </section>
       </div>
     </section>
     <div class="container stats-strip reveal" aria-label="GitHub 公开仓库统计">

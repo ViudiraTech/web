@@ -1,6 +1,8 @@
 import { CATEGORIES } from '../github/repositories.js';
 import { projectCard } from './project-card.js';
 import { liquidBottomTabs } from './liquid-bottom-tabs.js';
+import { liquidButton } from './liquid-button.js';
+import { icons } from '../utils/icons.js';
 
 const PROJECT_CATEGORY_MOBILE_LABELS = {
   All: '全部',
@@ -16,7 +18,7 @@ export function projectExplorer(repos = [], { state = 'loading', active = 'All' 
   const filtered = active === 'All' ? repos : repos.filter((repo) => repo.category === active);
   let content = filtered.map(projectCard).join('');
   if (state === 'loading') content = '<div class="loading-state">正在读取 ViudiraTech GitHub 仓库…<div class="loading-bar"></div></div>';
-  else if (state === 'error') content = '<div class="empty-state">GitHub API 暂时不可用。你仍可以直接前往 ViudiraTech GitHub 查看最新项目。</div>';
+  else if (state === 'error') content = `<div class="empty-state"><p>GitHub API 暂时不可用。你仍可以直接前往 ViudiraTech GitHub 查看最新项目。</p>${liquidButton({ label: `${icons.github(15)} 打开 GitHub`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action site-liquid-action--compact empty-state__action', backdrop: 'ambient', href: 'https://github.com/ViudiraTech', target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}</div>`;
   else if (!filtered.length) content = '<div class="empty-state">当前分类没有可由公开元数据可靠归入的仓库。</div>';
 
   return `

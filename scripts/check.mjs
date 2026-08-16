@@ -135,13 +135,17 @@ for (const marker of ['panelOffsetFor', 'valueRange * 0.025', 'smoothVelocity', 
 
 const liquidButton = fs.readFileSync(path.join(root, 'src/components/liquid-button.js'), 'utf8');
 const drawer = fs.readFileSync(path.join(root, 'src/components/project-drawer.js'), 'utf8');
-for (const marker of ['data-liquid-button', 'SPRING_INTERACTIVE', 'Math.tanh(0.05', 'setLiquidGlassState']) {
+for (const marker of ['data-liquid-button', 'SPRING_INTERACTIVE', 'Math.tanh(0.05', 'setLiquidGlassState', "resolvedLive = live == null ? backdrop === 'ambient'", 'maxDragScale * Math.abs(Math.cos(angle) * offsetX', 'maxDragScale * Math.abs(Math.sin(angle) * offsetY']) {
   if (!liquidButton.includes(marker)) {
     console.error(`Shared LiquidButton regression: missing ${marker}`);
     process.exit(1);
   }
 }
-for (const marker of ['project-drawer__surface', 'data-liquid-button', 'drawer-summary--plain']) {
+if (liquidButton.includes('dragFactorX = Math.min') || liquidButton.includes('dragFactorY = Math.min')) {
+  console.error('Catalog LiquidButton drag deformation was hard-clamped again');
+  process.exit(1);
+}
+for (const marker of ['project-drawer__surface', 'liquidButton({', 'drawer-summary--plain']) {
   if (!drawer.includes(marker)) {
     console.error(`Frosted Drawer regression: missing ${marker}`);
     process.exit(1);
@@ -183,6 +187,45 @@ for (const marker of ['showLiquidDialog', 'data-glass-preset=\"catalog-dialog\"'
 for (const marker of ['READABILITY_SURFACE_SELECTOR', 'readability-full', 'applyReadabilityGlassMode', 'deactivateLiquidGlassElement']) {
   if (!readabilityGlass.includes(marker)) {
     console.error(`Readability full-liquid regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+
+const homeProjectsSource = fs.readFileSync(path.join(root, 'src/components/home-projects.js'), 'utf8');
+const activitySource = fs.readFileSync(path.join(root, 'src/components/activity.js'), 'utf8');
+const projectExplorerSource = fs.readFileSync(path.join(root, 'src/components/project-explorer.js'), 'utf8');
+for (const [name, source] of [['home-projects', homeProjectsSource], ['activity', activitySource], ['project-explorer', projectExplorerSource]]) {
+  if (!source.includes('liquidButton({')) {
+    console.error(`Site action LiquidButton regression in ${name}`);
+    process.exit(1);
+  }
+  if (/class=["'][^"']*(?:text-link|activity-link|button--primary|button--secondary)/.test(source)) {
+    console.error(`Legacy button-like action returned in ${name}`);
+    process.exit(1);
+  }
+}
+
+const hero = fs.readFileSync(path.join(root, 'src/components/hero.js'), 'utf8');
+const join = fs.readFileSync(path.join(root, 'src/components/join.js'), 'utf8');
+for (const [name, source] of [['hero', hero], ['join', join], ['drawer', drawer]]) {
+  if (source.includes('button button--primary') || source.includes('button button--secondary')) {
+    console.error(`Legacy site action button returned in ${name}`);
+    process.exit(1);
+  }
+  if (!source.includes('liquidButton({')) {
+    console.error(`Shared LiquidButton missing from ${name}`);
+    process.exit(1);
+  }
+}
+for (const marker of ['.hero h1', '.hero-copy', '.section-head .section-copy', '.settings-control__copy', '.footer-copy']) {
+  if (!readabilityGlass.includes(marker)) {
+    console.error(`Readability copy scope regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+for (const marker of ["'.network'", "'.project-card'", "'.flow-step'", "'.join-action'"]) {
+  if (readabilityGlass.includes(marker)) {
+    console.error(`Readability scope is too broad: ${marker} must keep its authored material`);
     process.exit(1);
   }
 }

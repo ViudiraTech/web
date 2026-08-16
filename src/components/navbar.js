@@ -2,6 +2,7 @@ import { icons } from '../utils/icons.js';
 import { liquidBottomTabs, bindLiquidBottomTabs } from './liquid-bottom-tabs.js';
 import { activateLiquidGlassElement, suspendLiquidGlassElement } from '../glass/liquid-glass.js';
 import { routeHref } from '../router/routes.js';
+import { liquidButton } from './liquid-button.js';
 
 const links = [
   ['home', '首页'],
@@ -45,7 +46,7 @@ export function navbar(current = 'home') {
           indicatorPressedAlpha: 0.03,
           indicatorSurfaceFloorRatio: 0.60,
         })}
-        <button class="icon-button nav-menu-btn" type="button" aria-label="打开导航菜单" aria-expanded="false" data-menu-toggle>${icons.menu(20)}</button>
+        ${liquidButton({ label: icons.menu(20), preset: 'catalog-button-surface', className: 'catalog-icon-button nav-menu-btn', backdrop: 'ambient', attributes: 'aria-label="打开导航菜单" aria-expanded="false" data-menu-toggle data-glass-settings-scope="site"' })}
       </div>
     </nav>
     <div class="mobile-menu liquid-glass glass-shell" data-mobile-menu data-glass-preset="mobile-menu" data-glass-settings-scope="site" data-glass-defer="true">

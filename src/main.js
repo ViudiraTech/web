@@ -17,7 +17,7 @@ import { glassTest } from './components/glass-test.js';
 import { glassControlsLab, bindGlassControls } from './components/glass-controls.js';
 import { settingsPage, bindSettingsPage } from './components/settings.js';
 import { prepareReadabilityGlass } from './glass/readability-glass.js';
-import { bindLiquidButtons } from './components/liquid-button.js';
+import { bindLiquidButtons, destroyLiquidButtonsWithin } from './components/liquid-button.js';
 import { fetchRepositories, fetchOrgActivity, fetchLanguages, fetchReadme, decodeBase64Utf8 } from './github/api.js';
 import { CATEGORIES, normalizeRepository, sortRepositories } from './github/repositories.js';
 import { initReveal } from './animation/reveal.js';
@@ -26,8 +26,6 @@ import {
   preloadLiquidGlass,
   hydrateLiquidGlass,
   destroyLiquidGlassWithin,
-  activateLiquidGlassElement,
-  suspendLiquidGlassElement,
 } from './glass/liquid-glass.js';
 import { pageFromLocation, pageFromHref, routeHref } from './router/routes.js';
 
@@ -40,6 +38,44 @@ let activityState = 'loading';
 let activeFilter = 'All';
 let drawerRepo = null;
 let previousFocus = null;
+let drawerTransitionCleanup = null;
+
+function stopDrawerTransitionWatch() {
+  drawerTransitionCleanup?.();
+  drawerTransitionCleanup = null;
+}
+
+// The close control now uses a native live backdrop and therefore follows the
+// Drawer/content compositor automatically. We only watch the Drawer transform so
+// the lens remains active through the closing animation; no per-frame wallpaper
+// coordinate chasing is needed anymore.
+function watchDrawerTransform(drawer, { onDone } = {}) {
+  stopDrawerTransitionWatch();
+  if (!drawer) {
+    onDone?.();
+    return;
+  }
+  let finished = false;
+  let timer = 0;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    clearTimeout(timer);
+    drawer.removeEventListener('transitionend', onTransitionEnd);
+    drawerTransitionCleanup = null;
+    onDone?.();
+  };
+  const onTransitionEnd = (event) => {
+    if (event.target === drawer && event.propertyName === 'transform') finish();
+  };
+  drawer.addEventListener('transitionend', onTransitionEnd);
+  timer = window.setTimeout(finish, 620);
+  drawerTransitionCleanup = () => {
+    clearTimeout(timer);
+    drawer.removeEventListener('transitionend', onTransitionEnd);
+  };
+}
+
 let repoPromise = null;
 let activityPromise = null;
 let routeSerial = 0;
@@ -134,6 +170,8 @@ function updateProjectGrid() {
   if (!grid) return;
   const repos = filteredRepositories();
   grid.innerHTML = repos.length ? repos.map(projectCard).join('') : '<div class="empty-state">当前分类没有可由公开元数据可靠归入的仓库。</div>';
+  prepareReadabilityGlass(grid);
+  hydrateLiquidGlass(grid).then(() => bindLiquidButtons(grid));
   bindProjectCards();
   initReveal();
 }
@@ -226,12 +264,20 @@ async function openDrawer(fullName) {
   const content = document.querySelector('[data-drawer-content]');
   if (!drawer || !backdrop || !content) return;
   bindLiquidButtons(drawer);
-  drawer.querySelectorAll('[data-drawer-close].liquid-glass').forEach(activateLiquidGlassElement);
+  destroyLiquidButtonsWithin(content);
   content.innerHTML = renderDrawer(repo, { loading: true });
+  await hydrateLiquidGlass(content);
+  bindLiquidButtons(content);
   drawer.classList.add('is-open');
   backdrop.classList.add('is-open');
   drawer.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+
+  // The close button's top-level optical proxy is CSS-anchor tethered to the
+  // Drawer button, so the browser follows the Drawer transform without a JS
+  // sampling loop. We only watch transition end for lifecycle cleanup.
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  watchDrawerTransform(drawer);
   drawer.querySelector('[data-drawer-close]')?.focus();
 
   const [readmeResult, languagesResult] = await Promise.allSettled([fetchReadme(fullName), fetchLanguages(fullName)]);
@@ -242,7 +288,11 @@ async function openDrawer(fullName) {
     try { readme = decodeBase64Utf8(readmeResult.value.data.content || ''); } catch { readme = ''; }
   }
   if (languagesResult.status === 'fulfilled') languages = languagesResult.value.data || {};
+  destroyLiquidButtonsWithin(content);
+  destroyLiquidGlassWithin(content);
   content.innerHTML = renderDrawer(repo, { readme, languages, loading: false });
+  await hydrateLiquidGlass(content);
+  bindLiquidButtons(content);
 }
 
 let drawerClosePending = false;
@@ -272,14 +322,33 @@ function closeDrawer() {
   drawerRepo = null;
   const drawerElement = document.querySelector('[data-drawer]');
   const drawerContent = document.querySelector('[data-drawer-content]');
-  drawerElement?.classList.remove('is-open');
-  drawerElement?.querySelectorAll('[data-drawer-close].liquid-glass').forEach(suspendLiquidGlassElement);
-  if (drawerContent) destroyLiquidGlassWithin(drawerContent);
+  const focusToRestore = previousFocus;
+  previousFocus = null;
+
+  if (drawerContent) {
+    destroyLiquidButtonsWithin(drawerContent);
+    destroyLiquidGlassWithin(drawerContent);
+  }
   document.querySelector('[data-drawer-backdrop]')?.classList.remove('is-open');
   drawerElement?.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  if (previousFocus instanceof HTMLElement) previousFocus.focus();
-  previousFocus = null;
+
+  if (!drawerElement) {
+    document.body.style.overflow = '';
+    if (focusToRestore instanceof HTMLElement && focusToRestore.isConnected) focusToRestore.focus();
+    return;
+  }
+
+  // Keep the close button's real lens alive while the Drawer slides out. The old
+  // code suspended it at the first closing frame, which visibly turned it into a
+  // plain surface and also froze its sampled backdrop at the old coordinate.
+  drawerElement.classList.remove('is-open');
+  watchDrawerTransform(drawerElement, {
+    onDone: () => {
+      drawerElement.querySelector('[data-drawer-close]')?._liquidButtonController?.destroy?.();
+      document.body.style.overflow = '';
+      if (focusToRestore instanceof HTMLElement && focusToRestore.isConnected) focusToRestore.focus();
+    },
+  });
 }
 
 async function hydrateCurrentView(serial = routeSerial) {
@@ -288,6 +357,7 @@ async function hydrateCurrentView(serial = routeSerial) {
   prepareReadabilityGlass(main);
   await hydrateLiquidGlass(main);
   if (serial !== routeSerial) return;
+  bindLiquidButtons(main);
   if (page === 'glass-ui') bindGlassControls();
   if (page === 'settings') bindSettingsPage(main);
   initReveal();
@@ -296,6 +366,7 @@ async function hydrateCurrentView(serial = routeSerial) {
 function renderCurrentViewWithoutTransition() {
   const main = document.querySelector('#main');
   if (!main) return;
+  destroyLiquidButtonsWithin(main);
   destroyLiquidGlassWithin(main);
   main.innerHTML = pageBody();
   bindRouteInteractions();
@@ -323,6 +394,7 @@ async function navigateSpa(next, {
   const main = document.querySelector('#main');
   const swap = () => {
     if (serial !== routeSerial || !main) return;
+    destroyLiquidButtonsWithin(main);
     destroyLiquidGlassWithin(main);
     page = next;
     main.innerHTML = pageBody();
@@ -394,6 +466,7 @@ async function boot() {
   preloadLiquidGlass().catch(() => {});
   prepareReadabilityGlass(document);
   await initLiquidGlass();
+  bindLiquidButtons(document);
   if (page === 'glass-ui') bindGlassControls();
   if (page === 'settings') bindSettingsPage(document.querySelector('#main'));
   ensureDataForPage(page);

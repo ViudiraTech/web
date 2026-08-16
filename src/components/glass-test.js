@@ -1,4 +1,5 @@
 import { icons } from '../utils/icons.js';
+import { liquidButton } from './liquid-button.js';
 
 export function glassTest() {
   return `<div class="glass-test" data-glass-test>
@@ -9,7 +10,7 @@ export function glassTest() {
       <p class="mono glass-test__label">Text / soft gradient / color / geometric shape</p>
       <p class="glass-test__copy">玻璃中心应该保持接近原始页面的清晰度；真正明显的位移集中在圆角和边缘附近。滚动页面时，玻璃处理的是背后的实时内容，不再生成 WebGL 页面截图。</p>
     </div>
-    <button class="icon-button glass-test__close" aria-label="关闭 Liquid Glass 测试" data-glass-test-close>${icons.close(20)}</button>
+    ${liquidButton({ label: icons.close(20), preset: 'catalog-button-surface', className: 'catalog-icon-button glass-test__close', backdrop: 'ambient', attributes: 'aria-label="关闭 Liquid Glass 测试" data-glass-test-close data-glass-settings-scope="site"' })}
     <div class="glass-test__pane liquid-glass" data-glass-preset="test">
       <div class="glass-content">
         <span class="eyebrow">LiquidGlassTest · SVG displacement</span>

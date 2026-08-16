@@ -1,5 +1,6 @@
 import { escapeHtml } from '../utils/html.js';
 import { activateLiquidGlassElement, deactivateLiquidGlassElement } from '../glass/liquid-glass.js';
+import { liquidButton, bindLiquidButtons } from './liquid-button.js';
 
 let activeDialog = null;
 
@@ -21,8 +22,8 @@ function dialogMarkup({ title, message, detail = '', confirmLabel = '确定', ca
         ${detail ? `<p class="liquid-dialog__detail">${escapeHtml(detail)}</p>` : ''}
       </div>
       <div class="liquid-dialog__actions">
-        <button class="liquid-dialog__action liquid-dialog__action--cancel" type="button" data-liquid-dialog-cancel>${escapeHtml(cancelLabel)}</button>
-        <button class="liquid-dialog__action ${accent ? 'liquid-dialog__action--confirm' : ''}" type="button" data-liquid-dialog-confirm>${escapeHtml(confirmLabel)}</button>
+        ${liquidButton({ label: escapeHtml(cancelLabel), preset: 'catalog-button-surface', className: 'liquid-dialog__action', backdrop: 'ambient', attributes: 'data-liquid-dialog-cancel data-glass-settings-scope="site"' })}
+        ${liquidButton({ label: escapeHtml(confirmLabel), preset: accent ? 'catalog-button-blue' : 'catalog-button-surface', className: `liquid-dialog__action ${accent ? 'catalog-button--tinted liquid-dialog__action--confirm' : ''}`, backdrop: 'ambient', attributes: 'data-liquid-dialog-confirm data-glass-settings-scope="site"' })}
       </div>
     </section>
   </div>`;
@@ -33,6 +34,10 @@ async function closeDialog(state, result) {
   state.closing = true;
   state.layer.classList.add('is-closing');
   await Promise.race([wait(180), new Promise((resolve) => state.dialog.addEventListener('transitionend', resolve, { once: true }))]);
+  state.layer.querySelectorAll('[data-liquid-button]').forEach((button) => {
+    button._liquidButtonController?.destroy?.();
+    deactivateLiquidGlassElement(button);
+  });
   deactivateLiquidGlassElement(state.dialog);
   state.layer.remove();
   document.body.style.overflow = state.previousOverflow;
@@ -98,10 +103,19 @@ export async function showLiquidDialog(options = {}) {
   document.body.append(layer);
   document.body.style.overflow = 'hidden';
   activateLiquidGlassElement(dialog);
+  // LiquidButton creates/activates its top-level optical proxy itself. Only
+  // standalone glass elements (the Dialog body) are activated directly here.
+  bindLiquidButtons(layer);
   document.addEventListener('keydown', state.onKeyDown, true);
 
-  confirm?.addEventListener('click', () => closeDialog(state, true));
-  cancel?.addEventListener('click', () => closeDialog(state, false));
+  confirm?.addEventListener('click', async () => {
+    await confirm._liquidButtonController?.completeActivationAndWait?.({ timeout: 1200, minimumPeak: 0.62 });
+    closeDialog(state, true);
+  });
+  cancel?.addEventListener('click', async () => {
+    await cancel._liquidButtonController?.completeActivationAndWait?.({ timeout: 1200, minimumPeak: 0.62 });
+    closeDialog(state, false);
+  });
   dismiss?.addEventListener('click', () => closeDialog(state, false));
 
   await nextFrame();

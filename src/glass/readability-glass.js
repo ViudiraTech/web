@@ -1,7 +1,14 @@
 import { getSiteGlassPreferences } from './site-preferences.js';
-import { activateLiquidGlassElement, deactivateLiquidGlassElement } from './liquid-glass.js';
+import {
+  deactivateLiquidGlassElement,
+  hydrateLiquidGlass,
+} from './liquid-glass.js';
 
 export const READABILITY_SURFACE_SELECTOR = [
+  // Only the lightweight plates that were introduced specifically to keep
+  // copy readable over the photographic wallpaper belong to this preference.
+  // Product/project/network cards keep their own authored material and never
+  // get promoted by the readability toggle.
   '.hero-kicker',
   '.hero h1',
   '.hero-lead',
@@ -25,9 +32,6 @@ export const READABILITY_SURFACE_SELECTOR = [
   '.catalog-hero .eyebrow',
   '.catalog-hero h1',
   '.catalog-hero p',
-  '.about-principles>div',
-  '.stat',
-  '.activity-item',
   '.settings-control__copy',
   '.settings-isolation-note',
   '.control-doc-copy',
@@ -35,6 +39,15 @@ export const READABILITY_SURFACE_SELECTOR = [
   '.footer-copy',
   '.footer-brand',
 ].join(',');
+
+// Full-readability material policy:
+// - visible surfaces remain full Liquid Glass while scrolling;
+// - the Liquid Glass engine's IntersectionObserver alone suspends elements that
+//   are genuinely off-screen;
+// - there is deliberately no global "scrolling => frost" downgrade. Native
+//   ScrollTimeline/local sampling keeps the scene aligned without changing the
+//   material under the user's eyes.
+const knownSurfaces = new Set();
 
 function surfacesWithin(root = document) {
   const found = [];
@@ -44,22 +57,21 @@ function surfacesWithin(root = document) {
 }
 
 function markLiquid(element) {
-  if (element.dataset.readabilityLiquid === '1') return;
-  element.dataset.readabilityLiquid = '1';
+  knownSurfaces.add(element);
   element.classList.add('readability-surface', 'readability-liquid', 'liquid-glass');
+  element.dataset.readabilityLiquid = '1';
+  element.dataset.readabilityPolicy = 'persistent';
   element.dataset.glassPreset = 'readability-full';
-  // Use the same stable foreground SVG lens path as LiquidButton. The sampled
-  // wallpaper is aligned by a native root ScrollTimeline, so there is no JS
-  // background-position chasing during scroll.
   element.dataset.glassBackdrop = 'ambient';
   element.dataset.glassSampleMode = 'scroll-timeline';
   element.dataset.glassSettingsScope = 'site';
 }
 
 function unmarkLiquid(element) {
-  if (element.dataset.readabilityLiquid !== '1') return;
+  knownSurfaces.delete(element);
   deactivateLiquidGlassElement(element);
   delete element.dataset.readabilityLiquid;
+  delete element.dataset.readabilityPolicy;
   delete element.dataset.glassPreset;
   delete element.dataset.glassBackdrop;
   delete element.dataset.glassSampleMode;
@@ -69,22 +81,37 @@ function unmarkLiquid(element) {
   element.classList.add('readability-surface');
 }
 
+function prepareSurface(element, enabled) {
+  element.classList.add('readability-surface');
+  if (enabled) markLiquid(element);
+  else unmarkLiquid(element);
+}
+
 export function prepareReadabilityGlass(root = document) {
   const enabled = getSiteGlassPreferences().readabilityLiquid;
   const surfaces = surfacesWithin(root);
-  for (const element of surfaces) {
-    element.classList.add('readability-surface');
-    if (enabled) markLiquid(element);
-    else unmarkLiquid(element);
-  }
+  for (const element of surfaces) prepareSurface(element, enabled);
   return surfaces;
 }
 
 export function applyReadabilityGlassMode(root = document) {
   const enabled = getSiteGlassPreferences().readabilityLiquid;
   const surfaces = prepareReadabilityGlass(root);
-  if (enabled) {
-    for (const element of surfaces) activateLiquidGlassElement(element);
+
+  if (!enabled) {
+    // Remove any stale motion marker left by older builds so CSS cannot silently
+    // fall back to the former scrolling frost mode after a hot reload/update.
+    delete document.documentElement.dataset.readabilityMotion;
+    if (root === document) {
+      for (const element of [...knownSurfaces]) unmarkLiquid(element);
+      knownSurfaces.clear();
+    }
+    return surfaces;
   }
+
+  delete document.documentElement.dataset.readabilityMotion;
+  // The engine lazily creates near-viewport controllers and suspends only truly
+  // off-screen ones. Scrolling no longer changes the selected material.
+  hydrateLiquidGlass(root);
   return surfaces;
 }

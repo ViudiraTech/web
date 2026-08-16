@@ -1,6 +1,7 @@
 import { icons } from '../utils/icons.js';
 import { formatDate } from '../github/repositories.js';
 import { escapeHtml } from '../utils/html.js';
+import { liquidButton } from './liquid-button.js';
 
 function meta(label, value) {
   if (value === null || value === undefined || value === '') return '';
@@ -11,7 +12,7 @@ export function drawerShell() {
   return `<div class="drawer-backdrop" data-drawer-backdrop></div>
     <aside class="project-drawer" aria-hidden="true" aria-label="项目详情" data-drawer>
       <div class="project-drawer__surface">
-        <button class="catalog-button catalog-icon-button drawer-close-floating liquid-glass" data-liquid-button type="button" aria-label="关闭项目详情" data-drawer-close data-glass-defer="true" data-glass-preset="catalog-button-surface" data-glass-settings-scope="site">${icons.close(19)}</button>
+        ${liquidButton({ label: icons.close(19), preset: 'catalog-button-surface', className: 'catalog-icon-button drawer-close-floating', live: true, attributes: 'aria-label="关闭项目详情" data-drawer-close data-glass-settings-scope="site"' })}
         <div class="project-drawer__content" data-drawer-content>
           <div class="loading-state">选择一个项目查看详细信息。</div>
         </div>
@@ -66,7 +67,7 @@ export function renderDrawer(repo, { readme = '', languages = {}, loading = fals
     <section class="drawer-section drawer-section-card"><h4>Languages</h4>${loading ? '<p class="muted">正在读取语言统计…</p>' : languageView(languages)}</section>
     <section class="drawer-section drawer-section-card"><h4>README 摘要</h4><div class="readme-summary">${loading ? '正在读取 README…' : readmeExcerpt(readme)}</div></section>
     <div class="button-row drawer-actions">
-      <a class="button button--primary" href="${repo.url}" target="_blank" rel="noreferrer">${icons.github(17)} 查看 GitHub</a>
-      ${repo.homepage ? `<a class="button button--secondary" href="${repo.homepage}" target="_blank" rel="noreferrer">${icons.external(16)} 项目主页</a>` : ''}
+      ${liquidButton({ label: `${icons.github(17)} 查看 GitHub`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action', backdrop: 'ambient', sampleMode: 'dynamic', href: repo.url, target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}
+      ${repo.homepage ? liquidButton({ label: `${icons.external(16)} 项目主页`, preset: 'catalog-button-surface', className: 'site-liquid-action', backdrop: 'ambient', sampleMode: 'dynamic', href: repo.homepage, target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' }) : ''}
     </div>`;
 }

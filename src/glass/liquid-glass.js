@@ -779,7 +779,7 @@ function ensureActivityObserver() {
       if (entry.isIntersecting) controller.resume();
       else controller.suspend();
     }
-  }, { rootMargin: '180px 0px' });
+  }, { rootMargin: '80px 0px' });
   return activityObserver;
 }
 
@@ -899,7 +899,7 @@ function ensureLazyObserver() {
       if (entry.target.isConnected) createController(entry.target, currentProfile || detectGlassProfile());
       lazyObserver.unobserve(entry.target);
     }
-  }, { rootMargin: '360px 0px' });
+  }, { rootMargin: '180px 0px' });
   return lazyObserver;
 }
 
@@ -934,13 +934,19 @@ export async function hydrateLiquidGlass(root = document) {
     const lazyTargets = [];
     for (const element of targets) {
       if (controllerMap.has(element) || element.dataset.glassDefer === 'true') continue;
-      const inCatalog = Boolean(element.closest('.catalog-demo'));
-      if (!inCatalog) {
+      if (element.dataset.glassKeepActive === 'true') {
         createController(element, profile);
         continue;
       }
+      // Do not eagerly allocate an SVG filter + optical scene for every glass
+      // surface in the SPA. Build only elements near the viewport and let the
+      // observer hydrate the rest just before they are needed.
       const rect = element.getBoundingClientRect();
-      if (rect.bottom > -220 && rect.top < innerHeight + 360) createController(element, profile);
+      const nearViewport = rect.bottom > -160
+        && rect.top < innerHeight + 220
+        && rect.right > -120
+        && rect.left < innerWidth + 120;
+      if (nearViewport) createController(element, profile);
       else lazyTargets.push(element);
     }
 

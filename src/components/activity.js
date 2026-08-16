@@ -1,6 +1,7 @@
 import { icons } from '../utils/icons.js';
 import { formatRelative } from '../github/repositories.js';
 import { escapeHtml } from '../utils/html.js';
+import { liquidButton } from './liquid-button.js';
 
 function eventText(event) {
   const repo = event.repo?.name?.replace('ViudiraTech/', '') || 'ViudiraTech';
@@ -30,14 +31,14 @@ export function activitySection(events = [], state = 'loading', options = {}) {
   const useful = events.filter((event) => ['PushEvent','ReleaseEvent','PullRequestEvent','IssuesEvent','CreateEvent'].includes(event.type)).slice(0, limit);
   let list = '';
   if (state === 'loading') list = '<div class="loading-state">正在读取 GitHub Public Events…<div class="loading-bar"></div></div>';
-  else if (!useful.length) list = `<div class="empty-state">暂未取得可展示的公开 Activity。你可以前往 GitHub 查看最新提交、发布与协作动态。<br/><a class="activity-link" href="https://github.com/ViudiraTech" target="_blank" rel="noreferrer">前往 GitHub 查看最新开发动态 ${icons.arrow(14)}</a></div>`;
+  else if (!useful.length) list = `<div class="empty-state"><p>暂未取得可展示的公开 Activity。你可以前往 GitHub 查看最新提交、发布与协作动态。</p>${liquidButton({ label: `前往 GitHub ${icons.arrow(14)}`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action site-liquid-action--compact empty-state__action', backdrop: 'ambient', href: 'https://github.com/ViudiraTech', target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}</div>`;
   else list = useful.map((event) => {
     const text = eventText(event);
-    return `<article class="activity-item reveal"><span class="activity-dot"></span><div class="activity-time">${formatRelative(event.created_at)}</div><h3>${escapeHtml(text.title)}</h3><p class="activity-message">${escapeHtml(text.message)}</p><a class="activity-link" href="${eventUrl(event)}" target="_blank" rel="noreferrer">在 GitHub 查看 ${icons.external(13)}</a></article>`;
+    return `<article class="activity-item reveal"><span class="activity-dot"></span><div class="activity-time">${formatRelative(event.created_at)}</div><h3>${escapeHtml(text.title)}</h3><p class="activity-message">${escapeHtml(text.message)}</p><div class="activity-item__action">${liquidButton({ label: `在 GitHub 查看 ${icons.external(13)}`, preset: 'catalog-button-surface', className: 'site-liquid-action site-liquid-action--compact', backdrop: 'ambient', href: eventUrl(event), target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}</div></article>`;
   }).join('');
 
   return `<section class="section ${options.compact ? 'section--home' : ''}" id="activity"><div class="container activity-layout">
-    <div class="activity-intro reveal"><span class="eyebrow">Activity / Public Events</span><h2 class="section-title">${title}</h2><p class="section-copy" style="margin-top:18px">${copy}</p>${options.compact ? `<a class="text-link" href="#/activity">完整动态 ${icons.arrow(15)}</a>` : ''}</div>
+    <div class="activity-intro reveal"><span class="eyebrow">Activity / Public Events</span><h2 class="section-title">${title}</h2><p class="section-copy" style="margin-top:18px">${copy}</p>${options.compact ? liquidButton({ label: `完整动态 ${icons.arrow(15)}`, preset: 'catalog-button-surface', className: 'site-liquid-action site-liquid-action--compact', backdrop: 'ambient', href: '#/activity', attributes: 'data-glass-settings-scope="site"' }) : ''}</div>
     <div class="activity-list" data-activity-list>${list}</div>
   </div></section>`;
 }
