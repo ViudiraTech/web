@@ -8,12 +8,19 @@ export function liquidButton({
   preset = 'catalog-button',
   className = '',
   backdrop = '',
+  sampleMode = '',
   attributes = '',
   type = 'button',
 } = {}) {
   const classes = ['catalog-button', 'liquid-glass', className].filter(Boolean).join(' ');
   const backdropAttr = backdrop ? ` data-glass-backdrop="${backdrop}"` : '';
-  return `<button class="${classes}" data-liquid-button data-glass-preset="${preset}"${backdropAttr} type="${type}" ${attributes}>${label ?? ''}</button>`;
+  // Global/site LiquidButtons see the same fixed mountain scene as readability
+  // glass and shared dialogs. Bind those buttons to the native root scroll
+  // timeline sampler by default. Catalog-lab buttons intentionally omit an
+  // explicit backdrop and keep sampling their own moving demo canvas instead.
+  const resolvedSampleMode = sampleMode || (backdrop === 'ambient' ? 'scroll-timeline' : '');
+  const sampleModeAttr = resolvedSampleMode ? ` data-glass-sample-mode="${resolvedSampleMode}"` : '';
+  return `<button class="${classes}" data-liquid-button data-glass-preset="${preset}"${backdropAttr}${sampleModeAttr} type="${type}" ${attributes}>${label ?? ''}</button>`;
 }
 
 function pointerPercent(clientX, clientY, rect, width, height) {
@@ -55,9 +62,9 @@ export function bindLiquidButton(button) {
     const sx = baseScale + dragScale * Math.abs(Math.cos(angle) * offsetX / Math.max(maxDimension, 1)) * Math.min(width / Math.max(height, 1), 1);
     const sy = baseScale + dragScale * Math.abs(Math.sin(angle) * offsetY / Math.max(maxDimension, 1)) * Math.min(height / Math.max(width, 1), 1);
     button.style.transform = `translate3d(${tx.toFixed(3)}px,${ty.toFixed(3)}px,0) scale(${sx.toFixed(5)},${sy.toFixed(5)})`;
-    // The local-sample renderer is a foreground copy of the backdrop. Transform
-    // motion does not trigger ResizeObserver, so keep the sample anchored to the
-    // scene while the glass capsule itself translates.
+    // Root scrolling is handled natively by ScrollTimeline for ambient-backed
+    // buttons. Button drag/press transforms still move the capsule relative to
+    // that scene, so only those animation frames need a geometry refresh here.
     refreshLiquidGlassBackdropSample(button);
     setLiquidGlassState(button, { press, highlightAlpha: 1, pointerX, pointerY });
   };
