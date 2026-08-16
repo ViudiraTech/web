@@ -1,7 +1,7 @@
 import { liquidButton, bindLiquidButtons } from './liquid-button.js';
 import { liquidToggle, bindLiquidToggles } from './liquid-toggle.js';
 import { liquidSlider, bindLiquidSliders } from './liquid-slider.js';
-import { activateLiquidGlassElement, deactivateLiquidGlassElement, setLiquidGlassState } from '../glass/liquid-glass.js';
+import { activateLiquidGlassElement, deactivateLiquidGlassElement, suspendLiquidGlassElement, setLiquidGlassState } from '../glass/liquid-glass.js';
 
 function svg(body, size = 18, viewBox = '0 0 24 24') {
   return `<svg viewBox="${viewBox}" width="${size}" height="${size}" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
@@ -380,10 +380,15 @@ function updateDockRunning(root) {
   });
 }
 
+function setWindowGlassActive(windowEl, active) {
+  windowEl?.querySelectorAll('.liquid-glass').forEach(active ? activateLiquidGlassElement : suspendLiquidGlassElement);
+}
+
 function openWindow(root, name) {
   const windowEl = root.querySelector(`[data-macos-window="${name}"]`);
   if (!windowEl) return false;
   windowEl.classList.remove('is-hidden', 'is-minimized');
+  setWindowGlassActive(windowEl, true);
   bringToFront(root, windowEl);
   updateDockRunning(root);
   return true;
@@ -392,6 +397,7 @@ function openWindow(root, name) {
 function closeWindow(root, windowEl) {
   windowEl.classList.add('is-hidden');
   windowEl.classList.remove('is-minimized', 'is-maximized');
+  setWindowGlassActive(windowEl, false);
   updateDockRunning(root);
   const visible = [...root.querySelectorAll('[data-macos-window]:not(.is-hidden)')].sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0));
   setActiveApp(root, visible[0]?.dataset.macosWindow || 'Finder');
@@ -399,11 +405,12 @@ function closeWindow(root, windowEl) {
 
 function minimizeWindow(root, windowEl) {
   windowEl.classList.add('is-minimized');
-  window.setTimeout(() => windowEl.classList.add('is-hidden'), 210);
+  window.setTimeout(() => { windowEl.classList.add('is-hidden'); setWindowGlassActive(windowEl, false); }, 210);
   updateDockRunning(root);
 }
 
 function toggleZoom(windowEl) {
+  windowEl.classList.remove('is-snapped');
   if (!windowEl.classList.contains('is-maximized')) {
     const rect = windowEl.getBoundingClientRect();
     windowEl.dataset.restoreGeometry = JSON.stringify({ left: rect.left, top: rect.top, width: rect.width, height: rect.height });
@@ -476,7 +483,10 @@ function setOverlay(root, name, open) {
   if (!target) return;
   target.classList.toggle('is-open', open);
   target.setAttribute('aria-hidden', String(!open));
-  if (open && target.classList.contains('liquid-glass')) activateLiquidGlassElement(target);
+  if (target.classList.contains('liquid-glass')) {
+    if (open) activateLiquidGlassElement(target);
+    else suspendLiquidGlassElement(target);
+  }
 }
 
 function closeOverlays(root, except = '') {
@@ -693,12 +703,12 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
     const t = Math.max(0, Math.min(1, Number(value ?? 52) / 100));
     root.style.setProperty('--macos27-glass-level', t.toFixed(3));
     const ranges = {
-      'macos-menubar': [0.12, 0.42, 6, 13],
-      'macos-toolbar': [0.16, 0.50, 5, 13],
-      'macos-control': [0.10, 0.45, 2, 8],
-      'macos-clear-control': [0.035, 0.25, 1, 5],
-      'macos-dock': [0.12, 0.48, 7, 18],
-      'macos-popover': [0.30, 0.72, 10, 22],
+      'macos-menubar': [0.07, 0.34, 2.5, 10],
+      'macos-toolbar': [0.09, 0.40, 2, 10],
+      'macos-control': [0.05, 0.34, 0.8, 6],
+      'macos-clear-control': [0.025, 0.20, 0.4, 3.5],
+      'macos-dock': [0.07, 0.38, 3, 13],
+      'macos-popover': [0.18, 0.66, 6, 18],
     };
     root.querySelectorAll('.liquid-glass[data-glass-preset^="macos-"]').forEach((element) => {
       const range = ranges[element.dataset.glassPreset];
@@ -707,12 +717,16 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
       setLiquidGlassState(element, {
         surfaceAlpha: a0 + (a1 - a0) * t,
         blur: b0 + (b1 - b0) * t,
-        intensity: 0.88 + (1 - t) * 0.18,
+        intensity: 1.22 - t * 0.22,
       });
     });
   };
   root._updateMacGlassLevel = updateMacGlassLevel;
   updateMacGlassLevel(52);
+  root.querySelectorAll('[data-macos-window].is-hidden').forEach((windowEl)=>setWindowGlassActive(windowEl,false));
+  ['control-center','system-popover','app-menu','spotlight'].forEach((name)=>{
+    const panel=root.querySelector(`[data-macos-${name}]`); if(panel && !panel.classList.contains('is-open'))suspendLiquidGlassElement(panel);
+  });
 
   root.querySelector('[data-setting-slider="ccBrightness"]')?.addEventListener('liquidslider:input', (event) => root.style.setProperty('--macos27-brightness', (0.55 + Number(event.detail?.value ?? 72) / 100 * 0.6).toFixed(2)));
   root.querySelector('[data-setting-slider="ccVolume"]')?.addEventListener('liquidslider:input', (event) => root.style.setProperty('--macos27-volume', `${Number(event.detail?.value ?? 42)}%`));
@@ -730,7 +744,14 @@ export function bindMacos27Simulator(root = document.querySelector('[data-macos2
     if (mod && event.code === 'Space') { event.preventDefault(); root.querySelector('[data-macos-spotlight-open]')?.click(); return; }
     if (event.key === 'Escape') { closeOverlays(root); return; }
     if (mod && event.key.toLowerCase() === 'w') { const active = root.querySelector('[data-macos-window].is-front:not(.is-hidden)'); if (active) { event.preventDefault(); closeWindow(root, active); } }
-    if (mod && event.key.toLowerCase() === 'm') { const active = root.querySelector('[data-macos-window].is-front:not(.is-hidden)'); if (active) { event.preventDefault(); minimizeWindow(root, active); } }
+    if (mod && event.key.toLowerCase() === 'm') { const active = root.querySelector('[data-macos-window].is-front:not(.is-hidden)'); if (active) { event.preventDefault(); minimizeWindow(root, active); } return; }
+    if (mod && event.key === 'Tab') {
+      event.preventDefault();
+      const windows=[...root.querySelectorAll('[data-macos-window]')].filter(el=>!el.classList.contains('is-hidden'));
+      if(!windows.length)return;
+      const active=windows.findIndex(el=>el.classList.contains('is-front'));
+      bringToFront(root,windows[(active+1+windows.length)%windows.length]);
+    }
   };
   document.addEventListener('keydown', keyHandler);
 

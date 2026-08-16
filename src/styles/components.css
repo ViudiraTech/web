@@ -1017,6 +1017,15 @@ html[data-glass="svg"] .liquid-dialog.liquid-local-sample{
   font-weight:620;
 }
 .site-liquid-action svg{width:17px;height:17px;pointer-events:none}
+/* Ordinary site CTAs are in-place local-sample lenses. Keep the optical layers
+   clipped to the real pill so no visual copy can escape into another overlay. */
+html[data-glass="svg"] .site-liquid-action.liquid-local-sample{
+  overflow:hidden;
+  isolation:isolate;
+}
+html[data-glass="svg"] .site-liquid-action.liquid-local-sample>.liquid-optic-layer{
+  transform:translateZ(0) scale(1.012);
+}
 .catalog-icon-button.nav-menu-btn{display:none}
 @media(max-width:760px){.catalog-icon-button.nav-menu-btn{display:grid}}
 

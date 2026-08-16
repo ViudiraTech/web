@@ -181,16 +181,20 @@ export function liquidButton({
   target = '',
   rel = '',
 } = {}) {
-  // Site buttons use a top-level live optical proxy. This keeps the actual
-  // backdrop-filter outside card/Dialog/Drawer stacking and backdrop roots while
-  // the semantic button remains in normal document flow. Catalog Lab controls
-  // keep their deterministic local-sample renderer as the reference implementation.
-  const resolvedLive = live == null ? backdrop === 'ambient' : Boolean(live);
-  // Body-level optical portals cannot reproduce arbitrary CSS stacking contexts:
-  // on mobile they can float above unrelated sections even when the real button
-  // is underneath them. Keep ordinary controls in their own stacking context.
-  // Dialog/Drawer controls explicitly opt into a portal when they need to cross
-  // a local backdrop boundary.
+  // Rendering policy:
+  // - ordinary site CTAs stay in their real stacking context and use the
+  //   deterministic foreground local-sample renderer;
+  // - inlineLive is reserved for simulator/header controls that genuinely need
+  //   the browser's live backdrop;
+  // - portal is reserved for Drawer/Dialog controls that must cross a local
+  //   backdrop boundary.
+  //
+  // Treating every `backdrop: ambient` button as live was a regression: once the
+  // body-level proxy was removed, those buttons inherited their card/section
+  // Backdrop Root and `backdrop-filter:url(...)` often had nothing useful left
+  // to displace. The local renderer applies `filter:url(...)` to an aligned copy
+  // of #ambient instead, so refraction remains visible without escaping stacking.
+  const resolvedLive = live == null ? Boolean(inlineLive || portal) : Boolean(live);
   const useLiveProxy = resolvedLive && Boolean(portal) && !inlineLive;
   const useInlineLive = resolvedLive && !useLiveProxy;
   const classes = ['catalog-button', useLiveProxy ? '' : 'liquid-glass', className].filter(Boolean).join(' ');

@@ -135,7 +135,7 @@ for (const marker of ['panelOffsetFor', 'valueRange * 0.025', 'smoothVelocity', 
 
 const liquidButton = fs.readFileSync(path.join(root, 'src/components/liquid-button.js'), 'utf8');
 const drawer = fs.readFileSync(path.join(root, 'src/components/project-drawer.js'), 'utf8');
-for (const marker of ['data-liquid-button', 'SPRING_INTERACTIVE', 'Math.tanh(0.05', 'setLiquidGlassState', "resolvedLive = live == null ? backdrop === 'ambient'", 'maxDragScale * Math.abs(Math.cos(angle) * offsetX', 'maxDragScale * Math.abs(Math.sin(angle) * offsetY']) {
+for (const marker of ['data-liquid-button', 'SPRING_INTERACTIVE', 'Math.tanh(0.05', 'setLiquidGlassState', "resolvedLive = live == null ? Boolean(inlineLive || portal)", 'maxDragScale * Math.abs(Math.cos(angle) * offsetX', 'maxDragScale * Math.abs(Math.sin(angle) * offsetY']) {
   if (!liquidButton.includes(marker)) {
     console.error(`Shared LiquidButton regression: missing ${marker}`);
     process.exit(1);
@@ -143,6 +143,21 @@ for (const marker of ['data-liquid-button', 'SPRING_INTERACTIVE', 'Math.tanh(0.0
 }
 if (liquidButton.includes('dragFactorX = Math.min') || liquidButton.includes('dragFactorY = Math.min')) {
   console.error('Catalog LiquidButton drag deformation was hard-clamped again');
+  process.exit(1);
+}
+
+// Ordinary site CTAs must use the in-place local-sample renderer. Only the
+// Drawer close + Dialog cancel/confirm controls are allowed to opt into a
+// top-level optical portal. This keeps refraction without visual proxies
+// escaping their real stacking context.
+const portalOptIns = [...fs.readFileSync(path.join(root, 'src/components/liquid-dialog.js'), 'utf8').matchAll(/portal:\s*true/g)].length
+  + [...drawer.matchAll(/portal:\s*true/g)].length;
+if (portalOptIns !== 3) {
+  console.error(`LiquidButton portal policy regression: expected 3 explicit portal controls, got ${portalOptIns}`);
+  process.exit(1);
+}
+if (!liquidButton.includes('backdrop && !resolvedLive') || !liquidButton.includes("backdrop === 'ambient' ? 'scroll-timeline'")) {
+  console.error('LiquidButton local ambient-sample path is missing');
   process.exit(1);
 }
 for (const marker of ['project-drawer__surface', 'liquidButton({', 'drawer-summary--plain']) {

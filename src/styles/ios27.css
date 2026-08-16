@@ -187,3 +187,54 @@ body[data-page="macos27"] .ios27-sim{font-family:-apple-system,BlinkMacSystemFon
 @media (max-width:380px){
   .ios27-home-page{padding-left:14px;padding-right:14px}.ios27-app-grid{gap:15px 9px}.ios27-icon{width:55px;height:55px}.ios27-widget{height:132px}.ios27-widget strong{font-size:38px}.ios27-dock{height:74px!important}.ios27-dock .ios27-icon{width:55px;height:55px}.ios27-lock-top>strong{font-size:72px}
 }
+
+/* 2026 optical + performance finish ------------------------------------------ */
+/* Avoid permanently pinning five full-screen compositing layers on mobile.
+   JS direct manipulation still promotes transform/opacity while a gesture runs. */
+.ios27-home,.ios27-lockscreen,.ios27-app-stage,.ios27-overlay,.ios27-spotlight,.ios27-scene-dim{will-change:auto!important}
+.ios27-app-stage,.ios27-home,.ios27-overlay,.ios27-spotlight{backface-visibility:hidden}
+
+/* Make the optical rim readable without turning Liquid Glass into white blur. */
+html[data-glass="svg"] .ios27-sim .ios27-glass-primary.liquid-live::before{
+  background:
+    radial-gradient(110% 86% at 14% -12%,rgba(255,255,255,.58),rgba(255,255,255,.12) 30%,transparent 48%),
+    linear-gradient(118deg,rgba(255,255,255,.20),transparent 34% 68%,rgba(104,173,222,.10))!important;
+  border:.65px solid rgba(255,255,255,.68)!important;
+  box-shadow:inset .8px .8px .55px rgba(255,255,255,.72),inset -.65px -.65px .55px rgba(22,45,66,.10)!important;
+  mix-blend-mode:plus-lighter!important;
+  opacity:calc(.72 + var(--lg-highlight-alpha,1)*.28)!important;
+}
+html[data-glass="svg"] .ios27-sim .ios27-glass-primary.liquid-live{
+  outline:.5px solid rgba(255,255,255,.20);
+  outline-offset:-1px;
+}
+.ios27-home-search,.ios27-dock,.ios27-spotlight-search{isolation:isolate}
+.ios27-home-search::after,.ios27-dock::after,.ios27-spotlight-search::after{z-index:3}
+
+/* A little more depth for system chrome while keeping the underlying scene visible. */
+.ios27-dock{background:rgba(238,246,251,.10)!important}
+.ios27-home-search{background:rgba(24,34,47,.11)!important}
+.ios27-spotlight-search{background:rgba(240,247,251,.17)!important}
+.ios27-statusbar{z-index:200}
+.ios27-app-stage{z-index:70}.ios27-scene-dim{z-index:125}.ios27-overlay{z-index:150}.ios27-spotlight{z-index:160}.ios27-toast{z-index:250}.ios27-exit{z-index:240}
+
+/* Hidden full-screen scenes should not keep painting content beneath the active one. */
+.ios27-app-stage[aria-hidden="true"]{visibility:hidden}
+.ios27-app-stage:not([aria-hidden="true"]){visibility:visible}
+.ios27-overlay[aria-hidden="true"],.ios27-spotlight[aria-hidden="true"]{visibility:hidden}
+.ios27-overlay:not([aria-hidden="true"]),.ios27-spotlight:not([aria-hidden="true"]){visibility:visible}
+
+/* Finished app microinteractions. */
+.ios27-camera-view{background:radial-gradient(circle at 48% 35%,#536773 0 7%,#233744 26%,#111b22 68%,#080d11 100%)}
+.ios27-camera-view.is-flashing::after{content:"";position:absolute;inset:0;background:#fff;animation:iosCameraFlash .18s ease-out both;pointer-events:none;z-index:8}
+@keyframes iosCameraFlash{0%{opacity:.95}100%{opacity:0}}
+.ios27-camera-preview.has-photo{background:linear-gradient(145deg,#d99d70,#597d94 54%,#273b48)!important;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.ios27-store-list em{transition:background .18s ease,color .18s ease,transform .18s ease;min-width:54px;text-align:center}
+.ios27-store-list button.is-downloading em{background:#dfe8f2;color:#66717c}.ios27-store-list button.is-installed em{background:#dff5e4;color:#25823b}
+.ios27-phone-filter button,.ios27-app-tabbar button,.ios27-map-shortcuts button{transition:transform .12s ease,background .16s ease}
+.ios27-phone-filter button:active,.ios27-app-tabbar button:active,.ios27-map-shortcuts button:active{transform:scale(.96)}
+
+@media (pointer:coarse){
+  .ios27-sim{--ios-material-blur:9px}
+  .ios27-notification-stack article,.ios27-spotlight-results{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}

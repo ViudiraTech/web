@@ -318,16 +318,23 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   updateSimMetrics();
   const simResizeObserver=new ResizeObserver(updateSimMetrics); simResizeObserver.observe(root);
   const homePrimaryGlass=[...root.querySelectorAll('.ios27-home .ios27-glass-primary')];
+  const spotlightGlass=root.querySelector('.ios27-spotlight-search.liquid-glass');
   let homePrimaryActive=true;
   const setHomePrimaryActive=(active)=>{
     if(homePrimaryActive===active)return; homePrimaryActive=active;
     homePrimaryGlass.forEach(active?activateLiquidGlassElement:suspendLiquidGlassElement);
   };
+  // Lock screen starts above Home. Do not keep two large displacement lenses
+  // composited underneath it; wake them just before Home becomes visible.
+  setHomePrimaryActive(false);
+  suspendLiquidGlassElement(spotlightGlass);
 
   const renderUnlock=(p)=>{
     root.style.setProperty('--ios-unlock',p.toFixed(4));
     lock.style.transform=`translate3d(0,${(-22*p).toFixed(2)}%,0) scale(${mix(1,.985,p).toFixed(4)})`;
     lock.style.opacity=(1-p).toFixed(4); home.style.opacity=p.toFixed(4); home.style.transform=`scale(${mix(.94,1,p).toFixed(4)})`;
+    if(p>.22 && !activeApp && !document.hidden)setHomePrimaryActive(true);
+    else if(p<.04)setHomePrimaryActive(false);
     if(p>.995){ lock.style.pointerEvents='none'; unlocked=true; root.dataset.iosState='home'; } else if(p<.005){ lock.style.pointerEvents='auto'; unlocked=false; root.dataset.iosState='locked'; }
   };
   const unlock=makeSpring(0,renderUnlock,{dampingRatio:.88,stiffness:360});
@@ -341,7 +348,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
     stage.style.opacity=clamp(p*1.35).toFixed(4); stage.style.pointerEvents=p>.97?'auto':'none'; stage.classList.toggle('is-open',p>.985);
     home.style.transform=`translate3d(0,0,0) scale(${mix(1,.925,p).toFixed(4)})`; home.style.opacity=mix(1,.52,p).toFixed(4);
     status.classList.toggle('is-app',p>.55);
-    if(p>.08)setHomePrimaryActive(false); else if(p<.02)setHomePrimaryActive(true);
+    if(p>.08)setHomePrimaryActive(false); else if(p<.02 && unlocked && !document.hidden)setHomePrimaryActive(true);
     if(p<.005){stage.setAttribute('aria-hidden','true');stage.style.pointerEvents='none';activeApp='';root.dataset.iosState='home';}
     else{stage.removeAttribute('aria-hidden');root.dataset.iosState='app';}
   };
@@ -351,7 +358,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   const ccMotion=makeSpring(0,renderCC,{dampingRatio:.9,stiffness:430});
   const renderNC=(p)=>{ notifications.style.transform=`translate3d(0,${(-103*(1-p)).toFixed(3)}%,0)`; notifications.style.opacity=clamp(p*1.6).toFixed(4); notifications.style.pointerEvents=p>.04?'auto':'none'; notifications.setAttribute('aria-hidden',String(p<.02)); dim.style.opacity=(Math.max(ccMotion.value,p)*.34).toFixed(3); };
   const ncMotion=makeSpring(0,renderNC,{dampingRatio:.9,stiffness:430});
-  const renderSpot=(p)=>{ spotlight.style.opacity=p.toFixed(4); spotlight.style.transform=`translate3d(0,${mix(28,0,p).toFixed(2)}px,0) scale(${mix(.97,1,p).toFixed(4)})`; spotlight.style.pointerEvents=p>.04?'auto':'none'; spotlight.setAttribute('aria-hidden',String(p<.02)); dim.style.opacity=(Math.max(ccMotion.value,ncMotion.value,p*.75)*.34).toFixed(3); };
+  const renderSpot=(p)=>{ spotlight.style.opacity=p.toFixed(4); spotlight.style.transform=`translate3d(0,${mix(28,0,p).toFixed(2)}px,0) scale(${mix(.97,1,p).toFixed(4)})`; spotlight.style.pointerEvents=p>.04?'auto':'none'; spotlight.setAttribute('aria-hidden',String(p<.02)); if(p<.015)suspendLiquidGlassElement(spotlightGlass); dim.style.opacity=(Math.max(ccMotion.value,ncMotion.value,p*.75)*.34).toFixed(3); };
   const spotMotion=makeSpring(0,renderSpot,{dampingRatio:.92,stiffness:460});
   const renderPage=(p)=>{page=clamp(p);homePages.style.transform=`translate3d(${(-50*page).toFixed(3)}%,0,0)`;pageDots.forEach((dot,i)=>dot.classList.toggle('is-active',i===Math.round(page)));};
   const pageMotion=makeSpring(0,renderPage,{dampingRatio:.9,stiffness:420});
@@ -369,6 +376,24 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   root.addEventListener('click',(e)=>{
     const opener=e.target.closest('[data-ios-app-open]'); if(opener){ e.preventDefault(); openApp(opener.dataset.iosAppOpen,opener); return; }
     const toast=e.target.closest('[data-ios-toast]'); if(toast) showToast(root,toast.dataset.iosToast);
+
+    const shutter=e.target.closest('.ios27-camera-controls button');
+    if(shutter){
+      const camera=shutter.closest('.ios27-camera-view'); camera?.classList.remove('is-flashing');
+      void camera?.offsetWidth; camera?.classList.add('is-flashing');
+      root.querySelector('.ios27-camera-preview')?.classList.add('has-photo');
+    }
+    const getButton=e.target.closest('.ios27-store-list button');
+    if(getButton && !getButton.classList.contains('is-installed')){
+      const label=getButton.querySelector('em'); getButton.classList.add('is-downloading'); if(label)label.textContent='安装中';
+      window.setTimeout(()=>{if(!getButton.isConnected)return;getButton.classList.remove('is-downloading');getButton.classList.add('is-installed');if(label)label.textContent='打开';},650);
+    }
+    const phoneFilter=e.target.closest('.ios27-phone-filter button');
+    if(phoneFilter)phoneFilter.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('is-active',b===phoneFilter));
+    const photoTab=e.target.closest('.ios27-app-tabbar button');
+    if(photoTab)photoTab.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('is-active',b===photoTab));
+    const mapShortcut=e.target.closest('.ios27-map-shortcuts button');
+    if(mapShortcut)showToast(root,`${mapShortcut.textContent.trim()} · 已选择`);
   });
 
   // Lock screen: direct manipulation. New pointer input snaps the spring at its
@@ -415,7 +440,7 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
   });
 
   root.querySelector('[data-ios-cc-close]')?.addEventListener('click',()=>ccMotion.to(0));
-  root.querySelector('[data-ios-spotlight-open]')?.addEventListener('click',()=>{closeOverlays();const search=root.querySelector('.ios27-spotlight-search');activateLiquidGlassElement(search);spotMotion.interrupt();spotMotion.to(1);const input=root.querySelector('[data-ios-spotlight-input]');const results=root.querySelector('[data-ios-spotlight-results]');results.innerHTML=searchResults(root,'');setTimeout(()=>input?.focus(),120);});
+  root.querySelector('[data-ios-spotlight-open]')?.addEventListener('click',()=>{closeOverlays();activateLiquidGlassElement(spotlightGlass);spotMotion.interrupt();spotMotion.to(1);const input=root.querySelector('[data-ios-spotlight-input]');const results=root.querySelector('[data-ios-spotlight-results]');results.innerHTML=searchResults(root,'');setTimeout(()=>input?.focus(),120);});
   root.querySelector('[data-ios-spotlight-close]')?.addEventListener('click',()=>spotMotion.to(0));
   const spotInput=root.querySelector('[data-ios-spotlight-input]'); spotInput?.addEventListener('input',()=>root.querySelector('[data-ios-spotlight-results]').innerHTML=searchResults(root,spotInput.value));
   root.querySelector('[data-ios-spotlight-results]')?.addEventListener('click',(e)=>{const b=e.target.closest('[data-ios-app-open]');if(b)openApp(b.dataset.iosAppOpen,b);});
@@ -441,16 +466,26 @@ export function bindIos27Simulator(root=document.querySelector('[data-ios27-sim]
 
   const glassSlider=root.querySelector('[data-setting-slider="iosGlass"]'); glassSlider?.addEventListener('liquidslider:input',(e)=>{
     const t=Number(e.detail?.value??58)/100; root.style.setProperty('--ios-glass-level',t.toFixed(3));
-    root.style.setProperty('--ios-material-alpha',mix(.11,.38,t).toFixed(3));
-    root.style.setProperty('--ios-material-blur',`${mix(8,17,t).toFixed(1)}px`);
-    root.querySelectorAll('.ios27-glass-primary').forEach(el=>setLiquidGlassState(el,{surfaceAlpha:mix(.10,.34,t),blur:mix(4,10,t),intensity:mix(1.12,.96,t),highlightAlpha:1}));
+    root.style.setProperty('--ios-material-alpha',mix(.075,.34,t).toFixed(3));
+    root.style.setProperty('--ios-material-blur',`${mix(6,14,t).toFixed(1)}px`);
+    root.querySelectorAll('.ios27-glass-primary').forEach(el=>setLiquidGlassState(el,{surfaceAlpha:mix(.055,.30,t),blur:mix(1.2,7.5,t),intensity:mix(1.28,1.00,t),highlightAlpha:1}));
   });
   root.querySelector('[data-setting-toggle="iosReduceTransparency"]')?.addEventListener('liquidtoggle:change',(e)=>root.classList.toggle('reduce-transparency',Boolean(e.detail?.checked)));
   root.querySelector('[data-setting-toggle="iosReduceMotion"]')?.addEventListener('liquidtoggle:change',(e)=>root.classList.toggle('reduce-motion',Boolean(e.detail?.checked)));
   root.querySelector('[data-setting-slider="iosBrightness"]')?.addEventListener('liquidslider:input',(e)=>root.style.setProperty('--ios-brightness',(0.55+Number(e.detail?.value??72)/100*.65).toFixed(3)));
 
   const updateClock=()=>{if(!root.isConnected)return false;const now=new Date();const time=now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});root.querySelectorAll('[data-ios-time],[data-ios-lock-time]').forEach(el=>el.textContent=time);root.querySelector('[data-ios-lock-date]')?.replaceChildren(document.createTextNode(new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long'}).format(now)));return true;};
-  updateClock(); const timer=setInterval(()=>{if(!updateClock()){clearInterval(timer);simResizeObserver.disconnect();}},15000);
+  const visibilityHandler=()=>{
+    if(document.hidden){
+      setHomePrimaryActive(false);
+      suspendLiquidGlassElement(spotlightGlass);
+      return;
+    }
+    if(unlocked && !activeApp)setHomePrimaryActive(true);
+    if(spotMotion.value>.02)activateLiquidGlassElement(spotlightGlass);
+  };
+  document.addEventListener('visibilitychange',visibilityHandler);
+  updateClock(); const timer=setInterval(()=>{if(!updateClock()){clearInterval(timer);simResizeObserver.disconnect();document.removeEventListener('visibilitychange',visibilityHandler);}},15000);
 
   renderUnlock(0); renderApp(0); renderCC(0); renderNC(0); renderSpot(0); renderPage(0); renderIsland(0);
   requestAnimationFrame(()=>root.classList.add('is-ready'));
