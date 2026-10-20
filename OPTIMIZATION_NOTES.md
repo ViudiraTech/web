@@ -122,3 +122,19 @@ of the Liquid controls.
 - Interactive controls no longer accidentally start the panel-close drag gesture.
 - Reworked macOS 27 Control Center into a network group + Focus/Mirroring + Now Playing + display/sound hierarchy, with top-right-origin popover motion and subtle child settling.
 - Hid browser-native scrollbars in iOS/macOS Notification Center and the macOS Messages sidebar/chat while keeping wheel/touch scrolling.
+
+## 2026-10-20 — Chromatic dispersion + filter region fix
+
+- Dispersion now follows Backdrop's `RoundedRectRefractionWithDispersion` shader: the
+  refracted content is sampled seven times along `d · grad · (x·y)/(halfW·halfH)`
+  (red → purple) and mixed into one spectrum, instead of three R/G/B maps. Default
+  strength is Backdrop's `chromaticAberration = 1`; iOS/macOS Clear controls use 0.6.
+  The earlier `aberrationStrength || 0.04` multiplier shrank the split below one pixel,
+  which is why dispersion had effectively disappeared.
+- Chromium places a backdrop-filter's `userSpaceOnUse` origin inside the border box by
+  the outer `box-shadow` ink overflow (a `0 4px 14px` shadow moves it by 21×17 px). The
+  lens therefore only covered the lower-right part of shadowed controls; small thumbs
+  showed a flat patch. `syncFilterOrigin()` now shifts the filter region and maps back
+  onto the border box.
+- Displacement maps keep every sample inside the element (including the 1.62× press
+  boost), since pixels outside the border box are transparent to the filter.
