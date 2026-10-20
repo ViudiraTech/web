@@ -1,6 +1,20 @@
 # ViudiraTech Community Website
 
-ViudiraTech 官方开源社区网站。Vite + Vanilla JavaScript + GitHub API + Backdrop Catalog 风格 SVG Liquid Glass。
+ViudiraTech 官方开源社区网站。Vite + Vanilla JavaScript + GitHub API + 可开关的 Backdrop Catalog 风格 SVG Liquid Glass。
+
+## 设计与内容
+
+- 默认是暖白纸面风格：衬线标题（Noto Serif SC）、无衬线正文、单一陶土色强调色，扁平卡片，没有超大字号。设计 token 在 `src/styles/tokens.css`，公共页面样式在 `src/styles/site.css`。
+- 组织介绍内容（关注方向、代表项目、技术栈、成员、近况、参与方式）集中在 `src/data/organization.js`，均取自各仓库 README 与组织主页；Stars、语言、更新时间等实时数据仍来自 GitHub API。
+- 页面：首页、项目、关于我们、社区、动态。Liquid UI Lab、折射测试与玻璃设置移到页脚「实验室」。
+
+## Liquid Glass 开关
+
+页头右侧的「液态玻璃」开关（移动端在菜单里）和 `#/settings` 的总开关是同一个偏好（`liquid`，默认关闭，存于 `localStorage`）。
+
+- **关闭**：平面页头、普通按钮与筛选标签，SVG 玻璃引擎只在实验室页面运行。
+- **开启**：页头换成共享 LiquidBottomTabs + backplate，按钮由 `siteAction()` 渲染为共享 LiquidButton（主按钮使用 `catalog-button-clay` 色调），项目筛选换成 LiquidBottomTabs，背景换成 `src/assets/warm-scene.svg` 暖色场景，内容卡片变为 CSS 毛玻璃。
+- 切换时 `main.js` 的 `remountForGlassMode()` 销毁所有玻璃控制器并重新挂载整个外壳；`index.html` 在首帧前读取偏好，避免闪烁。
 
 ## 架构：Single-Entry SPA
 
@@ -10,10 +24,10 @@ ViudiraTech 官方开源社区网站。Vite + Vanilla JavaScript + GitHub API + 
 
 - `#/` — 首页
 - `#/projects` — Repository Explorer
-- `#/glass-ui` — Liquid UI Lab
-- `#/community` — 社区
+- `#/about` — 关于我们
+- `#/community` — 社区 / 参与方式
 - `#/activity` — GitHub Public Events
-- `#/about` — 关于
+- `#/glass-ui` — Liquid UI Lab
 - `#/settings` — Liquid Glass 设置
 - `#/glass-test` — Liquid Glass 折射测试
 
@@ -44,9 +58,9 @@ Liquid UI Lab 与设置页使用同一个 `src/components/liquid-slider.js`。�
 
 ## Liquid Glass 设置
 
-`#/settings` 提供透明度与模糊度两个共享 Liquid Slider，以及一个共享 Catalog `LiquidToggle`。50% 对应网站原始材质参数；透明度向右更通透，模糊度 0–100% 对应 0–2× 各 preset 原始 blur。设置持久化到 `localStorage`。
+`#/settings` 提供站点液态玻璃总开关、透明度与模糊度两个共享 Liquid Slider，以及阅读底的 Catalog `LiquidToggle`。50% 对应网站原始材质参数；透明度向右更通透，模糊度 0–100% 对应 0–2× 各 preset 原始 blur。设置持久化到 `localStorage`。
 
-“易读背景使用完整 Liquid Glass”默认关闭：关闭时正文阅读底使用 CSS 毛玻璃；开启时通过公共 `readability-glass.js` 把这些相同 DOM surface 切换到 `readability-full` 的完整 SVG lens / blur / depth / highlight / shadow 管线。开启前会调用公共 `liquid-dialog.js` 显示 Backdrop Catalog 风格确认 Dialog。
+“易读背景使用完整 Liquid Glass”默认关闭，且只在站点液态玻璃开启时生效：关闭时正文阅读底使用 CSS 毛玻璃；开启时通过公共 `readability-glass.js` 把这些相同 DOM surface 切换到 `readability-full` 的完整 SVG lens / blur / depth / highlight / shadow 管线。开启前会调用公共 `liquid-dialog.js` 显示 Backdrop Catalog 风格确认 Dialog。
 
 设置采用显式 `data-glass-settings-scope="site"` 作用域；Liquid UI Lab / Glass Test 的控件本身没有该 scope，因此 Catalog 的固定 blur / surface 数据不会被全局设置覆盖。
 
@@ -108,6 +122,6 @@ Vite 已改为 single-entry SPA build。Hash routing 不需要 GitHub Pages 提�
 
 ## Background
 
-The site backdrop uses the fixed Lorem Picsum image ID 1015 (mountain landscape) so the glass optics always refract the same scene.
+With Liquid Glass off the backdrop is plain warm paper. With it on, `#ambient` uses `src/assets/warm-scene.svg` (soft colour fields plus contour lines) so local-sampled lenses have structure to refract. The Liquid UI Lab canvases keep the fixed Lorem Picsum image ID 1015.
 
 The Projects category selector reuses the same shared `LiquidBottomTabs` component used by the Header and Liquid UI Lab.

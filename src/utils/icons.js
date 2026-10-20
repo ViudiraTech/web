@@ -14,5 +14,6 @@ export const icons = {
   issue: (s) => svg('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5h.01"/>', s),
   branch: (s) => svg('<circle cx="6" cy="5" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6 7v10M8 10h4a6 6 0 0 0 6-1"/>', s),
   layers: (s) => svg('<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/>', s),
+  arrowUpRight: (s) => svg('<path d="M7 17 17 7M8 7h9v9"/>', s),
   users: (s) => svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>', s),
 };

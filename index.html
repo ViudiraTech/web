@@ -1,29 +1,36 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-site-glass="off">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#eef3f2" />
-    <meta name="description" content="ViudiraTech 开源社区官方网站：操作系统、内核、系统软件与开发者工具。" />
-    <title>ViudiraTech — 开放技术社区</title>
+    <meta name="theme-color" content="#faf9f5" />
+    <meta name="description" content="ViudiraTech 是由学生发起的独立开源技术社区，从零编写操作系统内核、系统编程语言、固件与开发者工具。" />
+    <title>ViudiraTech — 我们亲手构建系统</title>
     <link rel="icon" href="./assets/logo-mark.svg" type="image/svg+xml" />
+    <script>
+      // Apply the saved Liquid Glass mode before first paint to avoid a flash.
+      try {
+        var saved = JSON.parse(localStorage.getItem('viudiratech:glass-settings:v1') || '{}');
+        if (saved && saved.liquid === true) document.documentElement.dataset.siteGlass = 'on';
+      } catch (error) {}
+    </script>
     <link rel="preconnect" href="https://fonts.loli.net" crossorigin />
-    <link rel="stylesheet" href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;500;600;700;800&amp;display=swap" />
+    <link rel="stylesheet" href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;500;600&amp;display=swap" />
     <link rel="stylesheet" href="./src/styles/reset.css" />
     <link rel="stylesheet" href="./src/styles/tokens.css" />
     <link rel="stylesheet" href="./src/styles/layout.css" />
     <link rel="stylesheet" href="./src/styles/components.css" />
     <link rel="stylesheet" href="./src/styles/responsive.css" />
+    <link rel="stylesheet" href="./src/styles/site.css" />
     <link rel="stylesheet" href="./src/styles/macos27.css" />
     <link rel="stylesheet" href="./src/styles/ios27.css" />
     <link rel="stylesheet" href="./src/styles/system-controls.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
-    <div id="ambient" class="ambient" aria-hidden="true">
+    <div id="ambient" class="ambient" data-glass-backdrop-mode="fixed-cover" data-glass-backdrop-width="2560" data-glass-backdrop-height="1440" aria-hidden="true">
       <div class="ambient__mesh ambient__mesh--a"></div>
       <div class="ambient__mesh ambient__mesh--b"></div>
-      <div class="ambient__grid"></div>
       <div class="ambient__noise"></div>
     </div>
     <div id="app"></div>

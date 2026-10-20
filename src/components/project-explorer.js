@@ -1,47 +1,60 @@
-import { CATEGORIES } from '../github/repositories.js';
+import { CATEGORIES, CATEGORY_LABELS } from '../github/repositories.js';
+import { isSiteLiquidEnabled } from '../glass/site-preferences.js';
 import { projectCard } from './project-card.js';
 import { liquidBottomTabs } from './liquid-bottom-tabs.js';
-import { liquidButton } from './liquid-button.js';
+import { siteAction } from './site-action.js';
 import { icons } from '../utils/icons.js';
 
 const PROJECT_CATEGORY_MOBILE_LABELS = {
   All: '全部',
-  'Operating System': 'OS',
-  Kernel: 'Kernel',
-  System: 'System',
-  Tool: 'Tool',
+  Kernel: '内核',
+  Language: '语言',
+  System: '固件',
+  Tool: '工具',
   Web: 'Web',
-  Experimental: '探索',
+  Experimental: '实验',
 };
+
+function countFor(repos, category) {
+  return category === 'All' ? repos.length : repos.filter((repo) => repo.category === category).length;
+}
+
+function filterControl(repos, active) {
+  if (isSiteLiquidEnabled()) {
+    return liquidBottomTabs({
+      items: CATEGORIES.map((category) => ({ id: category, label: CATEGORY_LABELS[category] || category, mobileLabel: PROJECT_CATEGORY_MOBILE_LABELS[category] || category })),
+      selected: active,
+      className: 'project-filter-tabs',
+      mode: 'filter',
+      ariaLabel: '项目分类筛选',
+      live: true,
+      indicatorSurfaceRgb: '0 0 0',
+      indicatorIdleAlpha: 0.10,
+      indicatorPressedAlpha: 0.03,
+      indicatorSurfaceFloorRatio: 0.60,
+    });
+  }
+  return `<div class="filter-chips" role="group" aria-label="项目分类筛选">
+    ${CATEGORIES.map((category) => {
+      const count = countFor(repos, category);
+      if (category !== 'All' && repos.length && !count) return '';
+      return `<button class="filter-chip" type="button" data-project-filter="${category}" aria-pressed="${category === active}">${CATEGORY_LABELS[category] || category}${repos.length ? `<span>${count}</span>` : ''}</button>`;
+    }).join('')}
+  </div>`;
+}
 
 export function projectExplorer(repos = [], { state = 'loading', active = 'All' } = {}) {
   const filtered = active === 'All' ? repos : repos.filter((repo) => repo.category === active);
   let content = filtered.map(projectCard).join('');
   if (state === 'loading') content = '<div class="loading-state">正在读取 ViudiraTech GitHub 仓库…<div class="loading-bar"></div></div>';
-  else if (state === 'error') content = `<div class="empty-state"><p>GitHub API 暂时不可用。你仍可以直接前往 ViudiraTech GitHub 查看最新项目。</p>${liquidButton({ label: `${icons.github(15)} 打开 GitHub`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action site-liquid-action--compact empty-state__action', backdrop: 'ambient', href: 'https://github.com/ViudiraTech', target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}</div>`;
-  else if (!filtered.length) content = '<div class="empty-state">当前分类没有可由公开元数据可靠归入的仓库。</div>';
+  else if (state === 'error') content = `<div class="empty-state"><p>GitHub API 暂时不可用。你仍可以直接前往 ViudiraTech GitHub 查看最新项目。</p>${siteAction({ label: `${icons.github(15)} 打开 GitHub`, href: 'https://github.com/ViudiraTech', variant: 'primary', compact: true, external: true, className: 'empty-state__action' })}</div>`;
+  else if (!filtered.length) content = '<div class="empty-state">这个分类下暂时没有公开仓库。</div>';
 
   return `
-    <section class="section" id="projects">
+    <section class="section section--tight" id="projects">
       <div class="container">
-        <header class="section-head reveal">
-          <div><span class="eyebrow">Projects / Repository Explorer</span><h2 class="section-title">以代码仓库为核心，<br/>组织项目与技术信息。</h2></div>
-          <p class="section-copy">项目名称、描述、Stars、Forks、语言、Topics、License 与更新时间均从 GitHub API 读取。分类仅依据公开的 topics、description 与 language 做前端推断。</p>
-        </header>
         <div class="project-toolbar reveal" data-glass-settings-scope="site">
-          ${liquidBottomTabs({
-            items: CATEGORIES.map((category) => ({ id: category, label: category, mobileLabel: PROJECT_CATEGORY_MOBILE_LABELS[category] || category })),
-            selected: active,
-            className: 'project-filter-tabs',
-            mode: 'filter',
-            ariaLabel: '项目分类筛选',
-            live: true,
-            indicatorSurfaceRgb: '0 0 0',
-            indicatorIdleAlpha: 0.10,
-            indicatorPressedAlpha: 0.03,
-            indicatorSurfaceFloorRatio: 0.60,
-          })}
-          <span class="project-toolbar__note">分类 = 公开元数据推断</span>
+          ${filterControl(repos, active)}
         </div>
         <div class="project-grid" data-project-grid>${content}</div>
       </div>

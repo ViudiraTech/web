@@ -2,6 +2,17 @@ import { icons } from '../utils/icons.js';
 import { formatDate } from '../github/repositories.js';
 import { escapeHtml } from '../utils/html.js';
 import { liquidButton } from './liquid-button.js';
+import { siteAction } from './site-action.js';
+import { isSiteLiquidEnabled } from '../glass/site-preferences.js';
+import { CATEGORY_LABELS } from '../github/repositories.js';
+import { FEATURED_PROJECTS } from '../data/organization.js';
+
+function closeButton() {
+  if (!isSiteLiquidEnabled()) {
+    return `<button class="icon-button drawer-close-floating" type="button" aria-label="关闭项目详情" data-drawer-close>${icons.close(19)}</button>`;
+  }
+  return liquidButton({ label: icons.close(19), preset: 'catalog-button-surface', className: 'catalog-icon-button drawer-close-floating', live: true, portal: true, attributes: 'aria-label="关闭项目详情" data-drawer-close data-glass-settings-scope="site"' });
+}
 
 function meta(label, value) {
   if (value === null || value === undefined || value === '') return '';
@@ -12,7 +23,7 @@ export function drawerShell() {
   return `<div class="drawer-backdrop" data-drawer-backdrop></div>
     <aside class="project-drawer" aria-hidden="true" aria-label="项目详情" data-drawer>
       <div class="project-drawer__surface">
-        ${liquidButton({ label: icons.close(19), preset: 'catalog-button-surface', className: 'catalog-icon-button drawer-close-floating', live: true, portal: true, attributes: 'aria-label="关闭项目详情" data-drawer-close data-glass-settings-scope="site"' })}
+        ${closeButton()}
         <div class="project-drawer__content" data-drawer-content>
           <div class="loading-state">选择一个项目查看详细信息。</div>
         </div>
@@ -52,22 +63,23 @@ function languageView(languages = {}) {
 }
 
 export function renderDrawer(repo, { readme = '', languages = {}, loading = false } = {}) {
+  const curated = FEATURED_PROJECTS.find((project) => project.name === repo.name);
   return `
     <section class="drawer-summary drawer-summary--plain">
       <div class="drawer-summary__content">
-        <div class="drawer-head"><span class="eyebrow">${escapeHtml(repo.category)} / GitHub</span></div>
-        <h2 class="drawer-title">${escapeHtml(repo.name)}</h2>
-        <p class="drawer-desc">${escapeHtml(repo.description)}</p>
+        <div class="drawer-head"><span class="kicker">${escapeHtml(CATEGORY_LABELS[repo.category] || repo.category)}</span></div>
+        <h2 class="drawer-title">${escapeHtml(curated?.title || repo.name)}</h2>
+        <p class="drawer-desc">${escapeHtml(curated ? `${curated.tagline}。${curated.copy}` : repo.description)}</p>
         <div class="drawer-meta-grid">
-          ${meta('Language', repo.language || '—')}${meta('Stars', repo.stars)}${meta('Forks', repo.forks)}${meta('License', repo.license || '未标注')}${meta('Updated', formatDate(repo.updatedAt))}${meta('Default branch', repo.defaultBranch)}
+          ${meta('语言', repo.language || '—')}${meta('Stars', repo.stars)}${meta('Forks', repo.forks)}${meta('许可证', repo.license || '未标注')}${meta('最近推送', formatDate(repo.pushedAt || repo.updatedAt))}${meta('默认分支', repo.defaultBranch)}
         </div>
       </div>
     </section>
-    <section class="drawer-section drawer-section-card"><h4>Topics</h4><div class="project-card__topics">${repo.topics.length ? repo.topics.map((x) => `<span class="topic">${escapeHtml(x)}</span>`).join('') : '<span class="muted">未设置公开 topics</span>'}</div></section>
-    <section class="drawer-section drawer-section-card"><h4>Languages</h4>${loading ? '<p class="muted">正在读取语言统计…</p>' : languageView(languages)}</section>
+    <section class="drawer-section drawer-section-card"><h4>Topics</h4><div class="chip-row">${repo.topics.length ? repo.topics.map((x) => `<span class="chip">${escapeHtml(x)}</span>`).join('') : '<span class="muted">未设置公开 topics</span>'}</div></section>
+    <section class="drawer-section drawer-section-card"><h4>语言构成</h4>${loading ? '<p class="muted">正在读取语言统计…</p>' : languageView(languages)}</section>
     <section class="drawer-section drawer-section-card"><h4>README 摘要</h4><div class="readme-summary">${loading ? '正在读取 README…' : readmeExcerpt(readme)}</div></section>
     <div class="button-row drawer-actions">
-      ${liquidButton({ label: `${icons.github(17)} 查看 GitHub`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action', backdrop: 'ambient', sampleMode: 'dynamic', href: repo.url, target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}
-      ${repo.homepage ? liquidButton({ label: `${icons.external(16)} 项目主页`, preset: 'catalog-button-surface', className: 'site-liquid-action', backdrop: 'ambient', sampleMode: 'dynamic', href: repo.homepage, target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' }) : ''}
+      ${siteAction({ label: `${icons.github(17)} 查看 GitHub`, href: repo.url, variant: 'primary', external: true, sampleMode: 'dynamic' })}
+      ${repo.homepage ? siteAction({ label: `${icons.external(16)} 项目主页`, href: repo.homepage, external: true, sampleMode: 'dynamic' }) : ''}
     </div>`;
 }

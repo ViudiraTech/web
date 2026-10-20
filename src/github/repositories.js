@@ -1,15 +1,42 @@
+// Known repositories get an explicit category; anything new falls back to a
+// best-effort inference from its public metadata.
+const KNOWN_CATEGORIES = {
+  'Uinxed-Kernel': 'Kernel',
+  SpaceKernel: 'Kernel',
+  Uinx: 'Language',
+  PySpOS: 'System',
+  ApexBIOS: 'System',
+  Sim6502: 'System',
+  'Uinxed-Agent': 'Tool',
+  'Paizer-Open-source-instant-messenger': 'Tool',
+  ModLoader: 'Tool',
+  'GPT-2.0-Model-Training-Kit': 'Experimental',
+  'uinxed-kernel-website': 'Web',
+  web: 'Web',
+};
+
 const CATEGORY_RULES = [
   ['Kernel', ['kernel', 'microkernel', 'monolithic']],
-  ['Operating System', ['operating-system', 'operating system', ' os ', 'unix', 'hobby-os']],
-  ['System', ['bios', 'emulator', 'emulation', 'virtual-machine', 'runtime', 'driver', 'system']],
+  ['Language', ['compiler', 'programming language', 'llvm']],
+  ['System', ['operating-system', 'operating system', ' os ', 'unix', 'bios', 'emulator', 'emulation', 'virtual-machine', 'runtime', 'driver', 'system']],
   ['Web', ['website', 'web', 'frontend', 'html', 'css']],
-  ['Tool', ['tool', 'agent', 'cli', 'tui', 'loader', 'training', 'messenger']],
-  ['Experimental', ['experimental', 'research', 'prototype']],
+  ['Tool', ['tool', 'agent', 'cli', 'tui', 'loader', 'messenger']],
 ];
 
-export const CATEGORIES = ['All', 'Operating System', 'Kernel', 'System', 'Tool', 'Web', 'Experimental'];
+export const CATEGORIES = ['All', 'Kernel', 'Language', 'System', 'Tool', 'Web', 'Experimental'];
+
+export const CATEGORY_LABELS = {
+  All: '全部',
+  Kernel: '内核',
+  Language: '编程语言',
+  System: '固件与模拟',
+  Tool: '工具与应用',
+  Web: 'Web',
+  Experimental: '实验',
+};
 
 export function inferCategory(repo) {
+  if (KNOWN_CATEGORIES[repo.name]) return KNOWN_CATEGORIES[repo.name];
   const haystack = ` ${(repo.name || '').toLowerCase()} ${(repo.description || '').toLowerCase()} ${(repo.language || '').toLowerCase()} ${(repo.topics || []).join(' ').toLowerCase()} `;
   for (const [category, needles] of CATEGORY_RULES) {
     if (needles.some((needle) => haystack.includes(needle))) return category;

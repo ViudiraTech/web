@@ -1,9 +1,4 @@
-@media(max-width:1024px){.hero-grid{grid-template-columns:1fr;gap:34px}.hero{padding-top:135px}.network{min-height:410px;max-width:720px;width:100%;margin:auto}.section-head{grid-template-columns:1fr;gap:18px}.activity-layout{grid-template-columns:1fr;gap:34px}.activity-intro{position:static}.community-flow{grid-template-columns:repeat(4,1fr)}.flow-step{border:1px solid var(--border-subtle);border-radius:12px!important}.flow-step::after{display:none}.tech-graph{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:760px){:root{--space-9:78px;--space-8:58px}.container{width:min(calc(100% - 28px),var(--max))}.site-nav{width:calc(100% - 22px)}.site-nav__links{display:none}.nav-menu-btn{display:grid}.hero{min-height:auto;padding:122px 0 50px}.hero h1{font-size:clamp(2.85rem,13vw,4.6rem)}.network{min-height:370px;aspect-ratio:auto}.network-node{width:116px;min-height:60px;padding:9px}.network-node:nth-of-type(n+6){display:none}.stats-strip{grid-template-columns:repeat(2,1fr)}.stat+.stat{padding-left:18px}.stat:nth-child(3){border-left:0;border-top:1px solid var(--border-subtle)}.stat:nth-child(4){border-top:1px solid var(--border-subtle)}.project-toolbar{top:82px;margin-left:-5px;margin-right:-5px}.project-toolbar__note{display:none}.project-grid{grid-template-columns:1fr}.project-card{min-height:240px;padding:20px}.drawer-meta-grid{grid-template-columns:repeat(2,1fr)}.community-flow{grid-template-columns:repeat(2,1fr);gap:7px}.tech-graph{grid-template-columns:1fr}.tech-node--primary{grid-column:auto}.join-panel{grid-template-columns:1fr;gap:28px}.join-actions{grid-template-columns:1fr 1fr}.footer-row{align-items:flex-start;flex-wrap:wrap}.footer-links{width:100%;margin-left:0}.language-row{grid-template-columns:78px 1fr 40px}}
-@media(max-width:430px){.hero-copy{font-size:.9rem}.hero-domains{gap:5px}.hero-domain{font-size:.66rem}.network{min-height:330px}.network-center{width:124px;height:75px}.network-node{width:102px}.project-drawer{right:7px;top:7px;bottom:7px;width:calc(100vw - 14px);border-radius:18px}.project-drawer__content{padding:16px}.drawer-meta-grid{grid-template-columns:1fr 1fr}.join-actions{grid-template-columns:1fr}.footer-links{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.ambient__mesh{animation:none}.reveal{opacity:1;transform:none}}
-@media(max-width:1024px){.page-intro__grid,.about-copy{grid-template-columns:1fr;gap:28px}.project-grid--preview{grid-template-columns:repeat(2,1fr)}.project-grid--preview .project-card:nth-child(3){display:none}.about-principles>div{grid-template-columns:42px 140px 1fr}}
-@media(max-width:760px){.page-intro{padding:126px 0 46px}.page-intro h1{font-size:clamp(2.8rem,13vw,4.8rem)}.site-nav{left:11px;right:11px;max-width:none;width:auto}.site-nav.is-scrolled{max-width:none}.project-grid--preview{grid-template-columns:1fr}.project-grid--preview .project-card:nth-child(3){display:block}.about-principles>div{grid-template-columns:36px 1fr}.about-principles p{grid-column:2}}
 
 @media(max-width:900px){.control-doc-row{grid-template-columns:1fr;gap:28px}.control-doc-copy{max-width:680px}.control-stage{min-height:190px}.glass-ui-orbit{opacity:.44;right:-12%}.control-sources__inner{grid-template-columns:1fr;gap:24px}}
 @media(max-width:760px){.glass-ui-hero{padding:126px 0 54px}.glass-ui-hero>.container{min-height:330px;align-items:flex-end}.glass-ui-hero h1{font-size:clamp(3.1rem,16vw,5rem)}.glass-ui-orbit{width:280px;top:-1%;right:-24%}.control-doc-row{padding:40px 0}.control-stage{padding:24px 16px;border-radius:20px}.control-stage--buttons{gap:10px}.glass-button-demo{padding:0 15px}.glass-segmented{grid-template-columns:repeat(2,1fr);max-width:330px}.glass-toolbar-demo{width:100%}.glass-toolbar-demo button{padding:0 9px}.toolbar-status{display:none}}
@@ -60,26 +55,6 @@
 @media(max-width:900px){.project-toolbar{top:86px;display:block}.project-filter-tabs{width:100%;max-width:none}.project-toolbar__note{display:block;margin:7px 4px 0;text-align:right}.project-filter-tabs .catalog-tab{font-size:.64rem;padding-inline:4px}}
 @media(max-width:640px){.project-filter-tabs{width:100%;min-width:0}.project-toolbar{overflow:visible;padding-bottom:8px}.project-toolbar__note{display:none}}
 
-@media(max-width:760px){
-  .page-intro h1{font-size:clamp(2.35rem,11vw,3.7rem);line-height:1}
-  .section-title{font-size:clamp(1.75rem,8vw,2.45rem)}
-  .settings-hero h1,.catalog-hero h1,.glass-ui-hero h1{font-size:clamp(2.45rem,11vw,3.9rem)!important;line-height:1}
-  .hero-domain{gap:5px;padding:6px 9px}
-  .hero-domain small{display:none}
-  .network{padding:16px;border-radius:20px}
-  .network-head{display:grid;gap:10px}
-  .network-status{justify-self:start}
-  .network-projects{grid-template-columns:1fr}
-  .network-project{min-height:58px}
-  .network-foot{font-size:.62rem}
-}
-@media(max-width:430px){
-  .hero h1{font-size:clamp(2.7rem,14vw,3.7rem)}
-  .hero-lead{font-size:1.05rem}
-  .hero-copy{font-size:.88rem}
-  .hero-domains{gap:6px}
-  .network-projects .network-project:nth-child(n+5){display:none}
-}
 
 /* --------------------------------------------------------------------------
    Mobile composition pass (2026-08)
@@ -89,8 +64,6 @@
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{overflow-x:clip}
   .container{width:calc(100% - 24px);max-width:none}
-  .section{padding:64px 0}
-  .section--compact,.section--home{padding:52px 0}
 
   /* Header: compact shell + reliable thumb-sized action. */
   .site-nav,
@@ -120,59 +93,6 @@
   }
   .mobile-menu__content{padding:8px}
   .mobile-menu a{min-height:48px;padding:11px 12px}
-
-  /* Hero: remove desktop-scale whitespace and make the hierarchy linear. */
-  .hero{padding:104px 0 38px!important;min-height:0!important;align-items:stretch}
-  .hero-grid{grid-template-columns:1fr!important;gap:26px!important;align-items:start}
-  .hero-copy-block{min-width:0}
-  .hero h1{font-size:clamp(2.7rem,13vw,3.55rem)!important;line-height:.94!important;margin:14px 0!important;width:100%}
-  .hero-lead{font-size:1.02rem!important;line-height:1.48;width:100%}
-  .hero-copy{font-size:.88rem!important;line-height:1.68;margin:12px 0 18px!important;width:100%}
-  .hero-kicker{max-width:100%;font-size:.70rem;line-height:1.35}
-  .hero .button-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;width:100%}
-  .hero .site-liquid-action{width:100%;min-width:0!important;padding-inline:10px;font-size:.88rem}
-  .hero-domains{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px!important;margin-top:16px!important;max-width:none!important}
-  .hero-domain{min-width:0;justify-content:center;padding:7px 8px!important;border-radius:12px!important}
-  .hero-domain strong{font-size:.72rem!important;overflow:hidden;text-overflow:ellipsis}
-  .hero-domain:nth-child(5){grid-column:1/-1}
-
-  /* Readability plates line up as a column instead of staggered floating tags. */
-  :where(
-    .hero h1,.hero-lead,.hero-copy,
-    .page-intro h1,.page-intro__copy,
-    .settings-hero h1,.settings-hero p,
-    .catalog-hero h1,.catalog-hero p,
-    .glass-ui-hero h1,
-    .activity-intro .section-title,.activity-intro .section-copy,
-    .about-copy__lead h2,.about-copy__lead p
-  ){width:100%;max-width:100%}
-
-  /* Project network: four compact rows are much easier to scan on a phone. */
-  .network{width:100%;margin:0;padding:15px!important;border-radius:20px!important;min-height:0!important;max-width:none!important}
-  .network-head{display:grid!important;grid-template-columns:1fr;gap:10px!important;padding-bottom:13px}
-  .network-head h2{font-size:1.38rem}
-  .network-status{justify-self:start!important;min-height:26px;font-size:.64rem}
-  .network-projects{grid-template-columns:1fr!important;gap:7px;margin-top:12px}
-  .network-project{min-height:56px!important;padding:8px 10px}
-  .network-projects .network-project:nth-child(n+5){display:none}
-  .network-foot{margin-top:12px;padding-top:11px;font-size:.62rem!important;gap:8px}
-
-  /* Stat cards: explicit 2x2 grid, no inherited desktop divider logic. */
-  .stats-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-  .stat,.stat+.stat{padding:13px 14px!important;border:1px solid rgba(255,255,255,.48)!important}
-  .stat:nth-child(n){border-left:1px solid rgba(255,255,255,.48)!important;border-top:1px solid rgba(255,255,255,.48)!important}
-  .stat strong{font-size:1.25rem}
-  .stat span{font-size:.69rem}
-
-  /* Generic page headers and cards. */
-  .page-intro{padding:104px 0 34px!important}
-  .page-intro__grid{grid-template-columns:1fr!important;gap:16px!important;align-items:start}
-  .page-intro h1{font-size:clamp(2.25rem,10.5vw,3.2rem)!important;line-height:.98!important;margin-top:10px}
-  .page-intro__copy{font-size:.92rem}
-  .section-head{grid-template-columns:1fr!important;gap:12px!important;margin-bottom:26px}
-  .section-title{font-size:clamp(1.72rem,7.7vw,2.3rem)!important}
-  .project-card{min-height:0!important;padding:18px!important;border-radius:16px}
-  .project-card__desc{min-height:0}
 
   /* Shared project-category BottomTabs stay one row without touching the edges. */
   .project-toolbar{top:78px!important;margin:0 -2px 20px!important;padding:3px 2px 7px!important}
@@ -216,20 +136,14 @@
   /* Drawer: real phone inset, comfortable scroll padding, close target untouched. */
   .project-drawer{top:6px!important;right:6px!important;bottom:6px!important;width:calc(100vw - 12px)!important;border-radius:21px!important}
   .project-drawer__content{padding:14px 14px calc(22px + env(safe-area-inset-bottom))!important;scrollbar-gutter:auto}
-  .drawer-close-floating{top:14px!important;right:14px!important}
+  .drawer-close-floating:not(.liquid-button-proxy){top:14px!important;right:14px!important}
   .drawer-summary__content{padding:24px 18px 18px}
   .drawer-title{font-size:clamp(1.85rem,9vw,2.55rem);margin-top:20px}
   .drawer-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 
-  .join-panel{padding:20px!important;border-radius:20px}
-  .join-actions{grid-template-columns:1fr!important}
-  .footer-row{gap:16px}
-  .footer-links{gap:12px;row-gap:8px}
 }
 
 @media (max-width:380px){
-  .hero .button-row{grid-template-columns:1fr}
-  .hero-domain{padding-inline:6px!important}
   .liquid-dialog__actions{grid-template-columns:1fr!important}
   .liquid-dialog__action{width:100%}
   .settings-panel__head{align-items:flex-start;flex-direction:column}

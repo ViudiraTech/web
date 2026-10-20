@@ -5,39 +5,20 @@ import {
 } from './liquid-glass.js';
 
 export const READABILITY_SURFACE_SELECTOR = [
-  // Only the lightweight plates that were introduced specifically to keep
-  // copy readable over the photographic wallpaper belong to this preference.
-  // Product/project/network cards keep their own authored material and never
-  // get promoted by the readability toggle.
-  '.hero-kicker',
-  '.hero h1',
-  '.hero-lead',
-  '.hero-copy',
-  '.section-head .eyebrow',
-  '.section-head .section-title',
-  '.section-head .section-copy',
-  '.page-intro .eyebrow',
-  '.page-intro h1',
-  '.page-intro__copy',
-  '.about-copy__lead .eyebrow',
-  '.about-copy__lead h2',
-  '.about-copy__lead p',
-  '.activity-intro .eyebrow',
-  '.activity-intro .section-title',
-  '.activity-intro .section-copy',
-  '.community-note',
-  '.settings-hero .eyebrow',
-  '.settings-hero h1',
-  '.settings-hero p',
-  '.catalog-hero .eyebrow',
-  '.catalog-hero h1',
-  '.catalog-hero p',
+  // Reading plates only exist while site-wide Liquid Glass is on: the warm
+  // backdrop scene is then visible behind copy, so the main text blocks get a
+  // plate. Product/project/feature cards keep their own authored material and
+  // never get promoted by the readability toggle.
+  '.hero-intro',
+  '.page-intro__inner',
+  '.section-heading>div:first-child',
+  '.cta-band__inner',
+  '.settings-hero__inner',
+  '.catalog-hero__inner',
   '.settings-control__copy',
   '.settings-isolation-note',
   '.control-doc-copy',
-  '.join-panel>div:first-child',
-  '.footer-copy',
-  '.footer-brand',
+  '.footer-about',
 ].join(',');
 
 // Full-readability material policy:
@@ -87,15 +68,20 @@ function prepareSurface(element, enabled) {
   else unmarkLiquid(element);
 }
 
+function readabilityLiquidEnabled() {
+  const prefs = getSiteGlassPreferences();
+  return prefs.liquid && prefs.readabilityLiquid;
+}
+
 export function prepareReadabilityGlass(root = document) {
-  const enabled = getSiteGlassPreferences().readabilityLiquid;
+  const enabled = readabilityLiquidEnabled();
   const surfaces = surfacesWithin(root);
   for (const element of surfaces) prepareSurface(element, enabled);
   return surfaces;
 }
 
 export function applyReadabilityGlassMode(root = document) {
-  const enabled = getSiteGlassPreferences().readabilityLiquid;
+  const enabled = readabilityLiquidEnabled();
   const surfaces = prepareReadabilityGlass(root);
 
   if (!enabled) {

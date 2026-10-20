@@ -163,6 +163,7 @@ const LOCAL_STATIC_PRESETS = new Set([
   'catalog-button-surface',
   'catalog-button-blue',
   'catalog-button-orange',
+  'catalog-button-clay',
   'catalog-tabs-panel',
   // Full readability/Dialog surfaces use the same deterministic foreground SVG
   // pipeline as LiquidButton. Their wallpaper sample is viewport-fixed in CSS.
@@ -226,6 +227,8 @@ function presetFor(element, profile) {
     'catalog-button-surface': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.08, surfaceAlpha: 0.3, highlightAlpha: 1, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-button-blue': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.04, tintRgb: '0 136 255', tintAlpha: 0.75, highlightAlpha: 1, innerShadowAlpha: 0.06, mapResolution: Math.max(profile.mapResolution, 0.82) },
     'catalog-button-orange': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.04, tintRgb: '255 141 40', tintAlpha: 0.75, highlightAlpha: 1, innerShadowAlpha: 0.06, mapResolution: Math.max(profile.mapResolution, 0.82) },
+    // Public-site primary action: the same Catalog tinted button in the site's clay accent.
+    'catalog-button-clay': { lensHeight: 12, lensAmount: 24, blur: 2, vibrancy: 1.04, tintRgb: '201 100 66', tintAlpha: 0.82, highlightAlpha: 1, innerShadowAlpha: 0.06, mapResolution: Math.max(profile.mapResolution, 0.82) },
 
     // Idle thumb is opaque white, so running a backdrop blur behind it is wasted.
     // The blur/lens chain is enabled as press progresses and the surface fades.

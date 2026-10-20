@@ -6,10 +6,9 @@ import { projectCard } from './components/project-card.js';
 import { drawerShell, renderDrawer } from './components/project-drawer.js';
 import { community } from './components/community.js';
 import { activitySection } from './components/activity.js';
-import { techMap } from './components/tech-map.js';
 import { joinSection } from './components/join.js';
 import { footer } from './components/footer.js';
-import { homeProjects } from './components/home-projects.js';
+import { homeAbout, focusSection, featuredSection } from './components/home-sections.js';
 import { homeActivity } from './components/home-activity.js';
 import { pageIntro } from './components/page-intro.js';
 import { aboutCopy } from './components/about-copy.js';
@@ -19,6 +18,7 @@ import { settingsPage, bindSettingsPage } from './components/settings.js';
 import { macos27Simulator, bindMacos27Simulator } from './components/macos27-sim.js';
 import { ios27Simulator, bindIos27Simulator, prefersIos27Simulator } from './components/ios27-sim.js';
 import { prepareReadabilityGlass } from './glass/readability-glass.js';
+import { getSiteGlassPreferences, isSiteLiquidEnabled, setSiteGlassPreferences } from './glass/site-preferences.js';
 import { bindLiquidButtons, destroyLiquidButtonsWithin } from './components/liquid-button.js';
 import { fetchRepositories, fetchOrgActivity, fetchLanguages, fetchReadme, decodeBase64Utf8 } from './github/api.js';
 import { CATEGORIES, normalizeRepository, sortRepositories } from './github/repositories.js';
@@ -27,6 +27,7 @@ import {
   initLiquidGlass,
   preloadLiquidGlass,
   hydrateLiquidGlass,
+  destroyLiquidGlass,
   destroyLiquidGlassWithin,
 } from './glass/liquid-glass.js';
 import { pageFromLocation, pageFromHref, routeHref } from './router/routes.js';
@@ -83,59 +84,50 @@ let activityPromise = null;
 let routeSerial = 0;
 
 const routeMeta = {
-  home: ['ViudiraTech — 开放技术社区', 'ViudiraTech 开源社区官方网站：操作系统、内核、系统软件与开发者工具。'],
+  home: ['ViudiraTech — 我们亲手构建系统', 'ViudiraTech 是由学生发起的独立开源技术社区，从零编写操作系统内核、系统编程语言、固件与开发者工具。'],
   projects: ['项目 — ViudiraTech', 'ViudiraTech 公开项目与 GitHub 仓库浏览。'],
   'glass-ui': ['Liquid UI Lab — ViudiraTech', 'ViudiraTech Liquid UI Lab：Backdrop Catalog 风格 Liquid Glass 控件实验室。'],
   community: ['社区 — ViudiraTech', 'ViudiraTech 开源社区协作与参与方式。'],
   activity: ['动态 — ViudiraTech', 'ViudiraTech GitHub Public Events 开发动态。'],
-  about: ['关于 — ViudiraTech', '关于 ViudiraTech 开放技术社区。'],
+  about: ['关于我们 — ViudiraTech', 'ViudiraTech 的故事、做事方式、技术版图与成员。'],
   settings: ['设置 — ViudiraTech', '调整 ViudiraTech 网站界面的 Liquid Glass 透明度与模糊度。'],
   'glass-test': ['Liquid Glass Test — ViudiraTech', 'ViudiraTech Liquid Glass 折射测试。'],
   macos27: ['Apple OS 27 Simulator — ViudiraTech Easter Egg', 'ViudiraTech 隐藏的 OS 27 交互式系统模拟彩蛋：桌面端 macOS 27，手机端 iOS 27。'],
 };
 
-function ambientLayer() {
-  return `<div id="ambient" class="ambient" data-glass-backdrop-mode="fixed-cover" data-glass-backdrop-width="2560" data-glass-backdrop-height="1440" aria-hidden="true">
-    <div class="ambient__mesh ambient__mesh--a"></div>
-    <div class="ambient__mesh ambient__mesh--b"></div>
-    <div class="ambient__noise"></div>
-  </div>`;
-}
-
 const pageIntros = {
   projects: {
-    eyebrow: 'Projects / Repository Explorer',
-    title: '完整浏览 ViudiraTech 公开项目。',
-    copy: '这里集中展示 ViudiraTech 的公开仓库。筛选、Stars、Forks、语言、Topics、License、更新时间与 README 详情均围绕 GitHub 公开数据组织。',
+    eyebrow: '项目',
+    title: '全部公开项目',
+    copy: '数据实时来自 GitHub。点开任意项目可以查看语言构成与 README 摘要。',
   },
   community: {
-    eyebrow: 'Community / Collaboration',
-    title: '社区，是发生在代码旁边的协作。',
-    copy: '参与方式围绕公开仓库展开，从 Issue、Pull Request、Review、文档和测试进入完整的协作流程。',
+    eyebrow: '社区',
+    title: '一起参与',
+    copy: 'ViudiraTech 的协作完全公开。无论你想读代码、报告问题还是提交改动，都可以从这里开始。',
   },
   activity: {
-    eyebrow: 'Activity / Public Events',
-    title: '把开发动态留给一整页。',
-    copy: '展示 GitHub Public Events 中的 Push、Release、Pull Request、Issue 与创建事件，并保持与公开活动数据同步。',
+    eyebrow: '动态',
+    title: '最近的开发动态',
+    copy: '组织内所有公开仓库的提交、发布、Issue 与 Pull Request。',
   },
   about: {
-    eyebrow: 'About / ViudiraTech',
-    title: '一个关注底层技术的开放组织。',
-    copy: 'ViudiraTech 聚焦操作系统、内核、系统软件、开发者工具和前沿技术探索，官网用于连接项目、技术方向与开放协作。',
+    eyebrow: '关于我们',
+    title: '一群想弄懂计算机每一层的学生',
   },
 };
 
 function pageBody() {
-  if (page === 'home') return `${hero(repositories, repoState)}${homeProjects(repositories, repoState)}${homeActivity(activity, activityState)}`;
+  if (page === 'home') return `${hero()}${homeAbout(repositories, repoState)}${focusSection()}${featuredSection(repositories)}${homeActivity(activity, activityState)}${joinSection()}`;
   if (page === 'projects') return `${pageIntro(pageIntros.projects)}${projectExplorer(repositories, { state: repoState === 'error' ? 'error' : repoState === 'loading' ? 'loading' : 'ready', active: activeFilter })}`;
   if (page === 'community') return `${pageIntro(pageIntros.community)}${community()}${joinSection()}`;
   if (page === 'activity') return `${pageIntro(pageIntros.activity)}${activitySection(activity, activityState)}`;
-  if (page === 'about') return `${pageIntro(pageIntros.about)}${aboutCopy()}${techMap(repositories)}`;
+  if (page === 'about') return `${pageIntro(pageIntros.about)}${aboutCopy(repositories, repoState)}${joinSection()}`;
   if (page === 'glass-ui') return glassControlsLab();
   if (page === 'settings') return settingsPage();
   if (page === 'glass-test') return glassTest();
   if (page === 'macos27') return prefersIos27Simulator() ? ios27Simulator() : macos27Simulator();
-  return hero(repositories, repoState);
+  return hero();
 }
 
 function needsRepos(target = page) {
@@ -155,14 +147,53 @@ function updateMetadata() {
 }
 
 function mountShell() {
-  app.innerHTML = `${ambientLayer()}${navbar(page)}<main id="main" data-spa-view tabindex="-1"></main>${footer()}${drawerShell()}`;
+  app.innerHTML = `${navbar(page)}<main id="main" data-spa-view tabindex="-1"></main>${footer()}${drawerShell()}`;
   document.querySelector('#main').innerHTML = pageBody();
   bindNavbar();
   bindGlobalInteractions();
+  bindShellInteractions();
   bindRouteInteractions();
   updateMetadata();
   syncMobileNavbar(page);
   initReveal();
+}
+
+// Runs after every shell mount: hydrates glass for whatever is on screen and
+// binds the controls of the current route.
+async function activateShell() {
+  prepareReadabilityGlass(document);
+  await initLiquidGlass();
+  bindLiquidButtons(document);
+  if (page === 'glass-ui') bindGlassControls();
+  if (page === 'settings') bindSettingsPage(document.querySelector('#main'));
+  if (page === 'macos27') {
+    bindMacos27Simulator(document.querySelector('[data-macos27-sim]'));
+    bindIos27Simulator(document.querySelector('[data-ios27-sim]'));
+  }
+}
+
+// Switching Liquid Glass on/off re-renders the whole shell, because the header,
+// buttons and filters are different components in each mode.
+let mountedLiquid = null;
+let remountTimer = 0;
+async function remountForGlassMode() {
+  remountTimer = 0;
+  const liquid = isSiteLiquidEnabled();
+  if (liquid === mountedLiquid) return;
+  mountedLiquid = liquid;
+  const scrollY = window.scrollY;
+  drawerRepo = null;
+  stopDrawerTransitionWatch();
+  document.body.style.overflow = '';
+  destroyLiquidButtonsWithin(document);
+  destroyLiquidGlass();
+  mountShell();
+  document.querySelectorAll('#main .reveal').forEach((node) => {
+    node.dataset.revealBound = '1';
+    node.classList.add('is-visible');
+  });
+  window.scrollTo({ top: scrollY, left: 0, behavior: 'auto' });
+  await activateShell();
 }
 
 function filteredRepositories() {
@@ -172,13 +203,16 @@ function filteredRepositories() {
 function updateProjectGrid() {
   const grid = document.querySelector('[data-project-grid]');
   if (!grid) return;
+  document.querySelectorAll('#main [data-project-filter]').forEach((chip) => {
+    chip.setAttribute('aria-pressed', String(chip.dataset.projectFilter === activeFilter));
+  });
   const repos = filteredRepositories();
   // Tear down top-level LiquidButton proxies before replacing their owners.
   // Waiting for a MutationObserver sweep leaves a one-frame orphan that is very
   // visible on phones during rapid tab changes.
   destroyLiquidButtonsWithin(grid);
   destroyLiquidGlassWithin(grid);
-  grid.innerHTML = repos.length ? repos.map(projectCard).join('') : '<div class="empty-state">当前分类没有可由公开元数据可靠归入的仓库。</div>';
+  grid.innerHTML = repos.length ? repos.map(projectCard).join('') : '<div class="empty-state">这个分类下暂时没有公开仓库。</div>';
   prepareReadabilityGlass(grid);
   hydrateLiquidGlass(grid).then(() => bindLiquidButtons(grid));
   bindProjectCards();
@@ -189,10 +223,18 @@ function bindProjectCards() {
   document.querySelectorAll('#main [data-repo]').forEach((card) => {
     if (card.dataset.repoBound === '1') return;
     card.dataset.repoBound = '1';
-    const open = () => openDrawer(card.dataset.repo);
-    card.addEventListener('click', open);
+    const known = () => repositories.some((repo) => repo.fullName === card.dataset.repo);
+    // Featured cards are real links to GitHub; they only open the Drawer once
+    // the repository metadata is loaded, so they still work without the API.
+    card.addEventListener('click', (event) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!known()) return;
+      event.preventDefault();
+      openDrawer(card.dataset.repo);
+    });
+    if (card.tagName === 'A') return;
     card.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDrawer(card.dataset.repo); }
     });
   });
 }
@@ -209,16 +251,44 @@ function bindRouteInteractions() {
       updateProjectGrid();
     });
   });
+  document.querySelectorAll('#main [data-project-filter]').forEach((chip) => {
+    if (chip.dataset.projectFilterBound === '1') return;
+    chip.dataset.projectFilterBound = '1';
+    chip.addEventListener('click', () => {
+      const category = chip.dataset.projectFilter;
+      if (!CATEGORIES.includes(category) || category === activeFilter) return;
+      activeFilter = category;
+      updateProjectGrid();
+    });
+  });
   bindProjectCards();
   document.querySelector('#main [data-glass-test-close]')?.addEventListener('click', () => navigateSpa('home'));
+}
+
+// Element-level listeners for the shell; re-run whenever the shell is mounted.
+function bindShellInteractions() {
+  document.querySelector('[data-drawer-backdrop]')?.addEventListener('click', closeDrawer);
+  document.querySelector('[data-drawer-close]')?.addEventListener('click', closeDrawerAfterButtonMotion);
 }
 
 function bindGlobalInteractions() {
   if (document.documentElement.dataset.spaBound === '1') return;
   document.documentElement.dataset.spaBound = '1';
 
-  document.querySelector('[data-drawer-backdrop]')?.addEventListener('click', closeDrawer);
-  document.querySelector('[data-drawer-close]')?.addEventListener('click', closeDrawerAfterButtonMotion);
+  document.addEventListener('click', (event) => {
+    const glassSwitch = event.target.closest('[data-glass-switch]');
+    if (!glassSwitch) return;
+    const next = !isSiteLiquidEnabled();
+    document.querySelectorAll('[data-glass-switch]').forEach((node) => node.setAttribute('aria-checked', String(next)));
+    setSiteGlassPreferences({ liquid: next });
+  });
+  window.addEventListener('siteglass:change', (event) => {
+    if (Boolean(event.detail?.liquid) === mountedLiquid) return;
+    // Let the switch finish its own animation before the shell re-renders.
+    clearTimeout(remountTimer);
+    remountTimer = window.setTimeout(remountForGlassMode, 240);
+  });
+
   document.querySelector('.skip-link')?.addEventListener('click', (event) => {
     event.preventDefault();
     document.querySelector('#main')?.focus({ preventScroll: false });
@@ -475,17 +545,10 @@ function ensureDataForPage(target = page) {
 
 async function boot() {
   if (!location.hash) history.replaceState({ page }, '', routeHref(page));
+  mountedLiquid = getSiteGlassPreferences().liquid;
   mountShell();
   preloadLiquidGlass().catch(() => {});
-  prepareReadabilityGlass(document);
-  await initLiquidGlass();
-  bindLiquidButtons(document);
-  if (page === 'glass-ui') bindGlassControls();
-  if (page === 'settings') bindSettingsPage(document.querySelector('#main'));
-  if (page === 'macos27') {
-    bindMacos27Simulator(document.querySelector('[data-macos27-sim]'));
-    bindIos27Simulator(document.querySelector('[data-ios27-sim]'));
-  }
+  await activateShell();
   ensureDataForPage(page);
 }
 

@@ -3,6 +3,10 @@ export const DEFAULT_SITE_GLASS_PREFERENCES = Object.freeze({
   transparency: 50,
   blur: 50,
   readabilityLiquid: false,
+  // Master switch for Liquid Glass on the public site. Off by default: the site
+  // renders as a flat, paper-like reading surface and the SVG engine only runs
+  // on pages that are about glass (Liquid UI Lab, Glass Test, Settings preview).
+  liquid: false,
 });
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -16,6 +20,7 @@ function syncCssPreferences(values) {
   document.documentElement.style.setProperty('--site-drawer-frost-alpha', drawerAlpha.toFixed(3));
   document.documentElement.style.setProperty('--site-drawer-frost-blur', `${drawerBlur.toFixed(2)}px`);
   document.documentElement.dataset.readabilityGlass = values.readabilityLiquid ? 'liquid' : 'frosted';
+  document.documentElement.dataset.siteGlass = values.liquid ? 'on' : 'off';
 }
 
 function normalize(input = {}) {
@@ -23,6 +28,7 @@ function normalize(input = {}) {
     transparency: clamp(Number(input.transparency ?? DEFAULT_SITE_GLASS_PREFERENCES.transparency) || 0, 0, 100),
     blur: clamp(Number(input.blur ?? DEFAULT_SITE_GLASS_PREFERENCES.blur) || 0, 0, 100),
     readabilityLiquid: input.readabilityLiquid === true || input.readabilityLiquid === 'true',
+    liquid: input.liquid === true || input.liquid === 'true',
   };
 }
 
@@ -42,6 +48,10 @@ export function getSiteGlassPreferences() {
   return { ...load() };
 }
 
+export function isSiteLiquidEnabled() {
+  return load().liquid;
+}
+
 export function setSiteGlassPreferences(next = {}) {
   current = normalize({ ...load(), ...next });
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch {}
@@ -51,7 +61,8 @@ export function setSiteGlassPreferences(next = {}) {
 }
 
 export function resetSiteGlassPreferences() {
-  current = { ...DEFAULT_SITE_GLASS_PREFERENCES };
+  // Reset restores material values only; the master on/off switch is kept.
+  current = { ...DEFAULT_SITE_GLASS_PREFERENCES, liquid: load().liquid };
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch {}
   syncCssPreferences(current);
   window.dispatchEvent(new CustomEvent('siteglass:change', { detail: { ...current } }));
