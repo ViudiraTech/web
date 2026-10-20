@@ -124,13 +124,21 @@ if (/aberrationStrength \|\| 0\.0\d/.test(glass)) {
   console.error('Liquid Glass dispersion regression: fractional aberration default returned');
   process.exit(1);
 }
-// Chromium offsets backdrop-filter userSpaceOnUse coordinates by the outer
-// box-shadow overflow; without compensation the lens covers only part of a control.
-for (const marker of ['shadowInkOutset', 'syncFilterOrigin', 'MAX_OPTICAL_INTENSITY', 'keepInside']) {
+// Samples outside the border box are transparent to the filter; maps keep
+// every sample inside, including the press boost.
+for (const marker of ['MAX_OPTICAL_INTENSITY', 'keepInside']) {
   if (!glass.includes(marker)) {
-    console.error(`Liquid Glass filter-region regression: missing ${marker}`);
+    console.error(`Liquid Glass sampling regression: missing ${marker}`);
     process.exit(1);
   }
+}
+// The filter region must stay anchored at the border box origin. Headless
+// (software-composited) Chromium shifts it by the outer box-shadow, but GPU
+// Chromium does not; compensating for the headless quirk misaligned the lens
+// and produced doubled, cut-off refraction in real browsers.
+if (/shadowInkOutset|syncFilterOrigin/.test(glass)) {
+  console.error('Liquid Glass regression: box-shadow filter-origin compensation returned');
+  process.exit(1);
 }
 if (!glass.includes('aberrationStrength') || !glass.includes('opticalIntensity') || !glass.includes("hover: 0")) {
   console.error('Shared Liquid Glass optical interaction layers regressed');
