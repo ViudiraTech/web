@@ -188,7 +188,9 @@ function presetFor(element, profile) {
     vibrancy: 1.06,
     brightness: 1.01,
     chromaticAberration: false,
-    aberrationStrength: 0,
+    // Fraction of Backdrop's chromaticAberration = 1. Only read when
+    // chromaticAberration is on.
+    aberrationStrength: 1,
     depthEffect: 0,
     surfaceRgb: '255 255 255',
     surfaceAlpha: 0,
@@ -210,7 +212,7 @@ function presetFor(element, profile) {
     'macos-menubar': { lensHeight: 10, lensAmount: 26, blur: 2.6, vibrancy: 1.23, brightness: 1.055, depthEffect: 0.16, surfaceRgb: '248 250 252', surfaceAlpha: 0.105, highlightAlpha: 1, innerShadowAlpha: 0.045, outerShadowAlpha: 0.06, mapResolution: Math.min(profile.mapResolution, 0.66) },
     'macos-toolbar': { lensHeight: 13, lensAmount: 31, blur: 3.4, vibrancy: 1.27, brightness: 1.065, depthEffect: 0.19, surfaceRgb: '248 250 252', surfaceAlpha: 0.14, highlightAlpha: 1, innerShadowAlpha: 0.052, outerShadowAlpha: 0.078, mapResolution: Math.min(profile.mapResolution, 0.68) },
     'macos-control': { lensHeight: 12, lensAmount: 34, blur: 1.8, vibrancy: 1.24, brightness: 1.06, depthEffect: 0.23, surfaceRgb: '250 251 252', surfaceAlpha: 0.105, highlightAlpha: 1, innerShadowAlpha: 0.058, outerShadowAlpha: 0.092, mapResolution: Math.min(profile.mapResolution, 0.66) },
-    'macos-clear-control': { lensHeight: 13, lensAmount: 39, blur: 0.55, vibrancy: 1.22, brightness: 1.065, depthEffect: 0.27, chromaticAberration: true, aberrationStrength: 0.045, surfaceRgb: '250 251 252', surfaceAlpha: 0.035, highlightAlpha: 1, innerShadowAlpha: 0.06, outerShadowAlpha: 0.105, mapResolution: Math.min(profile.mapResolution, 0.66) },
+    'macos-clear-control': { lensHeight: 13, lensAmount: 39, blur: 0.55, vibrancy: 1.22, brightness: 1.065, depthEffect: 0.27, chromaticAberration: true, aberrationStrength: 0.6, surfaceRgb: '250 251 252', surfaceAlpha: 0.035, highlightAlpha: 1, innerShadowAlpha: 0.06, outerShadowAlpha: 0.105, mapResolution: Math.min(profile.mapResolution, 0.66) },
     'macos-dock': { lensHeight: 22, lensAmount: 48, blur: 5.4, vibrancy: 1.31, brightness: 1.075, depthEffect: 0.26, surfaceRgb: '247 250 252', surfaceAlpha: 0.145, highlightAlpha: 1, innerShadowAlpha: 0.052, outerShadowAlpha: 0.15, mapResolution: Math.min(profile.mapResolution, 0.70) },
     'macos-popover': { lensHeight: 24, lensAmount: 54, blur: 6.2, vibrancy: 1.36, brightness: 1.085, depthEffect: 0.31, surfaceRgb: '247 249 251', surfaceAlpha: 0.255, highlightAlpha: 1, innerShadowAlpha: 0.065, outerShadowAlpha: 0.19, mapResolution: Math.min(profile.mapResolution, 0.72) },
 
@@ -219,7 +221,7 @@ function presetFor(element, profile) {
     // touch produce a more pronounced fluid response than pointer interaction.
     'ios-island': { lensHeight: 8, lensAmount: 18, blur: 2, vibrancy: 1.16, brightness: 1.02, depthEffect: 0.10, surfaceRgb: '8 10 12', surfaceAlpha: 0.90, highlightAlpha: 0.42, innerShadowAlpha: 0.12, outerShadowAlpha: 0.14, mapResolution: profile.mapResolution },
     'ios-control': { lensHeight: 15, lensAmount: 44, blur: 1.35, vibrancy: 1.34, brightness: 1.085, depthEffect: 0.30, surfaceRgb: '246 249 251', surfaceAlpha: 0.075, highlightAlpha: 1, innerShadowAlpha: 0.085, outerShadowAlpha: 0.145, mapResolution: Math.min(profile.mapResolution, 0.56) },
-    'ios-clear-control': { lensHeight: 17, lensAmount: 52, blur: 0.35, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.35, chromaticAberration: true, aberrationStrength: 0.04, surfaceRgb: '249 251 252', surfaceAlpha: 0.022, highlightAlpha: 1, innerShadowAlpha: 0.09, outerShadowAlpha: 0.16, mapResolution: Math.min(profile.mapResolution, 0.56) },
+    'ios-clear-control': { lensHeight: 17, lensAmount: 52, blur: 0.35, vibrancy: 1.32, brightness: 1.08, depthEffect: 0.35, chromaticAberration: true, aberrationStrength: 0.6, surfaceRgb: '249 251 252', surfaceAlpha: 0.022, highlightAlpha: 1, innerShadowAlpha: 0.09, outerShadowAlpha: 0.16, mapResolution: Math.min(profile.mapResolution, 0.56) },
     'ios-dock': { lensHeight: 23, lensAmount: 58, blur: 2.8, vibrancy: 1.39, brightness: 1.095, depthEffect: 0.36, surfaceRgb: '246 249 251', surfaceAlpha: 0.085, highlightAlpha: 1, innerShadowAlpha: 0.08, outerShadowAlpha: 0.19, mapResolution: Math.min(profile.mapResolution, 0.62) },
     'ios-popover': { lensHeight: 24, lensAmount: 62, blur: 4.2, vibrancy: 1.43, brightness: 1.105, depthEffect: 0.39, surfaceRgb: '244 248 251', surfaceAlpha: 0.135, highlightAlpha: 1, innerShadowAlpha: 0.09, outerShadowAlpha: 0.22, mapResolution: Math.min(profile.mapResolution, 0.64) },
 
@@ -262,10 +264,23 @@ function presetFor(element, profile) {
   return resolved;
 }
 
-function channelMatrix(channel) {
-  if (channel === 'r') return '1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0';
-  if (channel === 'g') return '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0';
-  return '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0';
+// Backdrop's RoundedRectRefractionWithDispersion shader samples the refracted
+// content seven times along the dispersion vector (red → purple) and mixes the
+// taps into one spectrum. `k` is the position along the dispersion vector and
+// `weights` are the per-tap r/g/b contributions; each channel sums to 1.
+const SPECTRAL_TAPS = [
+  { name: 'red', k: 1, weights: [1 / 3.5, 0, 0] },
+  { name: 'orange', k: 2 / 3, weights: [1 / 3.5, 1 / 7, 0] },
+  { name: 'yellow', k: 1 / 3, weights: [1 / 3.5, 1 / 3.5, 0] },
+  { name: 'green', k: 0, weights: [0, 1 / 3.5, 0] },
+  { name: 'cyan', k: -1 / 3, weights: [0, 1 / 3.5, 1 / 3] },
+  { name: 'blue', k: -2 / 3, weights: [0, 0, 1 / 3] },
+  { name: 'purple', k: -1, weights: [1 / 7, 0, 1 / 3] },
+];
+
+function spectralMatrix([r, g, b]) {
+  // Alpha is kept so the weighted taps can be summed as premultiplied colour.
+  return `${r} 0 0 0 0  0 ${g} 0 0 0  0 0 ${b} 0 0  0 0 0 1 0`;
 }
 
 function createFilter(id, chromatic) {
@@ -292,13 +307,6 @@ function createFilter(id, chromatic) {
     return image;
   };
 
-  const gaussian = document.createElementNS(SVG_NS, 'feGaussianBlur');
-  gaussian.setAttribute('in', 'SourceGraphic');
-  gaussian.setAttribute('stdDeviation', '0');
-  gaussian.setAttribute('edgeMode', 'duplicate');
-  gaussian.setAttribute('result', 'blurredSource');
-  filter.append(gaussian);
-
   const makeDisp = (name, mapName) => {
     const node = document.createElementNS(SVG_NS, 'feDisplacementMap');
     node.setAttribute('in', 'blurredSource');
@@ -311,51 +319,59 @@ function createFilter(id, chromatic) {
     return node;
   };
 
-  const nodes = { images: {}, displacements: [], gaussian };
+  // All map images come first so every displacement input already exists.
+  const nodes = { images: {}, displacements: [] };
+  for (const name of chromatic ? SPECTRAL_TAPS.map((tap) => tap.name) : ['base']) {
+    nodes.images[name] = makeImage(name);
+  }
+
+  const gaussian = document.createElementNS(SVG_NS, 'feGaussianBlur');
+  gaussian.setAttribute('in', 'SourceGraphic');
+  gaussian.setAttribute('stdDeviation', '0');
+  gaussian.setAttribute('edgeMode', 'duplicate');
+  gaussian.setAttribute('result', 'blurredSource');
+  filter.append(gaussian);
+  nodes.gaussian = gaussian;
+
   if (!chromatic) {
-    nodes.images.base = makeImage('base');
-    // Move the map before the blur primitive so all inputs are available.
-    filter.insertBefore(nodes.images.base, gaussian);
     nodes.displacements.push(makeDisp('refracted', 'base'));
   } else {
-    nodes.images.red = makeImage('red');
-    nodes.images.green = makeImage('green');
-    nodes.images.blue = makeImage('blue');
-    filter.insertBefore(nodes.images.blue, gaussian);
-    filter.insertBefore(nodes.images.green, nodes.images.blue);
-    filter.insertBefore(nodes.images.red, nodes.images.green);
-    const redDisp = makeDisp('redDisp', 'red');
-    const greenDisp = makeDisp('greenDisp', 'green');
-    const blueDisp = makeDisp('blueDisp', 'blue');
-    nodes.displacements.push(redDisp, greenDisp, blueDisp);
-
-    for (const [channel, input, result] of [['r', 'redDisp', 'redOnly'], ['g', 'greenDisp', 'greenOnly'], ['b', 'blueDisp', 'blueOnly']]) {
+    let sum = '';
+    for (const tap of SPECTRAL_TAPS) {
+      nodes.displacements.push(makeDisp(`${tap.name}Disp`, tap.name));
       const matrix = document.createElementNS(SVG_NS, 'feColorMatrix');
-      matrix.setAttribute('in', input);
+      matrix.setAttribute('in', `${tap.name}Disp`);
       matrix.setAttribute('type', 'matrix');
-      matrix.setAttribute('values', channelMatrix(channel));
-      matrix.setAttribute('result', result);
+      matrix.setAttribute('values', spectralMatrix(tap.weights));
+      matrix.setAttribute('result', `${tap.name}Tap`);
       filter.append(matrix);
+      if (!sum) {
+        sum = `${tap.name}Tap`;
+        continue;
+      }
+      // Premultiplied add. Opaque taps saturate alpha at 1 while the weighted
+      // colour channels add up to exactly one sample per channel.
+      const add = document.createElementNS(SVG_NS, 'feComposite');
+      add.setAttribute('in', sum);
+      add.setAttribute('in2', `${tap.name}Tap`);
+      add.setAttribute('operator', 'arithmetic');
+      add.setAttribute('k1', '0');
+      add.setAttribute('k2', '1');
+      add.setAttribute('k3', '1');
+      add.setAttribute('k4', '0');
+      sum = `${tap.name}Sum`;
+      add.setAttribute('result', sum);
+      filter.append(add);
     }
-
-    const rg = document.createElementNS(SVG_NS, 'feBlend');
-    rg.setAttribute('in', 'redOnly');
-    rg.setAttribute('in2', 'greenOnly');
-    rg.setAttribute('mode', 'screen');
-    rg.setAttribute('result', 'rg');
-    filter.append(rg);
-
-    const rgb = document.createElementNS(SVG_NS, 'feBlend');
-    rgb.setAttribute('in', 'rg');
-    rgb.setAttribute('in2', 'blueOnly');
-    rgb.setAttribute('mode', 'screen');
-    rgb.setAttribute('result', 'spectral');
-    filter.append(rgb);
   }
 
   defs.append(filter);
   return { filter, ...nodes };
 }
+
+// Interaction can push the lens up to this multiple of its authored strength
+// (see applyVisualState). Maps are built so samples stay in bounds even then.
+const MAX_OPTICAL_INTENSITY = 1.62;
 
 function mapsFor(width, height, radius, config) {
   const res = clamp(config.mapResolution, 0.42, 1);
@@ -372,9 +388,14 @@ function mapsFor(width, height, radius, config) {
   const amount = config.lensAmount;
   const sx = width / w;
   const sy = height / h;
-  const vectorScale = Math.max(Math.abs(amount), 1);
+  const chromatic = Boolean(config.chromaticAberration);
+  // Spectral taps reach base ± dispersion, which is at most twice the bevel
+  // vector; give the 8-bit maps that much headroom so the red/purple ends are
+  // not clipped.
+  const vectorScale = Math.max(Math.abs(amount), 1) * (chromatic ? 2 : 1);
+  const aberration = chromatic ? clamp(config.aberrationStrength ?? 1, 0, 1) : 0;
 
-  const names = config.chromaticAberration ? ['red', 'green', 'blue'] : ['base'];
+  const names = chromatic ? SPECTRAL_TAPS.map((tap) => tap.name) : ['base'];
   const stores = Object.fromEntries(names.map((name) => {
     const canvas = document.createElement('canvas');
     canvas.width = w;
@@ -383,7 +404,21 @@ function mapsFor(width, height, radius, config) {
     return [name, { canvas, ctx, image: ctx.createImageData(w, h) }];
   }));
 
-  const write = (store, index, dx, dy) => {
+  // A backdrop-filter / foreground filter only has the element's own pixels:
+  // anything sampled outside the border box is transparent black and shows up
+  // as a grey, darkened patch on small controls. Backdrop's shader can read the
+  // whole layer, so clamp each sample to stay inside instead of dropping it.
+  const limitX = Math.max(halfW - 1, 0);
+  const limitY = Math.max(halfH - 1, 0);
+  const keepInside = (pos, delta, limit) => {
+    if (delta > 0) return Math.min(delta, Math.max(limit - pos, 0) / MAX_OPTICAL_INTENSITY);
+    if (delta < 0) return Math.max(delta, Math.min(-limit - pos, 0) / MAX_OPTICAL_INTENSITY);
+    return 0;
+  };
+
+  const write = (store, index, dx, dy, x, y) => {
+    dx = keepInside(x, dx, limitX);
+    dy = keepInside(y, dy, limitY);
     const data = store.image.data;
     data[index] = clamp(Math.round((dx / vectorScale + 0.5) * 255), 0, 255);
     data[index + 1] = clamp(Math.round((dy / vectorScale + 0.5) * 255), 0, 255);
@@ -399,6 +434,8 @@ function mapsFor(width, height, radius, config) {
       const sd = sdRoundedRect(x, y, halfW, halfH, r);
       let dx = 0;
       let dy = 0;
+      let bevelX = 0;
+      let bevelY = 0;
       let dispersion = 0;
       const inside = -Math.min(sd, 0);
       if (sd <= 0) {
@@ -420,22 +457,23 @@ function mapsFor(width, height, radius, config) {
           const len = Math.hypot(gx, gy) || 1;
           gx /= len;
           gy /= len;
-          dx += -d * gx;
-          dy += -d * gy;
+          bevelX = -d * gx;
+          bevelY = -d * gy;
+          dx += bevelX;
+          dy += bevelY;
         }
-        dispersion = clamp((x * y) / Math.max(halfW * halfH, 1), -1, 1);
+        // Backdrop: dispersionIntensity = chromaticAberration * (x * y) / (halfW * halfH),
+        // applied to the bevel refraction only (d * grad), never to the body lens.
+        dispersion = aberration * clamp((x * y) / Math.max(halfW * halfH, 1), -1, 1);
       }
 
-      if (!config.chromaticAberration) {
-        write(stores.base, index, dx, dy);
+      if (!chromatic) {
+        write(stores.base, index, dx, dy, x, y);
       } else {
-        // Real glass can split the strongest bevel rays slightly, but a full
-        // red/blue offset looks synthetic. Keep dispersion subtle and limited to
-        // the authored aberration strength for Clear controls.
-        const spectral = dispersion * clamp(config.aberrationStrength || 0.04, 0, 0.18);
-        write(stores.red, index, dx * (1 + spectral), dy * (1 + spectral));
-        write(stores.green, index, dx, dy);
-        write(stores.blue, index, dx * (1 - spectral), dy * (1 - spectral));
+        for (const tap of SPECTRAL_TAPS) {
+          const spread = tap.k * dispersion;
+          write(stores[tap.name], index, dx + bevelX * spread, dy + bevelY * spread, x, y);
+        }
       }
       index += 4;
     }
@@ -450,6 +488,44 @@ function mapsFor(width, height, radius, config) {
   mapCache.set(key, result);
   if (mapCache.size > 96) mapCache.delete(mapCache.keys().next().value);
   return result;
+}
+
+// Chromium offsets a backdrop-filter's userSpaceOnUse origin into the border
+// box by the outer box-shadow's left/top ink overflow: with a `0 4px 14px`
+// shadow, filter coordinate (0, 0) lands at border-box (21, 17). Uncompensated,
+// the filter region slides down/right, so the lens + dispersion only cover part
+// of the control and small thumbs show a dark patch. Return that overflow so
+// the filter can be placed at its negative and land back on the border box.
+// Blur extends 1.5x its radius.
+function splitShadowList(value) {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    if (value[i] === '(') depth += 1;
+    else if (value[i] === ')') depth -= 1;
+    else if (value[i] === ',' && depth === 0) {
+      parts.push(value.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(value.slice(start));
+  return parts;
+}
+
+function shadowInkOutset(boxShadow) {
+  const outset = { left: 0, top: 0 };
+  if (!boxShadow || boxShadow === 'none') return outset;
+  for (const shadow of splitShadowList(boxShadow)) {
+    if (/\binset\b/.test(shadow)) continue;
+    const lengths = shadow.replace(/\([^)]*\)/g, '').match(/-?[\d.]+px/g)?.map(parseFloat) || [];
+    if (lengths.length < 2) continue;
+    const [offsetX, offsetY, blur = 0, spread = 0] = lengths;
+    const extent = Math.max(blur, 0) * 1.5 + spread;
+    outset.left = Math.max(outset.left, extent - offsetX);
+    outset.top = Math.max(outset.top, extent - offsetY);
+  }
+  return outset;
 }
 
 function setHref(image, url) {
@@ -505,6 +581,7 @@ class LiquidBackdrop {
     this.resizeTimer = 0;
     this.lastKey = '';
     this.lastFilterMode = '';
+    this.lastFilterOrigin = '';
     this.lastDisplacementScale = NaN;
     this.lastBlur = NaN;
     this.lastCssVars = new Map();
@@ -680,6 +757,7 @@ class LiquidBackdrop {
     if (mode === this.lastFilterMode) return;
     this.lastFilterMode = mode;
 
+    if (mode === 'lens') this.syncFilterOrigin();
     let value = 'none';
     if (mode === 'lens') value = `saturate(${this.config.vibrancy}) brightness(${this.config.brightness}) url("#${this.id}")`;
     else if (mode === 'blur') value = `saturate(${this.config.vibrancy}) brightness(${this.config.brightness}) blur(${effectiveBlur.toFixed(2)}px)`;
@@ -723,7 +801,7 @@ class LiquidBackdrop {
     if (!this.surfaceOnly && this.filter) {
       // Interaction energizes the lens itself, not just an overlay. This is the
       // key difference between a glass-looking button and a living glass control.
-      const opticalIntensity = clamp(s.intensity * (1 + hover * 0.08 + press * 0.24), 0, 1.62);
+      const opticalIntensity = clamp(s.intensity * (1 + hover * 0.08 + press * 0.24), 0, MAX_OPTICAL_INTENSITY);
       const scale = this.vectorScale * opticalIntensity;
       if (!Number.isFinite(this.lastDisplacementScale) || Math.abs(scale - this.lastDisplacementScale) > 0.012) {
         this.lastDisplacementScale = scale;
@@ -773,6 +851,24 @@ class LiquidBackdrop {
     this.resizeTimer = window.setTimeout(() => this.update(), 100);
   }
 
+  // Keep the filter region on the border box (see shadowInkOutset). Local-
+  // sampled glass filters a shadowless child layer and never needs an offset.
+  syncFilterOrigin(computed = null) {
+    if (!this.filter || this.localSample) return;
+    const outset = shadowInkOutset((computed || getComputedStyle(this.element)).boxShadow);
+    const origin = `${outset.left.toFixed(2)},${outset.top.toFixed(2)}`;
+    if (origin === this.lastFilterOrigin) return;
+    this.lastFilterOrigin = origin;
+    const x = (-outset.left).toFixed(2);
+    const y = (-outset.top).toFixed(2);
+    this.filter.filter.setAttribute('x', x);
+    this.filter.filter.setAttribute('y', y);
+    for (const image of Object.values(this.filter.images)) {
+      image.setAttribute('x', x);
+      image.setAttribute('y', y);
+    }
+  }
+
   update() {
     if (this.surfaceOnly || !this.filter) {
       this.element.dataset.liquidReady = 'true';
@@ -786,6 +882,7 @@ class LiquidBackdrop {
     // from untransformed layout size so press scaling cannot feed back into glow size.
     this.setCssVar('--lg-interactive-radius', `${(Math.min(width, height) * 1.5).toFixed(2)}px`);
     if (this.localSample) this.updateLocalLayers();
+    this.syncFilterOrigin(computed);
     const key = `${width}x${height}@${Math.round(radius * 10)}`;
     if (key === this.lastKey) return;
     this.lastKey = key;
@@ -798,13 +895,7 @@ class LiquidBackdrop {
       image.setAttribute('width', String(width));
       image.setAttribute('height', String(height));
     }
-    if (this.config.chromaticAberration) {
-      setHref(this.filter.images.red, urls.red);
-      setHref(this.filter.images.green, urls.green);
-      setHref(this.filter.images.blue, urls.blue);
-    } else {
-      setHref(this.filter.images.base, urls.base);
-    }
+    for (const [name, image] of Object.entries(this.filter.images)) setHref(image, urls[name]);
     this.applyVisualState();
     this.element.dataset.liquidReady = 'true';
   }

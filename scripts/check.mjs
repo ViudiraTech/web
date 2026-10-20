@@ -111,6 +111,27 @@ for (const simulator of ['ios27-sim.js', 'macos27-sim.js']) {
     process.exit(1);
   }
 }
+// Dispersion follows Backdrop's RoundedRectRefractionWithDispersion shader:
+// seven spectral taps at full strength. A fractional default (e.g. 0.04) made
+// the split sub-pixel and visually disappear.
+for (const marker of ['SPECTRAL_TAPS', "name: 'purple', k: -1", 'aberrationStrength: 1,', 'bevelX * spread']) {
+  if (!glass.includes(marker)) {
+    console.error(`Liquid Glass dispersion regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+if (/aberrationStrength \|\| 0\.0\d/.test(glass)) {
+  console.error('Liquid Glass dispersion regression: fractional aberration default returned');
+  process.exit(1);
+}
+// Chromium offsets backdrop-filter userSpaceOnUse coordinates by the outer
+// box-shadow overflow; without compensation the lens covers only part of a control.
+for (const marker of ['shadowInkOutset', 'syncFilterOrigin', 'MAX_OPTICAL_INTENSITY', 'keepInside']) {
+  if (!glass.includes(marker)) {
+    console.error(`Liquid Glass filter-region regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
 if (!glass.includes('aberrationStrength') || !glass.includes('opticalIntensity') || !glass.includes("hover: 0")) {
   console.error('Shared Liquid Glass optical interaction layers regressed');
   process.exit(1);
