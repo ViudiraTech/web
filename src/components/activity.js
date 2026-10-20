@@ -1,7 +1,11 @@
 import { icons } from '../utils/icons.js';
 import { formatRelative } from '../github/repositories.js';
 import { escapeHtml } from '../utils/html.js';
-import { liquidButton } from './liquid-button.js';
+import { siteAction } from './site-action.js';
+import { sectionHeading } from './home-sections.js';
+
+const ACTIONS = { opened: '打开', closed: '关闭', reopened: '重新打开', merged: '合并', published: '发布', created: '创建', edited: '编辑' };
+const action = (value) => ACTIONS[value] || value || '更新';
 
 function eventText(event) {
   const repo = event.repo?.name?.replace('ViudiraTech/', '') || 'ViudiraTech';
@@ -9,13 +13,13 @@ function eventText(event) {
   if (event.type === 'PushEvent') {
     const count = payload.size ?? payload.commits?.length ?? 0;
     const msg = payload.commits?.[0]?.message;
-    return { title: `${repo} · Push`, message: msg ? `${count} 个提交 · ${msg}` : `${count} 个提交` };
+    return { kind: 'Push', title: repo, message: msg ? `${count} 个提交 · ${msg.split('\n')[0]}` : `${count} 个提交` };
   }
-  if (event.type === 'ReleaseEvent') return { title: `${repo} · Release`, message: payload.release?.name || payload.release?.tag_name || '发布了新版本' };
-  if (event.type === 'PullRequestEvent') return { title: `${repo} · Pull Request`, message: `${payload.action || 'updated'} · ${payload.pull_request?.title || ''}`.trim() };
-  if (event.type === 'IssuesEvent') return { title: `${repo} · Issue`, message: `${payload.action || 'updated'} · ${payload.issue?.title || ''}`.trim() };
-  if (event.type === 'CreateEvent') return { title: `${repo} · Create`, message: `创建 ${payload.ref_type || '资源'}${payload.ref ? ` ${payload.ref}` : ''}` };
-  return { title: `${repo} · ${event.type?.replace('Event','') || 'Activity'}`, message: 'GitHub 公开活动' };
+  if (event.type === 'ReleaseEvent') return { kind: 'Release', title: repo, message: payload.release?.name || payload.release?.tag_name || '发布了新版本' };
+  if (event.type === 'PullRequestEvent') return { kind: 'PR', title: repo, message: `${action(payload.action)} · ${payload.pull_request?.title || ''}`.trim() };
+  if (event.type === 'IssuesEvent') return { kind: 'Issue', title: repo, message: `${action(payload.action)} · ${payload.issue?.title || ''}`.trim() };
+  if (event.type === 'CreateEvent') return { kind: 'Create', title: repo, message: `创建 ${payload.ref_type || '资源'}${payload.ref ? ` ${payload.ref}` : ''}` };
+  return { kind: event.type?.replace('Event', '') || 'Event', title: repo, message: 'GitHub 公开活动' };
 }
 
 function eventUrl(event) {
@@ -27,18 +31,23 @@ function eventUrl(event) {
 export function activitySection(events = [], state = 'loading', options = {}) {
   const limit = options.limit || 10;
   const title = options.title || '最近发生了什么。';
-  const copy = options.copy || '时间线基于 GitHub Public Events 展示公开开发活动；当 API 暂时不可用时，会提供 GitHub 入口以便继续查看。';
+  const copy = options.copy || '';
   const useful = events.filter((event) => ['PushEvent','ReleaseEvent','PullRequestEvent','IssuesEvent','CreateEvent'].includes(event.type)).slice(0, limit);
   let list = '';
   if (state === 'loading') list = '<div class="loading-state">正在读取 GitHub Public Events…<div class="loading-bar"></div></div>';
-  else if (!useful.length) list = `<div class="empty-state"><p>暂未取得可展示的公开 Activity。你可以前往 GitHub 查看最新提交、发布与协作动态。</p>${liquidButton({ label: `前往 GitHub ${icons.arrow(14)}`, preset: 'catalog-button-blue', className: 'catalog-button--tinted site-liquid-action site-liquid-action--compact empty-state__action', backdrop: 'ambient', href: 'https://github.com/ViudiraTech', target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}</div>`;
+  else if (!useful.length) list = `<div class="empty-state"><p>暂未取得可展示的公开 Activity。你可以前往 GitHub 查看最新提交、发布与协作动态。</p>${siteAction({ label: `前往 GitHub ${icons.arrow(14)}`, href: 'https://github.com/ViudiraTech', variant: 'primary', compact: true, external: true, className: 'empty-state__action' })}</div>`;
   else list = useful.map((event) => {
     const text = eventText(event);
-    return `<article class="activity-item reveal"><span class="activity-dot"></span><div class="activity-time">${formatRelative(event.created_at)}</div><h3>${escapeHtml(text.title)}</h3><p class="activity-message">${escapeHtml(text.message)}</p><div class="activity-item__action">${liquidButton({ label: `在 GitHub 查看 ${icons.external(13)}`, preset: 'catalog-button-surface', className: 'site-liquid-action site-liquid-action--compact', backdrop: 'ambient', href: eventUrl(event), target: '_blank', rel: 'noreferrer', attributes: 'data-glass-settings-scope="site"' })}</div></article>`;
+    return `<a class="activity-item reveal" href="${escapeHtml(eventUrl(event))}" target="_blank" rel="noreferrer">
+      <span class="activity-item__type">${escapeHtml(text.kind)}</span>
+      <div class="activity-item__body"><h3>${escapeHtml(text.title)}</h3><p>${escapeHtml(text.message)}</p></div>
+      <time class="activity-item__time" datetime="${escapeHtml(event.created_at || '')}">${formatRelative(event.created_at)}</time>
+    </a>`;
   }).join('');
 
-  return `<section class="section ${options.compact ? 'section--home' : ''}" id="activity"><div class="container activity-layout">
-    <div class="activity-intro reveal"><span class="eyebrow">Activity / Public Events</span><h2 class="section-title">${title}</h2><p class="section-copy" style="margin-top:18px">${copy}</p>${options.compact ? liquidButton({ label: `完整动态 ${icons.arrow(15)}`, preset: 'catalog-button-surface', className: 'site-liquid-action site-liquid-action--compact', backdrop: 'ambient', href: '#/activity', attributes: 'data-glass-settings-scope="site"' }) : ''}</div>
+  const headingAction = options.compact ? siteAction({ label: `完整动态 ${icons.arrow(15)}`, href: '#/activity', compact: true }) : '';
+  return `<section class="section" id="activity"><div class="container">
+    ${options.compact ? sectionHeading({ eyebrow: '动态', title, copy, action: headingAction }) : ''}
     <div class="activity-list" data-activity-list>${list}</div>
   </div></section>`;
 }

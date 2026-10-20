@@ -6,7 +6,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const legacyPages = ['projects.html','community.html','activity.html','about.html','glass-ui.html','glass-test.html'];
 const required = [
   'index.html', ...legacyPages, 'vite.config.js', 'src/main.js', 'src/router/routes.js',
-  'src/styles/tokens.css', 'src/styles/components.css', 'src/styles/responsive.css', 'src/styles/system-controls.css',
+  'src/styles/tokens.css', 'src/styles/components.css', 'src/styles/responsive.css', 'src/styles/site.css', 'src/styles/system-controls.css',
+  'src/components/site-action.js', 'src/data/organization.js', 'src/assets/warm-scene.svg',
   'src/github/api.js', 'src/github/repositories.js', 'src/glass/liquid-glass.js',
   'src/components/project-drawer.js', 'src/components/liquid-bottom-tabs.js', 'src/components/liquid-slider.js', 'src/components/liquid-button.js', 'src/components/liquid-system-controls.js', 'src/components/system-glass-dynamics.js', 'src/components/liquid-dialog.js', 'src/components/settings.js',
   'src/animation/catalog-motion.js', 'src/glass/site-preferences.js', 'src/glass/readability-glass.js', 'public/assets/logo-mark.svg', '.github/workflows/deploy-pages.yml',
@@ -45,7 +46,7 @@ for (const file of jsFiles) {
 }
 
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-for (const asset of ['reset.css','tokens.css','layout.css','components.css','responsive.css','./src/main.js']) {
+for (const asset of ['reset.css','tokens.css','layout.css','components.css','responsive.css','site.css','./src/main.js']) {
   if (!index.includes(asset)) {
     console.error(`index.html does not reference ${asset}`);
     process.exit(1);
@@ -235,11 +236,38 @@ for (const marker of ['READABILITY_SURFACE_SELECTOR', 'readability-full', 'apply
   }
 }
 
-const homeProjectsSource = fs.readFileSync(path.join(root, 'src/components/home-projects.js'), 'utf8');
+// Site Liquid Glass is a user-controlled master switch. Public-site actions go
+// through siteAction(), which renders a flat button when the switch is off and
+// the shared Catalog LiquidButton when it is on.
+const siteActionSource = fs.readFileSync(path.join(root, 'src/components/site-action.js'), 'utf8');
+for (const marker of ['isSiteLiquidEnabled()', 'liquidButton({', 'data-glass-switch', "role=\"switch\""]) {
+  if (!siteActionSource.includes(marker)) {
+    console.error(`Site action / glass switch regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+for (const marker of ['liquid: false', "dataset.siteGlass", 'isSiteLiquidEnabled']) {
+  if (!sitePreferences.includes(marker)) {
+    console.error(`Site Liquid Glass master switch regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+for (const marker of ['remountForGlassMode', "'siteglass:change'", '[data-glass-switch]']) {
+  if (!main.includes(marker)) {
+    console.error(`Site Liquid Glass toggle is not wired into the SPA shell: missing ${marker}`);
+    process.exit(1);
+  }
+}
+if (!index.includes('data-site-glass')) {
+  console.error('index.html must apply the saved Liquid Glass mode before first paint');
+  process.exit(1);
+}
+
+const homeSectionsSource = fs.readFileSync(path.join(root, 'src/components/home-sections.js'), 'utf8');
 const activitySource = fs.readFileSync(path.join(root, 'src/components/activity.js'), 'utf8');
 const projectExplorerSource = fs.readFileSync(path.join(root, 'src/components/project-explorer.js'), 'utf8');
-for (const [name, source] of [['home-projects', homeProjectsSource], ['activity', activitySource], ['project-explorer', projectExplorerSource]]) {
-  if (!source.includes('liquidButton({')) {
+for (const [name, source] of [['home-sections', homeSectionsSource], ['activity', activitySource], ['project-explorer', projectExplorerSource]]) {
+  if (!source.includes('siteAction({')) {
     console.error(`Site action LiquidButton regression in ${name}`);
     process.exit(1);
   }
@@ -256,18 +284,18 @@ for (const [name, source] of [['hero', hero], ['join', join], ['drawer', drawer]
     console.error(`Legacy site action button returned in ${name}`);
     process.exit(1);
   }
-  if (!source.includes('liquidButton({')) {
-    console.error(`Shared LiquidButton missing from ${name}`);
+  if (!source.includes('siteAction({')) {
+    console.error(`Site action helper missing from ${name}`);
     process.exit(1);
   }
 }
-for (const marker of ['.hero h1', '.hero-copy', '.section-head .section-copy', '.settings-control__copy', '.footer-copy']) {
+for (const marker of ["'.hero-intro'", "'.page-intro__inner'", "'.settings-control__copy'", "'.footer-about'", 'prefs.liquid && prefs.readabilityLiquid']) {
   if (!readabilityGlass.includes(marker)) {
     console.error(`Readability copy scope regression: missing ${marker}`);
     process.exit(1);
   }
 }
-for (const marker of ["'.network'", "'.project-card'", "'.flow-step'", "'.join-action'"]) {
+for (const marker of ["'.project-card'", "'.feature-card'", "'.focus-card'", "'.stat'"]) {
   if (readabilityGlass.includes(marker)) {
     console.error(`Readability scope is too broad: ${marker} must keep its authored material`);
     process.exit(1);
@@ -322,7 +350,7 @@ for (const marker of ["'catalog-button'", "'catalog-button-surface'", "requested
 }
 
 const navbar = fs.readFileSync(path.join(root, 'src/components/navbar.js'), 'utf8');
-for (const marker of ['liquidBottomTabs({', "className: 'site-nav__tabs'", 'bindLiquidBottomTabs(headerTabs)', "indicatorSurfaceRgb: '0 0 0'", "indicatorIdleAlpha: 0.10", 'indicatorSurfaceFloorRatio: 0.60', "['settings', '设置']", 'data-glass-settings-scope="site"']) {
+for (const marker of ['liquidBottomTabs({', "className: 'site-nav__tabs'", 'bindLiquidBottomTabs(headerTabs)', "indicatorSurfaceRgb: '0 0 0'", "indicatorIdleAlpha: 0.10", 'indicatorSurfaceFloorRatio: 0.60', "['about', '关于我们']", 'data-glass-settings-scope="site"', 'isSiteLiquidEnabled()', 'glassSwitch(']) {
   if (!navbar.includes(marker)) {
     console.error(`Shared BottomTabs Header regression: missing ${marker}`);
     process.exit(1);
@@ -340,9 +368,16 @@ if (componentCss.includes('catalog-webgl-canvas') || componentCss.includes('data
   console.error('WebGL Catalog compositor CSS returned after SVG rollback');
   process.exit(1);
 }
-for (const marker of ['Public-site readability over the photographic background', 'data-mobile-label', 'picsum.photos/id/1015/1200/800']) {
+for (const marker of ['data-mobile-label', 'picsum.photos/id/1015/1200/800']) {
   if (!componentCss.includes(marker)) {
-    console.error(`Public readability/mobile/refraction CSS regression: missing ${marker}`);
+    console.error(`Catalog mobile/refraction CSS regression: missing ${marker}`);
+    process.exit(1);
+  }
+}
+const siteCss = fs.readFileSync(path.join(root, 'src/styles/site.css'), 'utf8');
+for (const marker of ['html[data-site-glass="on"] .readability-surface', '.glass-switch', '.drawer-close-floating:not(.liquid-button-proxy)']) {
+  if (!siteCss.includes(marker)) {
+    console.error(`Public site CSS regression: missing ${marker}`);
     process.exit(1);
   }
 }

@@ -29,11 +29,28 @@ function settingRow({ key, title, description, value }) {
   </div>`;
 }
 
+function masterRow(enabled) {
+  return `<div class="settings-control settings-control--toggle" data-setting-row="liquid">
+    <div class="settings-control__copy">
+      <div class="settings-control__title"><strong>在整个网站启用液态玻璃</strong><output data-setting-output="liquid">${enabled ? '开启' : '关闭'}</output></div>
+      <p>关闭时网站使用平整的纸面风格，阅读最轻松，也最省电。开启后，导航、按钮与筛选器会换成可折射背景的 Liquid Glass，背景也会换成暖色场景。页头右侧的开关与这里同步。</p>
+    </div>
+    <div class="settings-control__toggle-wrap">
+      ${liquidToggle({
+        checked: enabled,
+        ariaLabel: '在整个网站启用液态玻璃',
+        setting: 'liquid',
+        className: 'settings-control__toggle',
+      })}
+    </div>
+  </div>`;
+}
+
 function liquidReadabilityRow(enabled) {
   return `<div class="settings-control settings-control--toggle" data-setting-row="readabilityLiquid">
     <div class="settings-control__copy">
       <div class="settings-control__title"><strong>易读背景使用完整 Liquid Glass</strong><output data-setting-output="readabilityLiquid">${enabled ? '开启' : '关闭'}</output></div>
-      <p>关闭时，文字易读层使用轻量 CSS 毛玻璃；开启后，仅这些阅读底切换为完整 Liquid Glass。项目卡、Network、技术图和其它内容卡仍保持各自原有材质。</p>
+      <p>仅在液态玻璃开启时生效。关闭时，正文的阅读底使用轻量 CSS 毛玻璃；开启后，这些阅读底切换为完整 Liquid Glass。项目卡与其它内容卡保持各自原有材质。</p>
     </div>
     <div class="settings-control__toggle-wrap">
       ${liquidToggle({
@@ -50,9 +67,9 @@ export function settingsPage() {
   const settings = getSiteGlassPreferences();
   return `<section class="settings-hero">
     <div class="container settings-hero__inner reveal">
-      <span class="eyebrow">Settings / Liquid Glass</span>
-      <h1>玻璃材质，按你的屏幕来。</h1>
-      <p>这里调整的是网站界面使用的 Liquid Glass。Header、导航玻璃、移动菜单和项目详情会实时跟随；Liquid UI Lab 的 Catalog 测试控件保持原始参数，不被这些设置修改。</p>
+      <p class="kicker">设置 · Liquid Glass</p>
+      <h1>玻璃材质设置</h1>
+      <p>选择是否在网站上使用液态玻璃，并调整它的透明度与模糊度。Liquid UI Lab 的测试控件保持原始参数，不受这些设置影响。</p>
     </div>
   </section>
 
@@ -61,7 +78,7 @@ export function settingsPage() {
       <div class="settings-panel reveal">
         <div class="settings-panel__head">
           <div>
-            <span class="eyebrow">Material</span>
+            <span class="kicker">Material</span>
             <h2 data-macos-easter-trigger tabindex="0" aria-label="透明与模糊">透明与模糊</h2>
           </div>
           ${liquidButton({
@@ -71,6 +88,7 @@ export function settingsPage() {
             attributes: 'data-settings-reset data-shared-surface-button',
           })}
         </div>
+        ${masterRow(settings.liquid)}
         ${settingRow({
           key: 'transparency',
           title: '透明度',
@@ -114,6 +132,8 @@ function updateOutputs(root, settings) {
   }
   const readability = root.querySelector('[data-setting-output="readabilityLiquid"]');
   if (readability) readability.textContent = settings.readabilityLiquid ? '开启' : '关闭';
+  const master = root.querySelector('[data-setting-output="liquid"]');
+  if (master) master.textContent = settings.liquid ? '开启' : '关闭';
 }
 
 function syncControlsToSettings(root, settings, { animate = true } = {}) {
@@ -144,6 +164,15 @@ export function bindSettingsPage(root = document.querySelector('#main') || docum
       updateOutputs(root, settings);
     });
   });
+
+  const masterToggle = root.querySelector('[data-setting-toggle="liquid"]');
+  if (masterToggle && masterToggle.dataset.settingBound !== '1') {
+    masterToggle.dataset.settingBound = '1';
+    masterToggle.addEventListener('liquidtoggle:change', (event) => {
+      const settings = setSiteGlassPreferences({ liquid: Boolean(event.detail?.checked) });
+      updateOutputs(root, settings);
+    });
+  }
 
   const readabilityToggle = root.querySelector('[data-setting-toggle="readabilityLiquid"]');
   if (readabilityToggle && readabilityToggle.dataset.settingBound !== '1') {
