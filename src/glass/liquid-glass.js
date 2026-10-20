@@ -490,44 +490,6 @@ function mapsFor(width, height, radius, config) {
   return result;
 }
 
-// Chromium offsets a backdrop-filter's userSpaceOnUse origin into the border
-// box by the outer box-shadow's left/top ink overflow: with a `0 4px 14px`
-// shadow, filter coordinate (0, 0) lands at border-box (21, 17). Uncompensated,
-// the filter region slides down/right, so the lens + dispersion only cover part
-// of the control and small thumbs show a dark patch. Return that overflow so
-// the filter can be placed at its negative and land back on the border box.
-// Blur extends 1.5x its radius.
-function splitShadowList(value) {
-  const parts = [];
-  let depth = 0;
-  let start = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    if (value[i] === '(') depth += 1;
-    else if (value[i] === ')') depth -= 1;
-    else if (value[i] === ',' && depth === 0) {
-      parts.push(value.slice(start, i));
-      start = i + 1;
-    }
-  }
-  parts.push(value.slice(start));
-  return parts;
-}
-
-function shadowInkOutset(boxShadow) {
-  const outset = { left: 0, top: 0 };
-  if (!boxShadow || boxShadow === 'none') return outset;
-  for (const shadow of splitShadowList(boxShadow)) {
-    if (/\binset\b/.test(shadow)) continue;
-    const lengths = shadow.replace(/\([^)]*\)/g, '').match(/-?[\d.]+px/g)?.map(parseFloat) || [];
-    if (lengths.length < 2) continue;
-    const [offsetX, offsetY, blur = 0, spread = 0] = lengths;
-    const extent = Math.max(blur, 0) * 1.5 + spread;
-    outset.left = Math.max(outset.left, extent - offsetX);
-    outset.top = Math.max(outset.top, extent - offsetY);
-  }
-  return outset;
-}
-
 function setHref(image, url) {
   image.setAttribute('href', url);
   image.setAttributeNS(XLINK_NS, 'href', url);
@@ -581,7 +543,6 @@ class LiquidBackdrop {
     this.resizeTimer = 0;
     this.lastKey = '';
     this.lastFilterMode = '';
-    this.lastFilterOrigin = '';
     this.lastDisplacementScale = NaN;
     this.lastBlur = NaN;
     this.lastCssVars = new Map();
@@ -757,7 +718,6 @@ class LiquidBackdrop {
     if (mode === this.lastFilterMode) return;
     this.lastFilterMode = mode;
 
-    if (mode === 'lens') this.syncFilterOrigin();
     let value = 'none';
     if (mode === 'lens') value = `saturate(${this.config.vibrancy}) brightness(${this.config.brightness}) url("#${this.id}")`;
     else if (mode === 'blur') value = `saturate(${this.config.vibrancy}) brightness(${this.config.brightness}) blur(${effectiveBlur.toFixed(2)}px)`;
@@ -851,24 +811,6 @@ class LiquidBackdrop {
     this.resizeTimer = window.setTimeout(() => this.update(), 100);
   }
 
-  // Keep the filter region on the border box (see shadowInkOutset). Local-
-  // sampled glass filters a shadowless child layer and never needs an offset.
-  syncFilterOrigin(computed = null) {
-    if (!this.filter || this.localSample) return;
-    const outset = shadowInkOutset((computed || getComputedStyle(this.element)).boxShadow);
-    const origin = `${outset.left.toFixed(2)},${outset.top.toFixed(2)}`;
-    if (origin === this.lastFilterOrigin) return;
-    this.lastFilterOrigin = origin;
-    const x = (-outset.left).toFixed(2);
-    const y = (-outset.top).toFixed(2);
-    this.filter.filter.setAttribute('x', x);
-    this.filter.filter.setAttribute('y', y);
-    for (const image of Object.values(this.filter.images)) {
-      image.setAttribute('x', x);
-      image.setAttribute('y', y);
-    }
-  }
-
   update() {
     if (this.surfaceOnly || !this.filter) {
       this.element.dataset.liquidReady = 'true';
@@ -882,7 +824,6 @@ class LiquidBackdrop {
     // from untransformed layout size so press scaling cannot feed back into glow size.
     this.setCssVar('--lg-interactive-radius', `${(Math.min(width, height) * 1.5).toFixed(2)}px`);
     if (this.localSample) this.updateLocalLayers();
-    this.syncFilterOrigin(computed);
     const key = `${width}x${height}@${Math.round(radius * 10)}`;
     if (key === this.lastKey) return;
     this.lastKey = key;

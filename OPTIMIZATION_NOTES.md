@@ -131,10 +131,17 @@ of the Liquid controls.
   strength is Backdrop's `chromaticAberration = 1`; iOS/macOS Clear controls use 0.6.
   The earlier `aberrationStrength || 0.04` multiplier shrank the split below one pixel,
   which is why dispersion had effectively disappeared.
-- Chromium places a backdrop-filter's `userSpaceOnUse` origin inside the border box by
-  the outer `box-shadow` ink overflow (a `0 4px 14px` shadow moves it by 21×17 px). The
-  lens therefore only covered the lower-right part of shadowed controls; small thumbs
-  showed a flat patch. `syncFilterOrigin()` now shifts the filter region and maps back
-  onto the border box.
 - Displacement maps keep every sample inside the element (including the 1.62× press
   boost), since pixels outside the border box are transparent to the filter.
+
+### Correction (same day)
+
+- The box-shadow filter-origin compensation added in the same change was wrong for
+  real browsers and has been removed. Headless (software-composited) Chromium shifts a
+  `backdrop-filter`'s `userSpaceOnUse` origin by the outer `box-shadow` overflow, but GPU
+  Chromium keeps it at the border box. Compensating for the headless quirk shifted the
+  lens up-left on real devices (doubled labels, straight cut-off edges in the header
+  tab indicator). The filter region is anchored at (0, 0) again, as originally.
+- When verifying glass in headless Chromium, remove outer box-shadows from the glass
+  elements (`.liquid-glass{box-shadow:none!important}`) so the render matches GPU
+  Chromium.
